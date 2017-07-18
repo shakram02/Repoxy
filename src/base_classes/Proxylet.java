@@ -2,6 +2,7 @@ package base_classes;
 
 import com.google.common.eventbus.Subscribe;
 import network_io.AddressBook;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -36,8 +37,7 @@ public abstract class Proxylet implements Closeable {
     protected abstract void cycle() throws IOException;
 
     @Subscribe
-    protected void dispatchEvent(SocketEventArg arg) {
-        this.logger.info("Dispatching " + arg.type);
+    protected final void dispatchEvent(SocketEventArg arg) {
         switch (arg.type) {
             case DataIn:
                 this.onData(arg.id, arg.extraData);
@@ -57,11 +57,13 @@ public abstract class Proxylet implements Closeable {
     @Override
     public abstract void close() throws IOException;
 
-    public ConnectionId getConnectionId(SocketChannel channel) {
+    @NotNull
+    public final ConnectionId getConnectionId(SocketChannel channel) {
         return this.addressMap.getId(channel);
     }
 
-    public ConnectionId getConnectionId(SocketAddress address) {
+    @NotNull
+    public final ConnectionId getConnectionId(SocketAddress address) {
         return this.addressMap.getId(address);
     }
 
