@@ -27,6 +27,7 @@ public final class SwitchesRegion extends WatchedRegion {
 
     @Override
     protected void onDisconnect(ConnectionId id) {
+        super.onDisconnect(id);
         this.logger.info("[" + this.ioHandler.getRemoteAddress(id) + "] Disconnected");
     }
 }

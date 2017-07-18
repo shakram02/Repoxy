@@ -45,6 +45,10 @@ public abstract class WatchedRegion extends Proxylet {
         this.ioHandler.removeOutput(id);
     }
 
+    @Override
+    protected void onDisconnect(ConnectionId id) {
+        this.packetBuffer.clearAllData(id);
+    }
 
     @Override
     public void cycle() throws IOException {
