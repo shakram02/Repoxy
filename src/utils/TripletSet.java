@@ -1,4 +1,4 @@
-package base_classes;
+package utils;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;

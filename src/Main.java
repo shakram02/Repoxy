@@ -1,24 +1,33 @@
-import base_classes.WatchedRegion;
-import network_io.ServerIOHandler;
+import regions.SwitchesRegion;
 
 import java.io.IOException;
 
 /**
- * Created by ahmed on 7/16/17.
+ * Packet flow:
+ * **Input**
+ * - Sockets
+ * - Regions
+ * - Mediators
+ * - Regions
+ * - Sockets
+ * **Output**
  */
 public class Main {
     public static final String localhost = "127.0.0.1";
     public static final int of_port = 6633;
 
-    public static void main(String[] args) throws IOException, InterruptedException {
-        WatchedRegion region = new WatchedRegion();
-        ServerIOHandler server = new ServerIOHandler(region);
+    public static void main(String[] args) throws IOException {
+        SwitchesRegion server = new SwitchesRegion();
         server.startListening(localhost, of_port);
 
         while (true) {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                server.close();
+                break;
+            }
             server.cycle();
-
-            Thread.sleep(100);
         }
     }
 }

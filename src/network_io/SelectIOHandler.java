@@ -1,35 +1,45 @@
 package network_io;
 
-import base_classes.ConnectionId;
-import base_classes.Proxylet;
+import utils.ConnectionId;
+import utils.EventType;
+import proxylet.Proxylet;
+import utils.PacketBuffer;
+import utils.SocketEventArg;
 import com.google.common.collect.HashBiMap;
+import com.google.common.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import java.io.Closeable;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.*;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import java.util.Set;
 import java.util.Vector;
 
 /**
  * Handles low level socket I/O operations
  */
-public class SelectIOHandler {
-    private Selector selector;
-    private HashBiMap<SelectionKey, ConnectionId> connectionIdHashMap;
-    protected final Proxylet proxylet;
+public class SelectIOHandler implements Closeable {
     public static int BUFFER_SIZE = 1;
+    private Selector selector;  // Selector is made private to avoid confusion in sub classes
+    private HashBiMap<SelectionKey, ConnectionId> keyMap;
     private PacketBuffer packetBuffer;
     private ByteBuffer buffer;
+    private EventBus eventBus;
 
     public SelectIOHandler(Proxylet proxylet, PacketBuffer packetBuffer)
             throws IOException {
-        this.packetBuffer = packetBuffer;
         this.selector = Selector.open();
-        this.proxylet = proxylet;
-        this.connectionIdHashMap = HashBiMap.create();
+        this.keyMap = HashBiMap.create();
         this.buffer = ByteBuffer.allocate(BUFFER_SIZE);
+
+        this.packetBuffer = packetBuffer;
+        this.eventBus = new EventBus(this.getClass().getName());
+        this.eventBus.register(proxylet);
     }
 
     public void cycle() throws IOException {
@@ -37,8 +47,11 @@ public class SelectIOHandler {
         if (count == 0) {
             return;
         }
-
-        for (SelectionKey key : this.selector.selectedKeys()) {
+        // TODO will be used later when having threads for controller and switches
+        // this.selector.select();
+        Set<SelectionKey> keys = this.selector.selectedKeys();
+        for (SelectionKey key : keys) {
+            keys.remove(key);
             this.handleKey(key);
         }
     }
@@ -49,58 +62,86 @@ public class SelectIOHandler {
      * @param key: SelectionKey in question
      * @throws IOException When socket I/O operation fails
      */
-    public void handleKey(SelectionKey key) throws IOException {
+    private void handleKey(SelectionKey key) throws IOException {
+
+        if (key.isAcceptable()) {
+            ServerSocketChannel ch = (ServerSocketChannel) key.channel();
+            this.onConnection(ch);
+            return;
+        }
+
         SocketChannel channel = (SocketChannel) key.channel();
-        ConnectionId id = connectionIdHashMap.get(key);
+        ConnectionId id = keyMap.get(key);
 
         if (key.isReadable()) {
 
             int read = channel.read(buffer);
             if (read == -1) {
-                this.proxylet.onDisconnect(id);
-                this.removeConnection(id);
+                this.onDisconnected(id);
                 return;
             }
 
-            Vector<Byte> data = readRemainingBytes(channel, read);
-            this.proxylet.onData(id, data);
+            this.onData(id, channel, read);
         }
         if (key.isWritable()) {
-            this.writePackets(id, channel);
-            // All packets are now sent, unwatch this socket for writing
-            // Re-adding the socket is done by the proxylet
-            this.removeOutput(id);
+            this.onWritable(id, channel);
         }
     }
 
-    public void addConnection(ConnectionId id, SocketChannel channel) throws ClosedChannelException {
-        SelectionKey key = channel.register(selector, SelectionKey.OP_READ);
-        this.connectionIdHashMap.put(key, id);
+    private void onWritable(ConnectionId id, SocketChannel channel) throws IOException {
+        this.writePackets(id, channel);
+        this.eventBus.post(new SocketEventArg(EventType.DataOut, id));
     }
 
-    private void removeConnection(ConnectionId id) throws IOException {
-        SelectionKey key = this.connectionIdHashMap.inverse().get(id);
-        this.connectionIdHashMap.remove(key);
+    private void onData(ConnectionId id, SocketChannel channel, int read) throws IOException {
+        Vector<Byte> data = readRemainingBytes(channel, read);
+        this.eventBus.post(new SocketEventArg(EventType.DataIn, id, data));
+    }
+
+    private void onConnection(ServerSocketChannel server) throws IOException {
+        SocketChannel channel = server.accept();
+        channel.configureBlocking(false);
+        SelectionKey key = channel.register(selector, SelectionKey.OP_READ);
+
+        ConnectionId id = new ConnectionId();
+        this.keyMap.put(key, id);
+
+        this.eventBus.post(new SocketEventArg(EventType.Connection, id));
+    }
+
+    private void onDisconnected(ConnectionId id) throws IOException {
+        SelectionKey key = this.keyMap.inverse().get(id);
+        this.keyMap.remove(key);
+
         key.cancel();
         key.channel().close();
+
+        this.eventBus.post(new SocketEventArg(EventType.Disconnection, id));
+    }
+
+    public void createServer(String address, int port) throws IOException {
+        ServerSocketChannel server = ServerSocketChannel.open();
+        server.configureBlocking(false);
+        SelectionKey key = server.register(this.selector, SelectionKey.OP_ACCEPT);
+
+        ConnectionId id = new ConnectionId();
+        this.keyMap.put(key, id);
+
+        server.socket().bind(new InetSocketAddress(address, port));
     }
 
     public void addOutput(ConnectionId id) {
-        SelectionKey key = this.connectionIdHashMap.inverse().get(id);
+        SelectionKey key = this.keyMap.inverse().get(id);
         int oldOps = key.interestOps();
         key.interestOps(oldOps | SelectionKey.OP_WRITE);
     }
 
-    private void removeOutput(ConnectionId id) {
-        SelectionKey key = this.connectionIdHashMap.inverse().get(id);
+    public void removeOutput(ConnectionId id) {
+        SelectionKey key = this.keyMap.inverse().get(id);
         int oldOps = key.interestOps();
         key.interestOps(oldOps & ~SelectionKey.OP_WRITE);
     }
 
-    protected void addServer(ConnectionId id, ServerSocketChannel channel) throws ClosedChannelException {
-        SelectionKey key = channel.register(this.selector, SelectionKey.OP_ACCEPT);
-        this.connectionIdHashMap.put(key, id);
-    }
 
     /**
      * Reads the remaining amount of bytes after a first successful read
@@ -133,11 +174,24 @@ public class SelectIOHandler {
         }
     }
 
-    protected int selectNow() throws IOException {
-        return this.selector.selectNow();
+    @NotNull
+    public String getRemoteAddress(ConnectionId id) {
+        // The exception is irrelevant as the channel is always connected,
+        // that's why it's handled here
+        try {
+            SocketChannel ch = (SocketChannel) this.keyMap.inverse().get(id).channel();
+            return ch.getRemoteAddress().toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
-    protected Set<SelectionKey> getSelectedKeys() {
-        return this.selector.selectedKeys();
+    @Override
+    public void close() throws IOException {
+        // Un-register for selection event and close connection
+        for (SelectionKey key : this.keyMap.keySet()) {
+            key.channel().close();
+        }
     }
 }

@@ -1,6 +1,6 @@
-package network_io;
+package utils;
 
-import base_classes.ConnectionId;
+import utils.ConnectionId;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
@@ -14,6 +14,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class PacketBuffer {
 
     private ConcurrentHashMap<ConnectionId, ConcurrentLinkedQueue<List<Byte>>> packets;
+
+    public PacketBuffer() {
+        this.packets = new ConcurrentHashMap<>();
+    }
 
     public void addPacket(ConnectionId id, List<Byte> packet) {
         if (!this.packets.containsKey(id)) {
@@ -30,7 +34,7 @@ public class PacketBuffer {
     }
 
     public boolean hasPendingPackets(ConnectionId id) {
-        return this.packets.containsKey(id);
+        return !this.packets.get(id).isEmpty();
     }
 
     @NotNull

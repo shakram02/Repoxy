@@ -1,7 +1,7 @@
-package network_io;
+package utils;
 
-import base_classes.ConnectionId;
-import org.junit.After;
+import utils.AddressBook;
+import utils.ConnectionId;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -9,7 +9,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
-import java.rmi.server.ExportException;
 
 import static org.junit.Assert.*;
 
