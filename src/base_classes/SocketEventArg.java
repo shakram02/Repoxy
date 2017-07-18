@@ -3,20 +3,23 @@ package base_classes;
 import java.util.List;
 
 /**
- * Socket Event args for Pub Sub
+ * Socket Event args for better event dispatching
  */
-public class SocketEventArgs {
+public class SocketEventArg {
     EventType type;
+    ConnectionId id;
     List<Byte> extraData;
 
-    public SocketEventArgs(EventType type) {
+    public SocketEventArg(EventType type, ConnectionId id) {
 
         this.type = type;
+        this.id = id;
     }
 
-    public SocketEventArgs(EventType type, List<Byte> extraData) {
+    public SocketEventArg(EventType type, ConnectionId id, List<Byte> extraData) {
 
         this.type = type;
+        this.id = id;
         this.extraData = extraData;
     }
 }

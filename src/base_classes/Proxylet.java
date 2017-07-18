@@ -1,38 +1,61 @@
 package base_classes;
 
+import com.google.common.eventbus.Subscribe;
 import network_io.AddressBook;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.channels.SocketChannel;
-import java.util.Vector;
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Proxylet, main base class
  */
-public class Proxylet implements Closeable {
+public abstract class Proxylet implements Closeable {
     private AddressBook addressMap;
-    private ElementType type;
+    protected Logger logger;
 
-    public Proxylet() {
+
+    public Proxylet(Class<?> childClass) {
+        this.logger = Logger.getLogger(childClass.getName());
         addressMap = new AddressBook();
     }
 
-    public void onData(ConnectionId connectionId, Vector<Byte> data) {
+    public abstract void sendTo(ConnectionId id, List<Byte> data);
+
+    protected abstract void onData(ConnectionId id, List<Byte> data);
+
+    protected abstract void onSentTo(ConnectionId id);
+
+    protected abstract void onConnection(ConnectionId id);
+
+    protected abstract void onDisconnect(ConnectionId id);
+
+    protected abstract void cycle() throws IOException;
+
+    @Subscribe
+    protected void dispatchEvent(SocketEventArg arg) {
+        this.logger.info("Dispatching " + arg.type);
+        switch (arg.type) {
+            case DataIn:
+                this.onData(arg.id, arg.extraData);
+                break;
+            case DataOut:
+                this.onSentTo(arg.id);
+                break;
+            case Connection:
+                this.onConnection(arg.id);
+                break;
+            case Disconnection:
+                this.onDisconnect(arg.id);
+                break;
+        }
     }
 
-    public void sendTo(ConnectionId connectionId, Vector<Byte> data) {
-    }
-
-    public void onConnection(SocketChannel address) {
-    }
-
-    public void onDisconnect(ConnectionId connectionId) {
-    }
-
-    public void cycle() throws IOException {
-    }
+    @Override
+    public abstract void close() throws IOException;
 
     public ConnectionId getConnectionId(SocketChannel channel) {
         return this.addressMap.getId(channel);
@@ -42,8 +65,4 @@ public class Proxylet implements Closeable {
         return this.addressMap.getId(address);
     }
 
-    @Override
-    public void close() throws IOException {
-
-    }
 }
