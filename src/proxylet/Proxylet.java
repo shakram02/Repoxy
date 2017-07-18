@@ -1,8 +1,10 @@
-package base_classes;
+package proxylet;
 
 import com.google.common.eventbus.Subscribe;
-import network_io.AddressBook;
+import utils.AddressBook;
 import org.jetbrains.annotations.NotNull;
+import utils.ConnectionId;
+import utils.SocketEventArg;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -12,7 +14,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Proxylet, main base class
+ * proxylet.Proxylet, main base class
  */
 public abstract class Proxylet implements Closeable {
     private AddressBook addressMap;

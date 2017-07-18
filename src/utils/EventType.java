@@ -1,7 +1,7 @@
-package base_classes;
+package utils;
 
 /**
- * Created by ahmed on 7/17/17.
+ * Event type for Proxylets
  */
 public enum EventType {
     Connection,

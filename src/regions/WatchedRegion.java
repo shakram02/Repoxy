@@ -1,6 +1,8 @@
-package base_classes;
+package regions;
 
-import network_io.PacketBuffer;
+import utils.ConnectionId;
+import proxylet.Proxylet;
+import utils.PacketBuffer;
 import network_io.SelectIOHandler;
 
 import java.io.IOException;
@@ -43,10 +45,6 @@ public abstract class WatchedRegion extends Proxylet {
         this.ioHandler.removeOutput(id);
     }
 
-    @Override
-    protected void onDisconnect(ConnectionId id) {
-        System.out.println("Got disconnect!!");
-    }
 
     @Override
     public void cycle() throws IOException {

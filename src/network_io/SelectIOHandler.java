@@ -1,9 +1,10 @@
 package network_io;
 
-import base_classes.ConnectionId;
-import base_classes.EventType;
-import base_classes.Proxylet;
-import base_classes.SocketEventArg;
+import utils.ConnectionId;
+import utils.EventType;
+import proxylet.Proxylet;
+import utils.PacketBuffer;
+import utils.SocketEventArg;
 import com.google.common.collect.HashBiMap;
 import com.google.common.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
@@ -118,7 +119,7 @@ public class SelectIOHandler implements Closeable {
         this.eventBus.post(new SocketEventArg(EventType.Disconnection, id));
     }
 
-    protected void createServer(String address, int port) throws IOException {
+    public void createServer(String address, int port) throws IOException {
         ServerSocketChannel server = ServerSocketChannel.open();
         server.configureBlocking(false);
         SelectionKey key = server.register(this.selector, SelectionKey.OP_ACCEPT);

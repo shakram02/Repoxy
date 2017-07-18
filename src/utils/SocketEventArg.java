@@ -1,4 +1,4 @@
-package base_classes;
+package utils;
 
 import java.util.List;
 
@@ -6,9 +6,9 @@ import java.util.List;
  * Socket Event args for better event dispatching
  */
 public class SocketEventArg {
-    EventType type;
-    ConnectionId id;
-    List<Byte> extraData;
+    public EventType type;
+    public ConnectionId id;
+    public List<Byte> extraData;
 
     public SocketEventArg(EventType type, ConnectionId id) {
 

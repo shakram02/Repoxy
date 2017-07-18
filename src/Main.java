@@ -1,7 +1,17 @@
-import network_io.SwitchesRegion;
+import regions.SwitchesRegion;
 
 import java.io.IOException;
 
+/**
+ * Packet flow:
+ * **Input**
+ * - Sockets
+ * - Regions
+ * - Mediators
+ * - Regions
+ * - Sockets
+ * **Output**
+ */
 public class Main {
     public static final String localhost = "127.0.0.1";
     public static final int of_port = 6633;
