@@ -15,6 +15,10 @@ public class PacketBuffer {
 
     private ConcurrentHashMap<ConnectionId, ConcurrentLinkedQueue<List<Byte>>> packets;
 
+    public PacketBuffer() {
+        this.packets = new ConcurrentHashMap<>();
+    }
+
     public void addPacket(ConnectionId id, List<Byte> packet) {
         if (!this.packets.containsKey(id)) {
             this.packets.put(id, new ConcurrentLinkedQueue<>());
@@ -30,7 +34,7 @@ public class PacketBuffer {
     }
 
     public boolean hasPendingPackets(ConnectionId id) {
-        return this.packets.containsKey(id);
+        return !this.packets.get(id).isEmpty();
     }
 
     @NotNull

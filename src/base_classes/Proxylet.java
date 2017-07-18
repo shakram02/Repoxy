@@ -36,6 +36,11 @@ public abstract class Proxylet implements Closeable {
 
     protected abstract void cycle() throws IOException;
 
+    /**
+     * Called by Event buses in user classes
+     *
+     * @param arg Event details
+     */
     @Subscribe
     protected final void dispatchEvent(SocketEventArg arg) {
         switch (arg.type) {
