@@ -1,5 +1,6 @@
 package proxylet;
 
+import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import utils.AddressBook;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +20,7 @@ import java.util.logging.Logger;
 public abstract class Proxylet implements Closeable {
     private AddressBook addressMap;
     protected Logger logger;
-
+    protected EventBus nextLayerNotifier;
 
     public Proxylet(Class<?> childClass) {
         this.logger = Logger.getLogger(childClass.getName());
@@ -38,13 +39,7 @@ public abstract class Proxylet implements Closeable {
 
     protected abstract void cycle() throws IOException;
 
-    /**
-     * Called by Event buses in user classes
-     *
-     * @param arg Event details
-     */
-    @Subscribe
-    protected final void dispatchEvent(SocketEventArg arg) {
+    public final void dispatchEvent(SocketEventArg arg) {
         switch (arg.type) {
             case DataIn:
                 this.onData(arg.id, arg.extraData);

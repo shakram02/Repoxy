@@ -6,7 +6,6 @@ import proxylet.Proxylet;
 import utils.PacketBuffer;
 import utils.SocketEventArg;
 import com.google.common.collect.HashBiMap;
-import com.google.common.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Closeable;
@@ -29,7 +28,7 @@ public class SelectIOHandler implements Closeable {
     private HashBiMap<SelectionKey, ConnectionId> keyMap;
     private PacketBuffer packetBuffer;
     private ByteBuffer buffer;
-    private EventBus eventBus;
+    private Proxylet proxylet;
 
     public SelectIOHandler(Proxylet proxylet, PacketBuffer packetBuffer)
             throws IOException {
@@ -38,8 +37,7 @@ public class SelectIOHandler implements Closeable {
         this.buffer = ByteBuffer.allocate(BUFFER_SIZE);
 
         this.packetBuffer = packetBuffer;
-        this.eventBus = new EventBus(this.getClass().getName());
-        this.eventBus.register(proxylet);
+        this.proxylet = proxylet;
     }
 
     public void cycle() throws IOException {
@@ -90,12 +88,12 @@ public class SelectIOHandler implements Closeable {
 
     private void onWritable(ConnectionId id, SocketChannel channel) throws IOException {
         this.writePackets(id, channel);
-        this.eventBus.post(new SocketEventArg(EventType.DataOut, id));
+        this.proxylet.dispatchEvent(new SocketEventArg(EventType.DataOut, id));
     }
 
     private void onData(ConnectionId id, SocketChannel channel, int read) throws IOException {
         Vector<Byte> data = readRemainingBytes(channel, read);
-        this.eventBus.post(new SocketEventArg(EventType.DataIn, id, data));
+        this.proxylet.dispatchEvent(new SocketEventArg(EventType.DataIn, id, data));
     }
 
     private void onConnection(ServerSocketChannel server) throws IOException {
@@ -106,7 +104,7 @@ public class SelectIOHandler implements Closeable {
         ConnectionId id = new ConnectionId();
         this.keyMap.put(key, id);
 
-        this.eventBus.post(new SocketEventArg(EventType.Connection, id));
+        this.proxylet.dispatchEvent(new SocketEventArg(EventType.Connection, id));
     }
 
     private void onDisconnected(ConnectionId id) throws IOException {
@@ -116,7 +114,7 @@ public class SelectIOHandler implements Closeable {
         key.cancel();
         key.channel().close();
 
-        this.eventBus.post(new SocketEventArg(EventType.Disconnection, id));
+        this.proxylet.dispatchEvent(new SocketEventArg(EventType.Disconnection, id));
     }
 
     public void createServer(String address, int port) throws IOException {
