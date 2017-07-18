@@ -1,4 +1,6 @@
-package base_classes;
+package mediators;
+
+import proxylet.Proxylet;
 
 /**
  * Created by ahmed on 7/18/17.
