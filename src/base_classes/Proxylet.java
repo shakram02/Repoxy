@@ -1,42 +1,49 @@
 package base_classes;
 
-import com.google.common.collect.BiMap;
 import network_io.AddressBook;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Vector;
 
 /**
- * Created by ahmed on 7/16/17.
+ * Proxylet, main base class
  */
-public abstract class Proxylet implements Closeable {
-    private AddressBook addresMap;
+public class Proxylet implements Closeable {
+    private AddressBook addressMap;
     private ElementType type;
-    private ConcurrentLinkedQueue<Iterable<Byte>> packets;
 
     public Proxylet() {
-        packets = new ConcurrentLinkedQueue<>();
+        addressMap = new AddressBook();
     }
 
-    public abstract void onData(int connectionId, Iterable<Byte> data);
+    public void onData(ConnectionId connectionId, Vector<Byte> data) {
+    }
 
-    public abstract void sendTo(int connectionId, Iterable<Byte> data);
+    public void sendTo(ConnectionId connectionId, Vector<Byte> data) {
+    }
 
-    public abstract void onConnection(SocketChannel address);
+    public void onConnection(SocketChannel address) {
+    }
 
-    public abstract void onDisconnect(int connectionId);
+    public void onDisconnect(ConnectionId connectionId) {
+    }
 
-    public abstract void cycle();
-
-    public abstract byte[] getNextPacket();
+    public void cycle() throws IOException {
+    }
 
     public ConnectionId getConnectionId(SocketChannel channel) {
-        return this.addresMap.getId(channel);
+        return this.addressMap.getId(channel);
     }
 
     public ConnectionId getConnectionId(SocketAddress address) {
-        return this.addresMap.getId(address);
+        return this.addressMap.getId(address);
+    }
+
+    @Override
+    public void close() throws IOException {
+
     }
 }
