@@ -4,17 +4,21 @@ import network_io.PacketBuffer;
 import network_io.SelectIOHandler;
 
 import java.io.IOException;
-import java.util.Vector;
+import java.util.List;
 
 /**
- * Watches IO event of a region
+ * Common implementation for I/O events
  */
-public class WatchedRegion extends Proxylet {
-    private PacketBuffer packetBuffer;
-    private SelectIOHandler ioHandler;
+public abstract class WatchedRegion extends Proxylet {
+    protected PacketBuffer packetBuffer;
+    protected SelectIOHandler ioHandler;
 
-    public WatchedRegion() {
+
+    public WatchedRegion(Class<?> childClass) {
+        super(childClass);
+
         this.packetBuffer = new PacketBuffer();
+
         try {
             this.ioHandler = new SelectIOHandler(this, this.packetBuffer);
         } catch (IOException e) {
@@ -24,18 +28,23 @@ public class WatchedRegion extends Proxylet {
     }
 
     @Override
-    public void onData(ConnectionId connectionId, Vector<Byte> data) {
+    protected void onData(ConnectionId id, List<Byte> data) {
         System.out.println(String.format("Got %d bytes!!", data.size()));
     }
 
     @Override
-    public void sendTo(ConnectionId id, Vector<Byte> data) {
+    public void sendTo(ConnectionId id, List<Byte> data) {
         this.packetBuffer.addPacket(id, data);
         this.ioHandler.addOutput(id);
     }
 
     @Override
-    public void onDisconnect(ConnectionId connectionId) {
+    protected void onSentTo(ConnectionId id) {
+        this.ioHandler.removeOutput(id);
+    }
+
+    @Override
+    protected void onDisconnect(ConnectionId id) {
         System.out.println("Got disconnect!!");
     }
 
@@ -44,7 +53,9 @@ public class WatchedRegion extends Proxylet {
         this.ioHandler.cycle();
     }
 
-    public PacketBuffer getPacketBuffer() {
-        return this.packetBuffer;
+    @Override
+    public void close() throws IOException {
+        this.ioHandler.close();
     }
+
 }
