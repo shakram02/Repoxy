@@ -1,49 +1,32 @@
 package utils;
 
-import utils.ConnectionId;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Buffer for packets
  */
-public class PacketBuffer {
+public class PacketBuffer extends QueueMap<ConnectionId, List<Byte>> {
 
-    private ConcurrentHashMap<ConnectionId, ConcurrentLinkedQueue<List<Byte>>> packets;
-
-    public PacketBuffer() {
-        this.packets = new ConcurrentHashMap<>();
-    }
 
     public void addPacket(ConnectionId id, List<Byte> packet) {
-        if (!this.packets.containsKey(id)) {
-            this.packets.put(id, new ConcurrentLinkedQueue<>());
-        }
-        this.packets.get(id).add(packet);
+        super.addObject(id, packet);
     }
 
     public void clearAllData(ConnectionId id) {
-        if (!this.packets.containsKey(id)) {
-            return;
-        }
-        this.packets.remove(id);
+        super.clearAll(id);
     }
 
     public boolean hasPendingPackets(ConnectionId id) {
-        return !this.packets.get(id).isEmpty();
+        return super.hasItems(id);
     }
 
     @NotNull
     public ByteBuffer getNextPacket(ConnectionId id) {
 
-        List<Byte> nextPacket = this.packets.get(id).poll();
-        if (nextPacket == null) {
-            throw new IllegalArgumentException("No pending packets");
-        }
+        List<Byte> nextPacket = super.getNext(id);
 
         byte[] result = new byte[nextPacket.size()];
         for (int i = 0; i < nextPacket.size(); i++) {
