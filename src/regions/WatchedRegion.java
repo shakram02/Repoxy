@@ -4,6 +4,7 @@ import utils.ConnectionId;
 import proxylet.Proxylet;
 import utils.PacketBuffer;
 import network_io.SelectIOHandler;
+import utils.SocketEventArg;
 
 import java.io.IOException;
 import java.util.List;
@@ -30,8 +31,8 @@ public abstract class WatchedRegion extends Proxylet {
     }
 
     @Override
-    protected void onData(ConnectionId id, List<Byte> data) {
-        System.out.println(String.format("Got %d bytes!!", data.size()));
+    protected void onData(SocketEventArg arg) {
+        System.out.println(String.format("Got %d bytes!!", arg.extraData.size()));
     }
 
     @Override
@@ -41,13 +42,13 @@ public abstract class WatchedRegion extends Proxylet {
     }
 
     @Override
-    protected void onSentTo(ConnectionId id) {
-        this.ioHandler.removeOutput(id);
+    protected void onSentTo(SocketEventArg arg) {
+        this.ioHandler.removeOutput(arg.id);
     }
 
     @Override
-    protected void onDisconnect(ConnectionId id) {
-        this.packetBuffer.clearAllData(id);
+    protected void onDisconnect(SocketEventArg arg) {
+        this.packetBuffer.clearAllData(arg.id);
     }
 
     @Override

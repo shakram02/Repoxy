@@ -11,6 +11,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.channels.SocketChannel;
+import java.nio.channels.spi.AbstractSelectableChannel;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -18,55 +19,43 @@ import java.util.logging.Logger;
  * proxylet.Proxylet, main base class
  */
 public abstract class Proxylet implements Closeable {
-    private AddressBook addressMap;
     protected Logger logger;
     protected EventBus nextLayerNotifier;
 
     public Proxylet(Class<?> childClass) {
         this.logger = Logger.getLogger(childClass.getName());
-        addressMap = new AddressBook();
     }
 
     public abstract void sendTo(ConnectionId id, List<Byte> data);
 
-    protected abstract void onData(ConnectionId id, List<Byte> data);
+    protected abstract void onData(SocketEventArg arg);
 
-    protected abstract void onSentTo(ConnectionId id);
+    protected abstract void onSentTo(SocketEventArg arg);
 
-    protected abstract void onConnection(ConnectionId id);
+    protected abstract void onConnection(SocketEventArg arg);
 
-    protected abstract void onDisconnect(ConnectionId id);
+    protected abstract void onDisconnect(SocketEventArg arg);
 
     protected abstract void cycle() throws IOException;
 
     public final void dispatchEvent(SocketEventArg arg) {
         switch (arg.type) {
             case DataIn:
-                this.onData(arg.id, arg.extraData);
+                this.onData(arg);
                 break;
             case DataOut:
-                this.onSentTo(arg.id);
+                this.onSentTo(arg);
                 break;
             case Connection:
-                this.onConnection(arg.id);
+                this.onConnection(arg);
                 break;
             case Disconnection:
-                this.onDisconnect(arg.id);
+                this.onDisconnect(arg);
                 break;
         }
     }
 
     @Override
     public abstract void close() throws IOException;
-
-    @NotNull
-    public final ConnectionId getConnectionId(SocketChannel channel) {
-        return this.addressMap.getId(channel);
-    }
-
-    @NotNull
-    public final ConnectionId getConnectionId(SocketAddress address) {
-        return this.addressMap.getId(address);
-    }
 
 }

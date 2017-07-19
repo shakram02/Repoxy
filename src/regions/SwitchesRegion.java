@@ -1,7 +1,6 @@
 package regions;
 
-import utils.ConnectionId;
-
+import utils.SocketEventArg;
 import java.io.IOException;
 
 
@@ -20,14 +19,14 @@ public final class SwitchesRegion extends WatchedRegion {
     }
 
     @Override
-    public void onConnection(ConnectionId id) {
-        logger.info("Accepted [" + id.toString() + "]: "
-                + this.ioHandler.getRemoteAddress(id));
+    public void onConnection(SocketEventArg arg) {
+        logger.info("Accepted [" + arg.id.toString() + "]: "
+                + this.ioHandler.getRemoteAddress(arg.id));
     }
 
     @Override
-    protected void onDisconnect(ConnectionId id) {
-        super.onDisconnect(id);
-        this.logger.info("[" + this.ioHandler.getRemoteAddress(id) + "] Disconnected");
+    protected void onDisconnect(SocketEventArg arg) {
+        super.onDisconnect(arg);
+        this.logger.info("[" + this.ioHandler.getRemoteAddress(arg.id) + "] Disconnected");
     }
 }
