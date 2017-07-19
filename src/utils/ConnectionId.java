@@ -1,31 +1,39 @@
 package utils;
 
+import java.util.Objects;
+
 /**
  * Each new connection is given a unique ID to be used in address translation
  */
 public class ConnectionId {
-    private static int MAX_ID = 0;
-    private int id;
+    private static String MAX_ID = "a";
+    private String id;
 
-    public ConnectionId() {
-        this.id = MAX_ID;
-        MAX_ID++;
-
-        if (MAX_ID == Integer.MAX_VALUE) {
-            throw new RuntimeException("out of IDs");
-        }
+    private ConnectionId() {
+        this.id = ConnectionId.MAX_ID;
 
     }
 
-    public static ConnectionId CreateForTesting(int id) {
+    public static ConnectionId CreateNext() {
+        ConnectionId ret = new ConnectionId();
+        ConnectionId.UpdateMaxId();
+        return ret;
+    }
+
+    public static ConnectionId CreateForTesting(String id) {
         ConnectionId falseId = new ConnectionId();
         falseId.id = id;
-        MAX_ID--;
         return falseId;
     }
 
-    public long getId() {
-        return id;
+    private static void UpdateMaxId() {
+        char last = ConnectionId.MAX_ID.charAt(MAX_ID.length() - 1);
+        if (last == 'z') {
+            ConnectionId.MAX_ID += 'a';
+        } else {
+            String str = ConnectionId.MAX_ID.substring(0, MAX_ID.length() - 1);
+            MAX_ID = str + (last + 1);
+        }
     }
 
     @Override
@@ -35,11 +43,11 @@ public class ConnectionId {
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof ConnectionId && this.id == ((ConnectionId) o).id;
+        return o instanceof ConnectionId && Objects.equals(this.id, ((ConnectionId) o).id);
     }
 
     @Override
     public int hashCode() {
-        return this.id;
+        return this.id.hashCode();
     }
 }

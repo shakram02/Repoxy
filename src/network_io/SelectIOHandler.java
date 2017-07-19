@@ -1,10 +1,7 @@
 package network_io;
 
-import utils.ConnectionId;
-import utils.EventType;
+import utils.*;
 import proxylet.Proxylet;
-import utils.PacketBuffer;
-import utils.SocketEventArg;
 import com.google.common.collect.HashBiMap;
 import org.jetbrains.annotations.NotNull;
 
@@ -84,27 +81,49 @@ public class SelectIOHandler implements Closeable {
         if (key.isWritable()) {
             this.onWritable(id, channel);
         }
+
+        if (key.isConnectable()) {
+            this.onConnectable(key, channel);
+        }
+    }
+
+    private void onConnectable(SelectionKey key, SocketChannel channel) throws IOException {
+        key.interestOps(SelectionKey.OP_READ);
+        if (channel.isConnectionPending()) {
+            channel.finishConnect();
+        }
+
+        ConnectionId id = ConnectionId.CreateNext();
+        this.keyMap.put(key, id);
+
+        this.proxylet.dispatchEvent(new SocketEventArg(SenderType.Socket, EventType.Connection, id));
     }
 
     private void onWritable(ConnectionId id, SocketChannel channel) throws IOException {
         this.writePackets(id, channel);
-        this.proxylet.dispatchEvent(new SocketEventArg(EventType.DataOut, id));
+
+        this.proxylet.dispatchEvent(new SocketEventArg(SenderType.Socket,
+                EventType.DataOut, id));
     }
 
     private void onData(ConnectionId id, SocketChannel channel, int read) throws IOException {
         Vector<Byte> data = readRemainingBytes(channel, read);
-        this.proxylet.dispatchEvent(new SocketEventArg(EventType.DataIn, id, data));
+
+        this.proxylet.dispatchEvent(new SocketEventArg(SenderType.Socket,
+                EventType.DataIn, id, data));
     }
+
 
     private void onConnection(ServerSocketChannel server) throws IOException {
         SocketChannel channel = server.accept();
         channel.configureBlocking(false);
         SelectionKey key = channel.register(selector, SelectionKey.OP_READ);
 
-        ConnectionId id = new ConnectionId();
+        ConnectionId id = ConnectionId.CreateNext();
         this.keyMap.put(key, id);
 
-        this.proxylet.dispatchEvent(new SocketEventArg(EventType.Connection, id));
+        this.proxylet.dispatchEvent(new SocketEventArg(SenderType.Socket,
+                EventType.Connection, id));
     }
 
     private void onDisconnected(ConnectionId id) throws IOException {
@@ -114,7 +133,8 @@ public class SelectIOHandler implements Closeable {
         key.cancel();
         key.channel().close();
 
-        this.proxylet.dispatchEvent(new SocketEventArg(EventType.Disconnection, id));
+        this.proxylet.dispatchEvent(new SocketEventArg(SenderType.Socket,
+                EventType.Disconnection, id));
     }
 
     public void createServer(String address, int port) throws IOException {
@@ -122,10 +142,19 @@ public class SelectIOHandler implements Closeable {
         server.configureBlocking(false);
         SelectionKey key = server.register(this.selector, SelectionKey.OP_ACCEPT);
 
-        ConnectionId id = new ConnectionId();
+        ConnectionId id = ConnectionId.CreateNext();
         this.keyMap.put(key, id);
 
         server.socket().bind(new InetSocketAddress(address, port));
+    }
+
+    public void createConnection(String address, int port) throws IOException {
+        SocketChannel client = SocketChannel.open();
+        client.configureBlocking(false);
+
+        client.connect(new InetSocketAddress(address, port));
+        client.register(this.selector, SelectionKey.OP_CONNECT);
+
     }
 
     public void addOutput(ConnectionId id) {
