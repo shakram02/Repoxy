@@ -1,4 +1,6 @@
+import regions.ControllersRegion;
 import regions.SwitchesRegion;
+import utils.*;
 
 import java.io.IOException;
 
@@ -17,17 +19,22 @@ public class Main {
     public static final int of_port = 6633;
 
     public static void main(String[] args) throws IOException {
-        SwitchesRegion server = new SwitchesRegion();
-        server.startListening(localhost, of_port);
+//        SwitchesRegion server = new SwitchesRegion();
+//        server.startListening(localhost, of_port);
+
+        ControllersRegion client = new ControllersRegion();
+        client.connect(localhost, of_port);
 
         while (true) {
             try {
                 Thread.sleep(200);
             } catch (InterruptedException e) {
-                server.close();
+//                server.close();
+                client.close();
                 break;
             }
-            server.cycle();
+//            server.cycle();
+            client.cycle();
         }
     }
 }

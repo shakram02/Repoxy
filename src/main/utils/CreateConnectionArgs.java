@@ -1,24 +1,25 @@
 package utils;
-
+import java.net.SocketAddress;
 
 public class CreateConnectionArgs extends SocketEventArg {
-    private final String ip;
-    private final int port;
+    private final SocketAddress address;
 
-
+    /**
+     * Create connection prompts the controller region to open a new connection
+     * when a client connects to the switches region
+     *
+     * @param senderType Event source
+     * @param id         Connection ID of the newly connected client
+     * @param address    Address of the controller
+     */
     public CreateConnectionArgs(SenderType senderType,
-                                EventType eventType,
-                                ConnectionId id, String ip, int port) {
-        super(senderType, eventType, id);
-        this.ip = ip;
-        this.port = port;
+
+                                ConnectionId id, SocketAddress address) {
+        super(senderType, EventType.Connection, id);
+        this.address = address;
     }
 
-    public int getPort() {
-        return port;
-    }
-
-    public String getIp() {
-        return ip;
+    public String getAddress() {
+        return this.address.toString();
     }
 }
