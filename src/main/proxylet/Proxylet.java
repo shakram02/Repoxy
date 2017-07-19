@@ -1,6 +1,7 @@
 package proxylet;
 
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import utils.ConnectionId;
 import utils.SocketEventArg;
 
@@ -22,16 +23,51 @@ public abstract class Proxylet implements Closeable {
 
     public abstract void sendTo(ConnectionId id, List<Byte> data);
 
+    /**
+     * Data arrived to proxylet
+     *
+     * @param arg socket event data
+     */
     protected abstract void onData(SocketEventArg arg);
 
+    /**
+     * Data transmission completed successfully
+     *
+     * @param arg socket event data
+     */
     protected abstract void onSentTo(SocketEventArg arg);
 
+    /**
+     * A new connection arrived to the proxylet
+     *
+     * @param arg socket event data
+     */
     protected abstract void onConnection(SocketEventArg arg);
 
+    /**
+     * A connected item went offline
+     *
+     * @param arg socket event data
+     */
     protected abstract void onDisconnect(SocketEventArg arg);
 
+    /**
+     * Do one I/O cycle
+     *
+     * @throws IOException I/O exception out of network elements
+     */
     protected abstract void cycle() throws IOException;
 
+    /**
+     * Someone notified the proxylet for an event, dispatch it to the correct
+     * method
+     * <p>
+     * This method also receives event bus notifications when the proxylet
+     * is registered
+     *
+     * @param arg socket event data
+     */
+    @Subscribe
     public final void dispatchEvent(SocketEventArg arg) {
         switch (arg.getEventType()) {
             case DataIn:
@@ -49,6 +85,11 @@ public abstract class Proxylet implements Closeable {
         }
     }
 
+    /**
+     * Proxylet is about to close, clean up!
+     *
+     * @throws IOException I/O exception out of network elements
+     */
     @Override
     public abstract void close() throws IOException;
 

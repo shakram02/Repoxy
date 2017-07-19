@@ -1,7 +1,5 @@
 package utils;
 
-import utils.AddressBook;
-import utils.ConnectionId;
 import org.junit.Before;
 import org.junit.Test;
 

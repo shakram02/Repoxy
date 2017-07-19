@@ -16,7 +16,11 @@ public abstract class WatchedRegion extends Proxylet {
     protected PacketBuffer packetBuffer;
     protected SelectIOHandler ioHandler;
 
-
+    /**
+     * This layer is between the sockets and mediator
+     *
+     * @param childClass type of the overriding class, for logging
+     */
     public WatchedRegion(Class<?> childClass) {
         super(childClass);
 
@@ -30,17 +34,31 @@ public abstract class WatchedRegion extends Proxylet {
         }
     }
 
+    /**
+     * Data arrived to region from sockets
+     *
+     * @param arg socket event data
+     */
     @Override
     protected void onData(SocketEventArg arg) {
-
+        // TODO notify mediator
         System.out.println(String.format("Got %d bytes!!", arg.getExtraData().size()));
+
     }
 
+    /**
+     * Someone wants the region to send a message to socket layer
+     *
+     * @param id   target connection
+     * @param data what to send
+     */
     @Override
     public void sendTo(ConnectionId id, List<Byte> data) {
         this.packetBuffer.addPacket(id, data);
         this.ioHandler.addOutput(id);
     }
+
+    // Rename to onSendFinish
 
     @Override
     protected void onSentTo(SocketEventArg arg) {

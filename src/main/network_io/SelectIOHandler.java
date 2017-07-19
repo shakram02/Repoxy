@@ -96,7 +96,7 @@ public class SelectIOHandler implements Closeable {
         ConnectionId id = ConnectionId.CreateNext();
         this.keyMap.put(key, id);
 
-        this.proxylet.dispatchEvent(new SocketEventArg(SenderType.Socket, EventType.Connection, id));
+        this.proxylet.dispatchEvent(new CreateConnectionArgs(SenderType.Socket, id, channel.getRemoteAddress()));
     }
 
     private void onWritable(ConnectionId id, SocketChannel channel) throws IOException {
