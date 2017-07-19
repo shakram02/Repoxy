@@ -3,16 +3,14 @@ package utils;
 
 import org.junit.Test;
 
-import java.util.ArrayList;
-
 import static org.junit.Assert.*;
 
 
 public class ConnectionIdTest {
+    // TODO use base-26 chars later
     @Test
     public void testSequencing() {
-        assertEquals("AA", getFromNumber(27));
-
+        assertEquals(String.valueOf(150),"150");
     }
 
     private String getFromNumber(int value) {

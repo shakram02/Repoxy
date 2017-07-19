@@ -43,7 +43,7 @@ public class WeakCouplerTest {
 
         coupler.post(publisher,
                 new SocketEventArg(SenderType.Socket,
-                        EventType.Connection, ConnectionId.CreateForTesting("a")));
+                        EventType.Connection, ConnectionId.CreateForTesting(0)));
 
         assertEquals(1, subscriber.count);
 
@@ -51,7 +51,7 @@ public class WeakCouplerTest {
 
         coupler.post(publisher,
                 new SocketEventArg(SenderType.Socket,
-                        EventType.Connection, ConnectionId.CreateForTesting("a")));
+                        EventType.Connection, ConnectionId.CreateForTesting(0)));
 
         // Assert that the count hasn't changes
         assertEquals(1, subscriber.count);

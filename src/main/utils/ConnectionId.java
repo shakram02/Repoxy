@@ -6,8 +6,8 @@ import java.util.Objects;
  * Each new connection is given a unique ID to be used in address translation
  */
 public class ConnectionId {
-    private static String MAX_ID = "a";
-    private String id;
+    private static long MAX_ID = 0;
+    private long id;
 
     private ConnectionId() {
         this.id = ConnectionId.MAX_ID;
@@ -20,25 +20,22 @@ public class ConnectionId {
         return ret;
     }
 
-    public static ConnectionId CreateForTesting(String id) {
+    public static ConnectionId CreateForTesting(int id) {
         ConnectionId falseId = new ConnectionId();
         falseId.id = id;
         return falseId;
     }
 
     private static void UpdateMaxId() {
-        char last = ConnectionId.MAX_ID.charAt(MAX_ID.length() - 1);
-        if (last == 'z') {
-            ConnectionId.MAX_ID += 'a';
-        } else {
-            String str = ConnectionId.MAX_ID.substring(0, MAX_ID.length() - 1);
-            MAX_ID = str + (last + 1);
+        MAX_ID++;
+        if (MAX_ID == Integer.MAX_VALUE) {
+            throw new RuntimeException("Out of IDs");
         }
     }
 
     @Override
     public String toString() {
-        return this.id + "";
+        return String.valueOf(this.id);
     }
 
     @Override
@@ -48,6 +45,6 @@ public class ConnectionId {
 
     @Override
     public int hashCode() {
-        return this.id.hashCode();
+        return Long.hashCode(this.id);
     }
 }
