@@ -33,7 +33,7 @@ public abstract class Proxylet implements Closeable {
     protected abstract void cycle() throws IOException;
 
     public final void dispatchEvent(SocketEventArg arg) {
-        switch (arg.eventType) {
+        switch (arg.getEventType()) {
             case DataIn:
                 this.onData(arg);
                 break;

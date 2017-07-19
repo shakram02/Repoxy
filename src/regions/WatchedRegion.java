@@ -32,7 +32,8 @@ public abstract class WatchedRegion extends Proxylet {
 
     @Override
     protected void onData(SocketEventArg arg) {
-        System.out.println(String.format("Got %d bytes!!", arg.extraData.size()));
+
+        System.out.println(String.format("Got %d bytes!!", arg.getExtraData().size()));
     }
 
     @Override
@@ -43,12 +44,12 @@ public abstract class WatchedRegion extends Proxylet {
 
     @Override
     protected void onSentTo(SocketEventArg arg) {
-        this.ioHandler.removeOutput(arg.id);
+        this.ioHandler.removeOutput(arg.getId());
     }
 
     @Override
     protected void onDisconnect(SocketEventArg arg) {
-        this.packetBuffer.clearAllData(arg.id);
+        this.packetBuffer.clearAllData(arg.getId());
     }
 
     @Override

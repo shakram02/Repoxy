@@ -20,13 +20,13 @@ public final class SwitchesRegion extends WatchedRegion {
 
     @Override
     public void onConnection(SocketEventArg arg) {
-        logger.info("Accepted [" + arg.id.toString() + "]: "
-                + this.ioHandler.getRemoteAddress(arg.id));
+        logger.info("Accepted [" + arg.getId().toString() + "]: "
+                + this.ioHandler.getRemoteAddress(arg.getId()));
     }
 
     @Override
     protected void onDisconnect(SocketEventArg arg) {
         super.onDisconnect(arg);
-        this.logger.info("[" + this.ioHandler.getRemoteAddress(arg.id) + "] Disconnected");
+        this.logger.info("[" + this.ioHandler.getRemoteAddress(arg.getId()) + "] Disconnected");
     }
 }
