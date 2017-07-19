@@ -6,19 +6,24 @@ import java.util.List;
  * Socket Event args for better event dispatching
  */
 public class SocketEventArg {
-    public EventType type;
+    public EventType eventType;
     public ConnectionId id;
     public List<Byte> extraData;
+    public SenderType senderType;
 
-    public SocketEventArg(EventType type, ConnectionId id) {
+    public SocketEventArg(SenderType senderType,
+                          EventType eventType, ConnectionId id) {
 
-        this.type = type;
+        this.senderType = senderType;
+        this.eventType = eventType;
         this.id = id;
     }
 
-    public SocketEventArg(EventType type, ConnectionId id, List<Byte> extraData) {
+    public SocketEventArg(SenderType senderType,
+                          EventType eventType, ConnectionId id, List<Byte> extraData) {
 
-        this.type = type;
+        this.senderType = senderType;
+        this.eventType = eventType;
         this.id = id;
         this.extraData = extraData;
     }

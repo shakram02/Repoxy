@@ -1,17 +1,11 @@
 package proxylet;
 
 import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
-import utils.AddressBook;
-import org.jetbrains.annotations.NotNull;
 import utils.ConnectionId;
 import utils.SocketEventArg;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.SocketAddress;
-import java.nio.channels.SocketChannel;
-import java.nio.channels.spi.AbstractSelectableChannel;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -39,7 +33,7 @@ public abstract class Proxylet implements Closeable {
     protected abstract void cycle() throws IOException;
 
     public final void dispatchEvent(SocketEventArg arg) {
-        switch (arg.type) {
+        switch (arg.eventType) {
             case DataIn:
                 this.onData(arg);
                 break;
