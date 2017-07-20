@@ -1,5 +1,6 @@
 package regions;
 
+import proxylet.Proxylet;
 import utils.SocketEventArg;
 
 import java.io.IOException;
@@ -10,8 +11,13 @@ import java.io.IOException;
  */
 public final class SwitchesRegion extends WatchedRegion {
 
-    public SwitchesRegion() {
+    private Proxylet mediator;
+
+    public SwitchesRegion(Proxylet mediator) {
         super(SwitchesRegion.class);
+
+        // Switches region is coupled to mediator
+        this.mediator = mediator;
     }
 
     public void startListening(String address, int port) throws IOException {
@@ -30,4 +36,22 @@ public final class SwitchesRegion extends WatchedRegion {
         super.onDisconnect(arg);
         this.logger.info("[" + this.ioHandler.getRemoteAddress(arg.getId()) + "] Disconnected");
     }
+
+    /**
+     * Data arrived to region from sockets
+     *
+     * @param arg socket event data
+     */
+    @Override
+    protected void onData(SocketEventArg arg) {
+        switch (arg.getSenderType()) {
+            case Socket:
+                this.mediator.dispatchEvent(arg);
+                break;
+            default:
+                throw new IllegalStateException();
+        }
+        System.out.println(String.format("Got %d bytes!!", arg.getExtraData().size()));
+    }
+
 }
