@@ -1,13 +1,14 @@
 package regions;
 
-import com.google.common.eventbus.Subscribe;
 import network_io.ConnectionCreatorIOHandler;
 import network_io.interfaces.ConnectionCreator;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import utils.ControllerChangeEventArg;
+import utils.EventType;
 import utils.SenderType;
 import utils.SocketEventArg;
 
 import java.io.IOException;
+import java.util.Objects;
 
 public final class ControllersRegion extends WatchedRegion implements ConnectionCreator {
     private static ControllersRegion activeController;
@@ -16,7 +17,7 @@ public final class ControllersRegion extends WatchedRegion implements Connection
     private final int port;
 
     public ControllersRegion(ConnectionCreatorIOHandler ioHandler, String address, int port) {
-        super(ControllersRegion.class, ioHandler);
+        super(SenderType.ReplicaRegion, ioHandler);
         this.ioHandler = ioHandler;
         this.address = address;
         this.port = port;
@@ -24,6 +25,28 @@ public final class ControllersRegion extends WatchedRegion implements Connection
         // Set the first controller as the active one
         if (activeController == null) {
             ControllersRegion.activeController = this;
+            this.senderType = SenderType.ControllerRegion;
+        }
+    }
+
+    /**
+     * Dispatch events coming from the mediator
+     *
+     * @param arg Event info
+     */
+    @Override
+    public void dispatchEvent(SocketEventArg arg) {
+        EventType eventType = arg.getReplyType();
+        System.out.println(String.format("[ControllerRegion] %s", arg));
+
+        if (eventType == EventType.Disconnection || eventType == EventType.SendData) {
+            super.dispatchEvent(arg);
+        } else if (eventType == EventType.ChangeController) {
+            this.changeActiveController(arg);
+        } else if (eventType == EventType.Connection) {
+            this.connectTo(arg);
+        } else {
+            throw new RuntimeException("Invalid event:" + eventType);
         }
     }
 
@@ -37,27 +60,21 @@ public final class ControllersRegion extends WatchedRegion implements Connection
         }
     }
 
-    @Subscribe
-    public void mediatorEventHandler(SocketEventArg arg) {
-        throw new NotImplementedException();
-    }
-
     /**
      * As multiple controllers will be connected to the mediator.
      * the mediator needs to know whether the sender is an active
-     * or an idle controller thus notifyMediator() needs to be
-     * overridden to this behaviour.
+     * or an idle controller
      *
      * @param arg Event info
      */
-    @Override
-    protected void notifyMediator(SocketEventArg arg) {
-        if (this == ControllersRegion.activeController) {
-            arg = SocketEventArg.Redirect(SenderType.ControllerRegion, arg);
-        } else {
-            arg = SocketEventArg.Redirect(SenderType.ReplicaRegion, arg);
-        }
+    private void changeActiveController(SocketEventArg arg) {
 
-        super.notifyMediator(arg);
+        ControllerChangeEventArg a = (ControllerChangeEventArg) arg;
+        if (Objects.equals(this.address, a.getIp()) && this.port == a.getPort()) {
+            this.senderType = SenderType.ControllerRegion;
+            ControllersRegion.activeController = this;
+        } else {
+            this.senderType = SenderType.ReplicaRegion;
+        }
     }
 }

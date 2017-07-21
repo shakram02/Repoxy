@@ -6,11 +6,11 @@ import network_io.CommonIOHandler;
 import network_io.interfaces.BasicSocketIOCommands;
 import network_io.interfaces.BasicSocketIOWatcher;
 import proxylet.Proxylet;
+import utils.EventType;
 import utils.SenderType;
 import utils.SocketEventArg;
 
 import java.io.IOException;
-import java.util.function.Consumer;
 
 /**
  * Common implementation for I/O events
@@ -25,28 +25,30 @@ public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWat
     /**
      * This layer is between the sockets and mediator
      *
-     * @param childClass type of the overriding class, for logging
+     * @param senderType type of the overriding class, for logging
      */
-    public WatchedRegion(Class<?> childClass, CommonIOHandler commander) {
-        super(childClass);
-        this.mediatorNotifier = new EventBus(childClass.getName());
+    public WatchedRegion(SenderType senderType, CommonIOHandler commander) {
+        super(senderType);
+        this.mediatorNotifier = new EventBus(senderType.toString());
         this.ioHandler = commander;
     }
 
-    /**
-     * This method is protected as a sub-class should implement
-     * its own mediator setting either through constructor (SwitchesRegion)
-     * or through methods (ControllerRegion) as multiple controllers
-     * need to be handled, so it hides all the inactive ControllerRegions.
-     *
-     * @param mediator Mediator to notify
-     */
-    protected void setMediator(BaseMediator mediator) {
+    public void setMediator(BaseMediator mediator) {
         if (this.mediator != null) {
             throw new IllegalStateException("Each region notifies only one mediator");
         }
         this.mediator = mediator;
         this.mediatorNotifier.register(mediator);
+    }
+
+    @Override
+    public void dispatchEvent(SocketEventArg arg) {
+        EventType eventType = arg.getReplyType();
+        if (eventType == EventType.Disconnection) {
+            this.onDisconnect(arg);
+        } else if (eventType == EventType.SendData) {
+            this.sendData(arg);
+        }
     }
 
     /**
@@ -57,7 +59,12 @@ public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWat
      */
     @Override
     public void onDisconnect(SocketEventArg arg) {
-        this.notifyMediator(arg);
+        SenderType sender = arg.getSenderType();
+        if (sender == SenderType.Socket) {
+            this.notifyMediator(arg);
+        } else if (sender == SenderType.Mediator) {
+            this.ioHandler.closeConnection(arg);
+        }
     }
 
     /**
@@ -103,8 +110,12 @@ public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWat
         this.ioHandler.close();
     }
 
-    protected void notifyMediator(SocketEventArg arg) {
-        assert this.mediator != null;
+    protected final void notifyMediator(SocketEventArg arg) {
+        if (this.mediator == null) {
+            throw new RuntimeException("Mediator isn't provided");
+        }
+
+        arg = SocketEventArg.Redirect(this.senderType, arg);
         this.mediatorNotifier.post(arg);
     }
 }
