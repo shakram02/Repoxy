@@ -2,6 +2,8 @@ package utils;
 
 public enum SenderType {
     Socket,
-    Region,
-    Mediator
+    SwitchesRegion,
+    ControllerRegion,
+    ReplicaRegion,
+    Mediator,
 }
