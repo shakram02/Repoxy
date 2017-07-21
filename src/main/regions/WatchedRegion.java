@@ -1,78 +1,93 @@
 package regions;
 
-import utils.ConnectionId;
+import com.google.common.eventbus.EventBus;
+import mediators.BaseMediator;
+import network_io.CommonIOHandler;
+import network_io.interfaces.BasicSocketIOCommands;
+import network_io.interfaces.BasicSocketIOWatcher;
 import proxylet.Proxylet;
-import utils.PacketBuffer;
-import network_io.SelectIOHandler;
+import utils.SenderType;
 import utils.SocketEventArg;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Common implementation for I/O events
  */
-public abstract class WatchedRegion extends Proxylet {
-    protected PacketBuffer packetBuffer;
-    protected SelectIOHandler ioHandler;
+public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWatcher, BasicSocketIOCommands {
+    private final CommonIOHandler ioHandler;
+
+    // Mediator notification is done only through notifyMediator method
+    private BaseMediator mediator;
+    private EventBus mediatorNotifier;
 
     /**
      * This layer is between the sockets and mediator
      *
      * @param childClass type of the overriding class, for logging
      */
-    public WatchedRegion(Class<?> childClass) {
+    public WatchedRegion(Class<?> childClass, CommonIOHandler commander) {
         super(childClass);
+        this.mediatorNotifier = new EventBus(childClass.getName());
+        this.ioHandler = commander;
+    }
 
-        this.packetBuffer = new PacketBuffer();
-
-        try {
-            this.ioHandler = new SelectIOHandler(this, this.packetBuffer);
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
+    public void setMediator(BaseMediator mediator) {
+        if (this.mediator != null) {
+            throw new IllegalStateException("Each region notifies only one mediator");
         }
+        this.mediator = mediator;
+        this.mediatorNotifier.register(mediator);
     }
 
     /**
-     * Data arrived to region from sockets
+     * All watchers notify the mediators when
+     * someone disconnects
      *
-     * @param arg socket event data
+     * @param arg disconnecting element info
      */
     @Override
-    protected void onData(SocketEventArg arg) {
-        // TODO notify mediator
-        System.out.println(String.format("Got %d bytes!!", arg.getExtraData().size()));
-
+    public void onDisconnect(SocketEventArg arg) {
+        this.notifyMediator(arg);
     }
+
+    /**
+     * All watchers notify the mediators when
+     * data arrives
+     *
+     * @param arg data info
+     */
+    @Override
+    public void onData(SocketEventArg arg) {
+        this.notifyMediator(arg);
+    }
+
 
     /**
      * Someone wants the region to send a message to socket layer
      *
-     * @param id   target connection
-     * @param data what to send
+     * @param arg Event argument containing what to send
      */
     @Override
-    public void sendTo(ConnectionId id, List<Byte> data) {
-        this.packetBuffer.addPacket(id, data);
-        this.ioHandler.addOutput(id);
-    }
-
-    // Rename to onSendFinish
-
-    @Override
-    protected void onSentTo(SocketEventArg arg) {
-        this.ioHandler.removeOutput(arg.getId());
+    public void sendData(SocketEventArg arg) {
+        // a sendTo coming from a Terminal will always throw an exception
+        this.ioHandler.sendData(arg);
     }
 
     @Override
-    protected void onDisconnect(SocketEventArg arg) {
-        this.packetBuffer.clearAllData(arg.getId());
+    public void closeConnection(SocketEventArg arg) {
+        this.ioHandler.closeConnection(arg);
     }
 
     @Override
-    public void cycle() throws IOException {
-        this.ioHandler.cycle();
+    public void cycle() {
+        try {
+            this.ioHandler.cycle();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     @Override
@@ -80,4 +95,8 @@ public abstract class WatchedRegion extends Proxylet {
         this.ioHandler.close();
     }
 
+    protected void notifyMediator(SocketEventArg arg) {
+        assert this.mediator != null;
+        this.mediatorNotifier.post(arg);
+    }
 }
