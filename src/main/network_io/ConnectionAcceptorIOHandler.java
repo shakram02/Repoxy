@@ -13,12 +13,7 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
 public class ConnectionAcceptorIOHandler extends CommonIOHandler {
-    private final ConnectionAcceptor connectionAcceptor;
-
-    public ConnectionAcceptorIOHandler(ConnectionAcceptor connectionAcceptor) {
-        super(connectionAcceptor);
-        this.connectionAcceptor = connectionAcceptor;
-    }
+    private ConnectionAcceptor connectionAcceptor;
 
     @Override
     protected void handleSpecialKey(SelectionKey key) throws IOException {
@@ -50,5 +45,10 @@ public class ConnectionAcceptorIOHandler extends CommonIOHandler {
         this.keyMap.put(key, id);
 
         server.socket().bind(new InetSocketAddress(address, port));
+    }
+
+    public void setConnectionAcceptor(ConnectionAcceptor connectionAcceptor) {
+        this.connectionAcceptor = connectionAcceptor;
+        super.setUpperLayer(connectionAcceptor);
     }
 }
