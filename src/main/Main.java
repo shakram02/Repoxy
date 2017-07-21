@@ -1,6 +1,8 @@
+import mediators.BaseMediator;
+import network_io.ConnectionAcceptorIOHandler;
+import network_io.ConnectionCreatorIOHandler;
 import regions.ControllersRegion;
 import regions.SwitchesRegion;
-import utils.*;
 
 import java.io.IOException;
 
@@ -17,24 +19,35 @@ import java.io.IOException;
 public class Main {
     public static final String localhost = "127.0.0.1";
     public static final int of_port = 6633;
+    public static final int controller_port = 6634;
 
     public static void main(String[] args) throws IOException {
-//        SwitchesRegion server = new SwitchesRegion();
-//        server.startListening(localhost, of_port);
+        BaseMediator mediator = new BaseMediator();
 
-        ControllersRegion client = new ControllersRegion();
-        client.connect(localhost, of_port);
+        ConnectionAcceptorIOHandler acceptorIOHandler = new ConnectionAcceptorIOHandler();
+        SwitchesRegion server = new SwitchesRegion(acceptorIOHandler);
+        acceptorIOHandler.setConnectionAcceptor(server);
+        server.setMediator(mediator);
+
+        ConnectionCreatorIOHandler creatorIOHandler = new ConnectionCreatorIOHandler();
+        ControllersRegion client = new ControllersRegion(creatorIOHandler, localhost, controller_port);
+        creatorIOHandler.setUpperLayer(client);
+        client.setMediator(mediator);
+
+
+        mediator.setSwitchesRegion(server);
+        mediator.registerController(client);
+        server.startListening(localhost, of_port);
+
 
         while (true) {
             try {
                 Thread.sleep(200);
             } catch (InterruptedException e) {
-//                server.close();
-                client.close();
+                mediator.close();
                 break;
             }
-//            server.cycle();
-            client.cycle();
+            mediator.cycle();
         }
     }
 }
