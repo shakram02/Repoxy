@@ -1,6 +1,7 @@
 package regions;
 
-import proxylet.Proxylet;
+import network_io.ConnectionAcceptorIOHandler;
+import network_io.interfaces.ConnectionAcceptor;
 import utils.SocketEventArg;
 
 import java.io.IOException;
@@ -9,15 +10,13 @@ import java.io.IOException;
 /**
  * I/O Handler for server socket
  */
-public final class SwitchesRegion extends WatchedRegion {
+public final class SwitchesRegion extends WatchedRegion implements ConnectionAcceptor {
 
-    private Proxylet mediator;
+    private final ConnectionAcceptorIOHandler ioHandler;
 
-    public SwitchesRegion(Proxylet mediator) {
-        super(SwitchesRegion.class);
-
-        // Switches region is coupled to mediator
-        this.mediator = mediator;
+    public SwitchesRegion(ConnectionAcceptorIOHandler ioHandler) {
+        super(SwitchesRegion.class, ioHandler);
+        this.ioHandler = ioHandler;
     }
 
     public void startListening(String address, int port) throws IOException {
@@ -26,32 +25,7 @@ public final class SwitchesRegion extends WatchedRegion {
     }
 
     @Override
-    public void onConnection(SocketEventArg arg) {
-        logger.info("Accepted [" + arg.getId().toString() + "]: "
-                + this.ioHandler.getRemoteAddress(arg.getId()));
+    public void onConnectionAccepted(SocketEventArg arg) {
+        this.notifyMediator(arg);
     }
-
-    @Override
-    protected void onDisconnect(SocketEventArg arg) {
-        super.onDisconnect(arg);
-        this.logger.info("[" + this.ioHandler.getRemoteAddress(arg.getId()) + "] Disconnected");
-    }
-
-    /**
-     * Data arrived to region from sockets
-     *
-     * @param arg socket event data
-     */
-    @Override
-    protected void onData(SocketEventArg arg) {
-        switch (arg.getSenderType()) {
-            case Socket:
-                this.mediator.dispatchEvent(arg);
-                break;
-            default:
-                throw new IllegalStateException();
-        }
-        System.out.println(String.format("Got %d bytes!!", arg.getExtraData().size()));
-    }
-
 }
