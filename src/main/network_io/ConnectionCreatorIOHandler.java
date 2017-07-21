@@ -1,7 +1,7 @@
 package network_io;
 
-import network_io.interfaces.BasicSocketIOWatcher;
-import utils.*;
+import network_io.interfaces.ConnectionCreator;
+import utils.ConnectionId;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -9,13 +9,9 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
 /**
- * Handles low level socket I/O operations
+ * Creates connections to controller
  */
-public class ConnectionCreatorIOHandler extends CommonIOHandler  {
-
-    public ConnectionCreatorIOHandler(BasicSocketIOWatcher upperLayer) {
-        super(upperLayer);
-    }
+public class ConnectionCreatorIOHandler extends CommonIOHandler {
 
     /**
      * Called by upper classes Cycle() method
@@ -56,4 +52,7 @@ public class ConnectionCreatorIOHandler extends CommonIOHandler  {
         this.keyMap.put(key, id);
     }
 
+    public void setUpperLayer(ConnectionCreator upperLayer) {
+        super.setUpperLayer(upperLayer);
+    }
 }
