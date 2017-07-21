@@ -1,5 +1,6 @@
 package network_io;
 
+import network_io.interfaces.ConnectionAcceptor;
 import utils.ConnectionId;
 import utils.EventType;
 import utils.SenderType;

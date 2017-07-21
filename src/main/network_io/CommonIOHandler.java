@@ -1,6 +1,8 @@
 package network_io;
 
 import com.google.common.collect.HashBiMap;
+import network_io.interfaces.BasicSocketIOCommands;
+import network_io.interfaces.BasicSocketIOWatcher;
 import org.jetbrains.annotations.NotNull;
 import utils.*;
 
@@ -53,7 +55,12 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
         }
     }
 
-
+    /**
+     * Each sub class will override this function to handle their special events
+     *
+     * @param key Selection key
+     * @throws IOException Exception because of network elements
+     */
     protected abstract void handleSpecialKey(SelectionKey key) throws IOException;
 
     /**
@@ -71,7 +78,7 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
 
             int read = channel.read(buffer);
             if (read == -1) {
-                this.closeConnection(id);
+                this.closeConnection(new SocketEventArg(SenderType.Socket, EventType.Disconnection, id));
                 return;
             }
 
@@ -83,8 +90,9 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
         }
     }
 
-    public void closeConnection(ConnectionId id) {
-        SelectionKey key = this.keyMap.inverse().get(id);
+    @Override
+    public void closeConnection(SocketEventArg arg) {
+        SelectionKey key = this.keyMap.inverse().get(arg.getId());
         this.keyMap.remove(key);
 
         key.cancel();
@@ -95,8 +103,7 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
             throw new RuntimeException(e);
         }
 
-        this.upperLayer.onDisconnect(new SocketEventArg(SenderType.Socket,
-                EventType.Disconnection, id));
+        this.upperLayer.onDisconnect(arg);
     }
 
     private void onData(ConnectionId id, SocketChannel channel, int read) throws IOException {

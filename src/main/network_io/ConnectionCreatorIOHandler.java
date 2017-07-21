@@ -1,17 +1,12 @@
 package network_io;
 
+import network_io.interfaces.BasicSocketIOWatcher;
 import utils.*;
-import proxylet.Proxylet;
-import org.jetbrains.annotations.NotNull;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Set;
-import java.util.Vector;
 
 /**
  * Handles low level socket I/O operations
