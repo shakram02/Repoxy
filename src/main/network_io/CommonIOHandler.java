@@ -108,6 +108,7 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
         key.cancel();
         try {
             key.channel().close();
+            this.packetBuffer.clearAllData(arg.getId());
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
