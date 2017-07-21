@@ -33,7 +33,15 @@ public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWat
         this.ioHandler = commander;
     }
 
-    public void setMediator(BaseMediator mediator) {
+    /**
+     * This method is protected as a sub-class should implement
+     * its own mediator setting either through constructor (SwitchesRegion)
+     * or through methods (ControllerRegion) as multiple controllers
+     * need to be handled, so it hides all the inactive ControllerRegions.
+     *
+     * @param mediator Mediator to notify
+     */
+    protected void setMediator(BaseMediator mediator) {
         if (this.mediator != null) {
             throw new IllegalStateException("Each region notifies only one mediator");
         }
