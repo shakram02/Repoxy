@@ -6,6 +6,6 @@ package utils;
 public enum EventType {
     Connection,
     Disconnection,
-    DataIn,
-    DataOut,
+    SendData,
+    ChangeController
 }

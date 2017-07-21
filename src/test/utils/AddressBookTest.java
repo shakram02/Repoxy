@@ -1,7 +1,5 @@
 package utils;
 
-import utils.AddressBook;
-import utils.ConnectionId;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,7 +26,7 @@ public class AddressBookTest {
         addressBook = new AddressBook();
         for (int i = 0; i < socketCount; i++) {
             SocketChannel ch = SocketChannel.open();
-            addressBook.insert(new ConnectionId(),
+            addressBook.insert(ConnectionId.CreateNext(),
                     ch, new InetSocketAddress(localhost, 40000 + i));
             this.sockets[i] = ch;
         }
