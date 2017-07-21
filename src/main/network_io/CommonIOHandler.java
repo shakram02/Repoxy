@@ -9,6 +9,7 @@ import utils.*;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -18,15 +19,14 @@ import java.util.Vector;
 public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeable {
     private static final int BUFFER_SIZE = 2048;
 
-    protected final BasicSocketIOWatcher upperLayer;
+    protected BasicSocketIOWatcher upperLayer;
     protected final Selector selector;
     protected final HashBiMap<SelectionKey, ConnectionId> keyMap;
 
     private final PacketBuffer packetBuffer;
     private final ByteBuffer buffer;
 
-    public CommonIOHandler(BasicSocketIOWatcher upperLayer) {
-        this.upperLayer = upperLayer;
+    public CommonIOHandler() {
         try {
             this.selector = Selector.open();
         } catch (IOException e) {
@@ -39,6 +39,7 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
         this.packetBuffer = new PacketBuffer();
     }
 
+
     public void cycle() throws IOException {
         int count = this.selector.selectNow();
         if (count == 0) {
@@ -47,11 +48,13 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
         // TODO will be used later when having threads for controller and switches
         // this.selector.select();
         Set<SelectionKey> keys = this.selector.selectedKeys();
-
-        for (SelectionKey key : keys) {
-            keys.remove(key);
-            this.handleRWDOps(key);
-            this.handleSpecialKey(key);
+        try {
+            for (SelectionKey key : keys) {
+                keys.remove(key);
+                this.handleRWDOps(key);
+                this.handleSpecialKey(key);
+            }
+        } catch (CancelledKeyException ignored) {
         }
     }
 
@@ -70,6 +73,9 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
      * @throws IOException When socket I/O operation fails
      */
     protected void handleRWDOps(SelectionKey key) throws IOException {
+        if (!(key.channel() instanceof SocketChannel)) {
+            return;
+        }
 
         SocketChannel channel = (SocketChannel) key.channel();
         ConnectionId id = keyMap.get(key);
@@ -78,7 +84,11 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
 
             int read = channel.read(buffer);
             if (read == -1) {
-                this.closeConnection(new SocketEventArg(SenderType.Socket, EventType.Disconnection, id));
+                SocketEventArg arg = new SocketEventArg(SenderType.Socket, EventType.Disconnection, id);
+                this.closeConnection(arg);
+                // Notify mediator here as close connection when called by the mediator
+                // re-notifies the upper layer
+                this.upperLayer.onDisconnect(arg);
                 return;
             }
 
@@ -102,15 +112,13 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
             e.printStackTrace();
             throw new RuntimeException(e);
         }
-
-        this.upperLayer.onDisconnect(arg);
     }
 
     private void onData(ConnectionId id, SocketChannel channel, int read) throws IOException {
         Vector<Byte> data = readRemainingBytes(channel, read);
 
         this.upperLayer.onData(new SocketEventArg(SenderType.Socket,
-                EventType.DataIn, id, data));
+                EventType.SendData, id, data));
     }
 
     public void sendData(SocketEventArg arg) {
@@ -180,5 +188,9 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
         for (SelectionKey key : this.keyMap.keySet()) {
             key.channel().close();
         }
+    }
+
+    void setUpperLayer(BasicSocketIOWatcher upperLayer) {
+        this.upperLayer = upperLayer;
     }
 }
