@@ -6,11 +6,14 @@ import proxylet.Proxylet;
 import regions.ControllersRegion;
 import regions.SwitchesRegion;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import utils.ControllerChangeEventArg;
+import utils.EventType;
 import utils.SenderType;
 import utils.SocketEventArg;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Level;
 
 /**
  * Created by ahmed on 7/18/17.
@@ -19,6 +22,7 @@ public class BaseMediator extends Proxylet {
     private SwitchesRegion switchesRegion;
     private final EventBus controllerNotifier;
     private final ArrayList<ControllersRegion> controllerRegions;
+    private int connectedCount;
 
     public BaseMediator() {
         super(SenderType.Mediator);
@@ -68,10 +72,29 @@ public class BaseMediator extends Proxylet {
 
     protected void postDispatch(SocketEventArg arg) {
         // TODO Add to packet diff
+        SenderType senderType = arg.getSenderType();
+        EventType eventType = arg.getReplyType();
+
+        if (senderType == SenderType.SwitchesRegion) {
+            if (eventType == EventType.Connection) {
+                this.connectedCount++;
+            } else if (eventType == EventType.Disconnection) {
+                this.connectedCount--;
+            }
+        }
+    }
+
+    public boolean hasClients() {
+        return this.connectedCount > 0;
     }
 
     private void onReplicaEvent(SocketEventArg arg) {
+        System.out.println(String.format("Event from replica:%s", arg));
+    }
 
+    public void setActiveController(String ip, int port) {
+        ControllerChangeEventArg arg = new ControllerChangeEventArg(ip, port);
+        this.controllerNotifier.post(arg);
     }
 
     @Override
