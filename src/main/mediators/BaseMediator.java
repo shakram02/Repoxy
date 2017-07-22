@@ -33,7 +33,13 @@ public class BaseMediator extends Proxylet {
         this.switchesRegion = switchesRegion;
     }
 
-    public void registerController(ControllersRegion region) {
+    /**
+     * Adds a controller to the list of registered controller
+     * to receive socket events
+     *
+     * @param region Properly initialized {@link ControllersRegion}
+     */
+    public void registerController(@NotNull ControllersRegion region) {
         this.controllerRegions.add(region);
         this.controllerNotifier.register(region);
     }
@@ -65,10 +71,14 @@ public class BaseMediator extends Proxylet {
                 this.onReplicaEvent(redirected);
             }
         }
-        this.postDispatch(arg); // FIXME, I NEED CODE!!!
+        this.postDispatch(arg);
     }
 
-
+    /**
+     * Performs user-defined checks after the event has been processed
+     *
+     * @param arg Event argument containing Type and Sender of the event
+     */
     protected void postDispatch(SocketEventArg arg) {
         // TODO Add to packet diff
         SenderType senderType = arg.getSenderType();
@@ -89,11 +99,11 @@ public class BaseMediator extends Proxylet {
         return this.connectedCount > 0;
     }
 
-    private void onReplicaEvent(SocketEventArg arg) {
+    private void onReplicaEvent(@NotNull SocketEventArg arg) {
         System.out.println(String.format("Event from replica:%s", arg));
     }
 
-    public void setActiveController(String ip, int port) {
+    public void setActiveController(@NotNull String ip, int port) {
         ControllerChangeEventArg arg = new ControllerChangeEventArg(ip, port);
         this.controllerNotifier.post(arg);
     }
