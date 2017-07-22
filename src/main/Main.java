@@ -50,17 +50,11 @@ public class Main {
         };
 
         Timer timer = new Timer();
-        timer.scheduleAtFixedRate(t, 2000, 10000);
+//        timer.scheduleAtFixedRate(t, 2000, 10000);
 
         while (true) {
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                mediator.close();
-                break;
-            }
             mediator.cycle();
-
         }
+
     }
 }

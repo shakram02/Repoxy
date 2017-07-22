@@ -18,7 +18,7 @@ public class ConnectionAcceptorIOHandler extends CommonIOHandler {
 
     @Override
     protected void handleSpecialKey(@NotNull SelectionKey key) throws IOException {
-        if (key.isAcceptable()) {
+        if (key.isAcceptable() && key.isValid()) {
             ServerSocketChannel ch = (ServerSocketChannel) key.channel();
             this.onConnection(ch);
         }

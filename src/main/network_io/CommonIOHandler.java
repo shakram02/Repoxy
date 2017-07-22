@@ -13,6 +13,7 @@ import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
@@ -50,14 +51,17 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
         }
         // TODO will be used later when having threads for controller and switches
         // this.selector.select();
-        Set<SelectionKey> keys = this.selector.selectedKeys();
+        Set<SelectionKey> selectionKeys = this.selector.selectedKeys();
         try {
-            for (SelectionKey key : keys) {
-                keys.remove(key);
+            for (Iterator<SelectionKey> i = selectionKeys.iterator(); i.hasNext(); ) {
+                SelectionKey key = i.next();
+                i.remove();
+
                 this.handleRWDOps(key);
                 this.handleSpecialKey(key);
             }
-        } catch (CancelledKeyException ignored) {
+        } catch (CancelledKeyException e) {
+            e.printStackTrace();
         }
     }
 
@@ -82,8 +86,10 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
 
         SocketChannel channel = (SocketChannel) key.channel();
         ConnectionId id = keyMap.get(key);
-
-        if (key.isReadable()) {
+        if (id == null) {
+            throw new RuntimeException("Invalid ConnectionID");
+        }
+        if (key.isReadable() && key.isValid()) {
 
             int read = channel.read(buffer);
             if (read == -1) {
@@ -97,7 +103,7 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
 
             this.onData(id, channel, read);
         }
-        if (key.isWritable()) {
+        if (key.isWritable() && key.isValid()) {
             this.writePackets(id, channel);
             this.removeOutput(id);
         }
