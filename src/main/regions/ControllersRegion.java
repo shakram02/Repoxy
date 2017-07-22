@@ -46,7 +46,8 @@ public final class ControllersRegion extends WatchedRegion implements Connection
     /**
      * Dispatch events coming from the mediator
      *
-     * @param arg Event info
+     * @param arg Holds the type of the event and the
+     *            sender type
      */
     @Override
     public void dispatchEvent(@NotNull SocketEventArg arg) {
@@ -78,7 +79,8 @@ public final class ControllersRegion extends WatchedRegion implements Connection
      * Creates a new connection to the controller when a client
      * connects to {@link SwitchesRegion}
      *
-     * @param args
+     * @param args Event argument containing the ip address and
+     *             port of the new connection
      */
     @Override
     public void connectTo(@NotNull SocketEventArg args) {

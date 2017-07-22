@@ -49,7 +49,7 @@ public class BaseMediator extends Proxylet {
      * and from switches will need to access this method. thus, this
      * method is its synchronization point
      *
-     * @param arg socket event data
+     * @param arg socket event data containing the Sender and Event types
      */
     @Subscribe
     public synchronized void dispatchEvent(@NotNull SocketEventArg arg) {
@@ -80,6 +80,8 @@ public class BaseMediator extends Proxylet {
             } else if (eventType == EventType.Disconnection) {
                 this.connectedCount--;
             }
+        } else if (senderType == SenderType.ReplicaRegion && eventType == EventType.Disconnection) {
+            throw new RuntimeException("Replicated controller disconnected");
         }
     }
 
