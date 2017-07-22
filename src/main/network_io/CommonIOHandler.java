@@ -21,7 +21,7 @@ import java.util.Vector;
  * Implementation of common socket IO events
  */
 public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeable {
-    private static final int BUFFER_SIZE = 2048;
+    private static final int BUFFER_SIZE = 4096;
 
     protected BasicSocketIOWatcher upperLayer;
     protected final Selector selector;
@@ -86,9 +86,8 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
 
         SocketChannel channel = (SocketChannel) key.channel();
         ConnectionId id = keyMap.get(key);
-        if (id == null) {
-            throw new RuntimeException("Invalid ConnectionID");
-        }
+        assert id != null : "Entry not found " + key;
+
         if (key.isReadable() && key.isValid()) {
 
             int read = channel.read(buffer);
@@ -184,7 +183,7 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
     @NotNull
     private Vector<Byte> readRemainingBytes(SocketChannel channel, int count)
             throws IOException {
-        Vector<Byte> bytes = new Vector<>(BUFFER_SIZE * 2);
+        Vector<Byte> bytes = new Vector<>(BUFFER_SIZE);
 
         while (count > 0) {
             buffer.rewind();

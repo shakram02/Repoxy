@@ -37,7 +37,7 @@ public final class SwitchesRegion extends WatchedRegion implements ConnectionAcc
         } else if (eventType == EventType.Connection) {
             this.onConnectionAccepted(arg);
         } else {
-            throw new RuntimeException("Invalid event:" + eventType);
+            assert false : "Invalid event:" + eventType;
         }
     }
 

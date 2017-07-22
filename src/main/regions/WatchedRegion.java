@@ -29,33 +29,32 @@ public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWat
      *
      * @param senderType type of the overriding class, for logging
      */
-    public WatchedRegion(@NotNull SenderType senderType,@NotNull  CommonIOHandler commander) {
+    public WatchedRegion(@NotNull SenderType senderType, @NotNull CommonIOHandler commander) {
         super(senderType);
         this.mediatorNotifier = new EventBus(senderType.toString());
         this.ioHandler = commander;
     }
 
     public void setMediator(@NotNull BaseMediator mediator) {
-        if (this.mediator != null) {
-            throw new IllegalStateException("Each region notifies only one mediator");
-        }
+        assert this.mediator == null : "Mediator is being set twice";
+
         this.mediator = mediator;
         this.mediatorNotifier.register(mediator);
     }
 
     @Override
     public void dispatchEvent(@NotNull SocketEventArg arg) {
-        EventType eventType = arg.getReplyType();
-
         // Check before performing socket I/O operations
-        if (!this.isReceiverAlive(arg)) {
-            throw new IllegalStateException(String.format("Event receiver for {%s} isn't alive", arg));
-        }
+        assert this.isReceiverAlive(arg) : String.format("Event receiver for {%s} isn't alive", arg);
+
+        EventType eventType = arg.getReplyType();
 
         if (eventType == EventType.Disconnection) {
             this.onDisconnect(arg);
         } else if (eventType == EventType.SendData) {
             this.sendData(arg);
+        } else {
+            assert false : "Invalid event sender: " + arg;
         }
     }
 
@@ -72,6 +71,8 @@ public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWat
             this.notifyMediator(arg);
         } else if (sender == SenderType.Mediator) {
             this.ioHandler.closeConnection(arg);
+        } else {
+            assert false : "Invalid event sender: " + arg;
         }
     }
 
@@ -130,10 +131,6 @@ public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWat
     }
 
     protected final void notifyMediator(SocketEventArg arg) {
-        if (this.mediator == null) {
-            throw new RuntimeException("Mediator isn't provided");
-        }
-
         arg = SocketEventArg.Redirect(this.senderType, arg);
         this.mediatorNotifier.post(arg);
     }

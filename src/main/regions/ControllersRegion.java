@@ -10,7 +10,6 @@ import utils.SocketEventArg;
 
 import java.io.IOException;
 import java.util.Objects;
-import java.util.logging.Level;
 
 /**
  * A logical mapping for a controller, a controller might be an active
@@ -61,7 +60,7 @@ public final class ControllersRegion extends WatchedRegion implements Connection
         if (eventType != EventType.Connection
                 && eventType != EventType.ChangeController
                 && !this.ioHandler.isReceiverAlive(arg)) {
-            throw new IllegalStateException(String.format("Event receiver for {%s} isn't alive", arg));
+            throw new AssertionError(String.format("Event receiver for {%s} isn't alive", arg));
         }
 
         if (eventType == EventType.Disconnection || eventType == EventType.SendData) {
@@ -71,7 +70,7 @@ public final class ControllersRegion extends WatchedRegion implements Connection
         } else if (eventType == EventType.Connection) {
             this.connectTo(arg);
         } else {
-            throw new RuntimeException("Invalid event:" + eventType);
+            assert false : "Illegal event " + eventType;
         }
     }
 
@@ -100,14 +99,15 @@ public final class ControllersRegion extends WatchedRegion implements Connection
      * @param arg Event info
      */
     private void changeActiveController(@NotNull SocketEventArg arg) {
-
         ControllerChangeEventArg a = (ControllerChangeEventArg) arg;
+
         // If I'm the selected controller and I'm not the active one
         if (Objects.equals(this.address, a.getIp()) && this.port == a.getPort() &&
                 ControllersRegion.activeController != this) {
-            this.logger.log(Level.INFO, String.format("Controller on port [%d] is now activated", this.port));
+
             this.senderType = SenderType.ControllerRegion;
             ControllersRegion.activeController = this;
+
         } else {
             this.senderType = SenderType.ReplicaRegion;
         }
