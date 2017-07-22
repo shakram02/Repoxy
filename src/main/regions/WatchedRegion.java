@@ -44,6 +44,12 @@ public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWat
     @Override
     public void dispatchEvent(SocketEventArg arg) {
         EventType eventType = arg.getReplyType();
+
+        // Check before performing socket I/O operations
+        if (!this.isReceiverAlive(arg)) {
+            throw new IllegalStateException(String.format("Event receiver for {%s} isn't alive", arg));
+        }
+
         if (eventType == EventType.Disconnection) {
             this.onDisconnect(arg);
         } else if (eventType == EventType.SendData) {
@@ -78,6 +84,10 @@ public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWat
         this.notifyMediator(arg);
     }
 
+    @Override
+    public boolean isReceiverAlive(SocketEventArg arg) {
+        return this.ioHandler.isReceiverAlive(arg);
+    }
 
     /**
      * Someone wants the region to send a message to socket layer

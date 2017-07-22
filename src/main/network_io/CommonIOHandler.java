@@ -128,6 +128,11 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
         this.addOutput(key);
     }
 
+    public boolean isReceiverAlive(SocketEventArg arg) {
+        SelectionKey key = this.keyMap.inverse().get(arg.getId());
+        return key != null && key.isValid();
+    }
+
     @NotNull
     public String getConnectionInfo(ConnectionId id) {
         // The exception is irrelevant as the channel is always connected,
