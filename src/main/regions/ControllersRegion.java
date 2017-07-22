@@ -9,18 +9,23 @@ import utils.SocketEventArg;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.logging.Level;
 
 public final class ControllersRegion extends WatchedRegion implements ConnectionCreator {
+    private static int CONTROLLER_ID;
     private static ControllersRegion activeController;
+
     private final ConnectionCreatorIOHandler ioHandler;
     private final String address;
     private final int port;
+    private final int id;
 
     public ControllersRegion(ConnectionCreatorIOHandler ioHandler, String address, int port) {
         super(SenderType.ReplicaRegion, ioHandler);
         this.ioHandler = ioHandler;
         this.address = address;
         this.port = port;
+        this.id = CONTROLLER_ID++;
 
         // Set the first controller as the active one
         if (activeController == null) {
@@ -71,6 +76,7 @@ public final class ControllersRegion extends WatchedRegion implements Connection
 
         ControllerChangeEventArg a = (ControllerChangeEventArg) arg;
         if (Objects.equals(this.address, a.getIp()) && this.port == a.getPort()) {
+            this.logger.log(Level.INFO, String.format("Controller [%d] is now activated", this.id));
             this.senderType = SenderType.ControllerRegion;
             ControllersRegion.activeController = this;
         } else {

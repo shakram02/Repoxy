@@ -71,7 +71,7 @@ public class BaseMediator extends Proxylet {
     }
 
     private void onReplicaEvent(SocketEventArg arg) {
-        throw new NotImplementedException();
+
     }
 
     @Override
