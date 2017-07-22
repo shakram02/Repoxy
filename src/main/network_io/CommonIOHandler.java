@@ -108,6 +108,7 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
         key.cancel();
         try {
             key.channel().close();
+            this.packetBuffer.clearAllData(arg.getId());
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -125,6 +126,11 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
         this.packetBuffer.addPacket(arg.getId(), arg.getExtraData());
         SelectionKey key = this.keyMap.inverse().get(arg.getId());
         this.addOutput(key);
+    }
+
+    public boolean isReceiverAlive(SocketEventArg arg) {
+        SelectionKey key = this.keyMap.inverse().get(arg.getId());
+        return key != null && key.isValid();
     }
 
     @NotNull

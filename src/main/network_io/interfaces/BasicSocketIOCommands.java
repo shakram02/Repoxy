@@ -10,4 +10,6 @@ public interface BasicSocketIOCommands {
     void closeConnection(SocketEventArg arg);
 
     void cycle() throws IOException;
+
+    boolean isReceiverAlive(SocketEventArg arg);
 }

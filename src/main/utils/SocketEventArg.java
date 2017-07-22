@@ -72,6 +72,6 @@ public class SocketEventArg {
 
     @Override
     public String toString() {
-        return String.format("ID: [%s] What %s From %s", this.id, this.replyType, this.senderType);
+        return String.format("ID: [%s] %s FROM %s", this.id, this.replyType, this.senderType);
     }
 }
