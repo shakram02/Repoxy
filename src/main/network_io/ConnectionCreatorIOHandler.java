@@ -1,6 +1,7 @@
 package network_io;
 
 import network_io.interfaces.ConnectionCreator;
+import org.jetbrains.annotations.NotNull;
 import utils.ConnectionId;
 
 import java.io.IOException;
@@ -20,7 +21,7 @@ public class ConnectionCreatorIOHandler extends CommonIOHandler {
      * @throws IOException When socket I/O operation fails
      */
     @Override
-    protected void handleSpecialKey(SelectionKey key) throws IOException {
+    protected void handleSpecialKey(@NotNull SelectionKey key) throws IOException {
 
         if (key.isConnectable()) {
             SocketChannel channel = (SocketChannel) key.channel();
@@ -28,7 +29,7 @@ public class ConnectionCreatorIOHandler extends CommonIOHandler {
         }
     }
 
-    private void onConnectable(SelectionKey key, SocketChannel channel) throws IOException {
+    private void onConnectable(@NotNull SelectionKey key, @NotNull SocketChannel channel) throws IOException {
 
         if (channel.isConnectionPending()) {
             try {
@@ -42,7 +43,7 @@ public class ConnectionCreatorIOHandler extends CommonIOHandler {
         key.interestOps(SelectionKey.OP_READ);
     }
 
-    public void createConnection(String address, int port, ConnectionId id) throws IOException {
+    public void createConnection(@NotNull String address, int port, @NotNull ConnectionId id) throws IOException {
         SocketChannel client = SocketChannel.open();
         client.configureBlocking(false);
 
@@ -52,7 +53,7 @@ public class ConnectionCreatorIOHandler extends CommonIOHandler {
         this.keyMap.put(key, id);
     }
 
-    public void setUpperLayer(ConnectionCreator upperLayer) {
+    public void setUpperLayer(@NotNull ConnectionCreator upperLayer) {
         super.setUpperLayer(upperLayer);
     }
 }

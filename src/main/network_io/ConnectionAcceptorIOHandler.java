@@ -1,6 +1,7 @@
 package network_io;
 
 import network_io.interfaces.ConnectionAcceptor;
+import org.jetbrains.annotations.NotNull;
 import utils.ConnectionId;
 import utils.EventType;
 import utils.SenderType;
@@ -16,14 +17,14 @@ public class ConnectionAcceptorIOHandler extends CommonIOHandler {
     private ConnectionAcceptor connectionAcceptor;
 
     @Override
-    protected void handleSpecialKey(SelectionKey key) throws IOException {
+    protected void handleSpecialKey(@NotNull SelectionKey key) throws IOException {
         if (key.isAcceptable()) {
             ServerSocketChannel ch = (ServerSocketChannel) key.channel();
             this.onConnection(ch);
         }
     }
 
-    private void onConnection(ServerSocketChannel server) throws IOException {
+    private void onConnection(@NotNull ServerSocketChannel server) throws IOException {
         SocketChannel channel = server.accept();
         channel.configureBlocking(false);
         SelectionKey key = channel.register(selector, SelectionKey.OP_READ);
@@ -36,7 +37,7 @@ public class ConnectionAcceptorIOHandler extends CommonIOHandler {
                 EventType.Connection, id));
     }
 
-    public void createServer(String address, int port) throws IOException {
+    public void createServer(@NotNull String address, int port) throws IOException {
         ServerSocketChannel server = ServerSocketChannel.open();
         server.configureBlocking(false);
         SelectionKey key = server.register(this.selector, SelectionKey.OP_ACCEPT);
@@ -47,7 +48,7 @@ public class ConnectionAcceptorIOHandler extends CommonIOHandler {
         server.socket().bind(new InetSocketAddress(address, port));
     }
 
-    public void setConnectionAcceptor(ConnectionAcceptor connectionAcceptor) {
+    public void setConnectionAcceptor(@NotNull ConnectionAcceptor connectionAcceptor) {
         this.connectionAcceptor = connectionAcceptor;
         super.setUpperLayer(connectionAcceptor);
     }

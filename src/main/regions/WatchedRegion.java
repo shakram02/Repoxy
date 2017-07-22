@@ -5,7 +5,9 @@ import mediators.BaseMediator;
 import network_io.CommonIOHandler;
 import network_io.interfaces.BasicSocketIOCommands;
 import network_io.interfaces.BasicSocketIOWatcher;
+import org.jetbrains.annotations.NotNull;
 import proxylet.Proxylet;
+import utils.ConnectionId;
 import utils.EventType;
 import utils.SenderType;
 import utils.SocketEventArg;
@@ -27,13 +29,13 @@ public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWat
      *
      * @param senderType type of the overriding class, for logging
      */
-    public WatchedRegion(SenderType senderType, CommonIOHandler commander) {
+    public WatchedRegion(@NotNull SenderType senderType,@NotNull  CommonIOHandler commander) {
         super(senderType);
         this.mediatorNotifier = new EventBus(senderType.toString());
         this.ioHandler = commander;
     }
 
-    public void setMediator(BaseMediator mediator) {
+    public void setMediator(@NotNull BaseMediator mediator) {
         if (this.mediator != null) {
             throw new IllegalStateException("Each region notifies only one mediator");
         }
@@ -42,7 +44,7 @@ public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWat
     }
 
     @Override
-    public void dispatchEvent(SocketEventArg arg) {
+    public void dispatchEvent(@NotNull SocketEventArg arg) {
         EventType eventType = arg.getReplyType();
 
         // Check before performing socket I/O operations
@@ -64,7 +66,7 @@ public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWat
      * @param arg disconnecting element info
      */
     @Override
-    public void onDisconnect(SocketEventArg arg) {
+    public void onDisconnect(@NotNull SocketEventArg arg) {
         SenderType sender = arg.getSenderType();
         if (sender == SenderType.Socket) {
             this.notifyMediator(arg);
@@ -80,13 +82,20 @@ public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWat
      * @param arg data info
      */
     @Override
-    public void onData(SocketEventArg arg) {
+    public void onData(@NotNull SocketEventArg arg) {
         this.notifyMediator(arg);
     }
 
     @Override
-    public boolean isReceiverAlive(SocketEventArg arg) {
+    public boolean isReceiverAlive(@NotNull SocketEventArg arg) {
         return this.ioHandler.isReceiverAlive(arg);
+    }
+
+
+    @NotNull
+    @Override
+    public String getConnectionInfo(@NotNull ConnectionId id) {
+        return this.ioHandler.getConnectionInfo(id);
     }
 
     /**
@@ -95,13 +104,13 @@ public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWat
      * @param arg Event argument containing what to send
      */
     @Override
-    public void sendData(SocketEventArg arg) {
+    public void sendData(@NotNull SocketEventArg arg) {
         // a sendTo coming from a Terminal will always throw an exception
         this.ioHandler.sendData(arg);
     }
 
     @Override
-    public void closeConnection(SocketEventArg arg) {
+    public void closeConnection(@NotNull SocketEventArg arg) {
         this.ioHandler.closeConnection(arg);
     }
 

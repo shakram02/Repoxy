@@ -2,10 +2,10 @@ package mediators;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import org.jetbrains.annotations.NotNull;
 import proxylet.Proxylet;
 import regions.ControllersRegion;
 import regions.SwitchesRegion;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import utils.ControllerChangeEventArg;
 import utils.EventType;
 import utils.SenderType;
@@ -13,7 +13,6 @@ import utils.SocketEventArg;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.logging.Level;
 
 /**
  * Created by ahmed on 7/18/17.
@@ -53,7 +52,7 @@ public class BaseMediator extends Proxylet {
      * @param arg socket event data
      */
     @Subscribe
-    public synchronized void dispatchEvent(SocketEventArg arg) {
+    public synchronized void dispatchEvent(@NotNull SocketEventArg arg) {
         SenderType senderType = arg.getSenderType();
         SocketEventArg redirected = SocketEventArg.Redirect(SenderType.Mediator, arg);
 

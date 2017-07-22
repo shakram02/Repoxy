@@ -1,8 +1,4 @@
 import mediators.BaseMediator;
-import network_io.ConnectionAcceptorIOHandler;
-import network_io.ConnectionCreatorIOHandler;
-import regions.ControllersRegion;
-import regions.SwitchesRegion;
 import utils.ProxyBuilder;
 
 import java.io.IOException;
@@ -20,18 +16,18 @@ import java.util.TimerTask;
  * **Output**
  */
 public class Main {
-    public static final String localhost = "127.0.0.1";
-    public static final int of_port = 6633;
-    public static final int controller_port = 6634;
-    public static final int replicated_controller_port = 6635;
+    public static final String LOCALHOST = "127.0.0.1";
+    public static final int OF_PORT = 6833;
+    public static final int CONTROLLER_PORT = 6834;
+    public static final int REPLICATED_CONTROLLER_PORT = 6835;
 
     public static void main(String[] args) throws IOException {
         ProxyBuilder builder = ProxyBuilder.createInstance()
-                .BuildController(localhost, controller_port)
-                .BuildController(localhost, replicated_controller_port)
+                .BuildController(LOCALHOST, CONTROLLER_PORT)
+                .BuildController(LOCALHOST, REPLICATED_CONTROLLER_PORT)
                 .BuildSwitchesRegion();
 
-        builder.startServer(localhost, of_port);
+        builder.startServer(LOCALHOST, OF_PORT);
         final BaseMediator mediator = builder.getMediator();
 
 
@@ -45,9 +41,9 @@ public class Main {
                 }
 
                 if (alt % 2 == 0) {
-                    mediator.setActiveController(localhost, replicated_controller_port);
+                    mediator.setActiveController(LOCALHOST, REPLICATED_CONTROLLER_PORT);
                 } else {
-                    mediator.setActiveController(localhost, controller_port);
+                    mediator.setActiveController(LOCALHOST, CONTROLLER_PORT);
                 }
                 alt++;
             }

@@ -2,6 +2,7 @@ package regions;
 
 import network_io.ConnectionCreatorIOHandler;
 import network_io.interfaces.ConnectionCreator;
+import org.jetbrains.annotations.NotNull;
 import utils.ControllerChangeEventArg;
 import utils.EventType;
 import utils.SenderType;
@@ -11,21 +12,29 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.logging.Level;
 
+/**
+ * A logical mapping for a controller, a controller might be an active
+ * or a secondary one. Each controller is identified by its ip and port
+ * <p>
+ * Another function this class is doing is passing all bidirectional
+ * events through the {@link ControllersRegion#dispatchEvent(SocketEventArg)} method, this enables logging
+ * and doing actions at controller level.
+ * <p>
+ * A controller extends a {@link WatchedRegion} by the ability
+ * to create connections
+ */
 public final class ControllersRegion extends WatchedRegion implements ConnectionCreator {
-    private static int CONTROLLER_ID;
     private static ControllersRegion activeController;
 
     private final ConnectionCreatorIOHandler ioHandler;
     private final String address;
     private final int port;
-    private final int id;
 
-    public ControllersRegion(ConnectionCreatorIOHandler ioHandler, String address, int port) {
+    public ControllersRegion(@NotNull ConnectionCreatorIOHandler ioHandler, @NotNull String address, int port) {
         super(SenderType.ReplicaRegion, ioHandler);
         this.ioHandler = ioHandler;
         this.address = address;
         this.port = port;
-        this.id = CONTROLLER_ID++;
 
         // Set the first controller as the active one
         if (activeController == null) {
@@ -40,7 +49,7 @@ public final class ControllersRegion extends WatchedRegion implements Connection
      * @param arg Event info
      */
     @Override
-    public void dispatchEvent(SocketEventArg arg) {
+    public void dispatchEvent(@NotNull SocketEventArg arg) {
         EventType eventType = arg.getReplyType();
 
         String state = this == ControllersRegion.activeController ? "Active" : "Replicated";
@@ -65,8 +74,14 @@ public final class ControllersRegion extends WatchedRegion implements Connection
         }
     }
 
+    /**
+     * Creates a new connection to the controller when a client
+     * connects to {@link SwitchesRegion}
+     *
+     * @param args
+     */
     @Override
-    public void connectTo(SocketEventArg args) {
+    public void connectTo(@NotNull SocketEventArg args) {
         try {
             this.ioHandler.createConnection(this.address, this.port, args.getId());
         } catch (IOException e) {
@@ -82,7 +97,7 @@ public final class ControllersRegion extends WatchedRegion implements Connection
      *
      * @param arg Event info
      */
-    private void changeActiveController(SocketEventArg arg) {
+    private void changeActiveController(@NotNull SocketEventArg arg) {
 
         ControllerChangeEventArg a = (ControllerChangeEventArg) arg;
         // If I'm the selected controller and I'm not the active one
