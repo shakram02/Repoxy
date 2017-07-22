@@ -13,9 +13,13 @@ import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
+/**
+ * Implementation of common socket IO events
+ */
 public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeable {
     private static final int BUFFER_SIZE = 2048;
 
@@ -47,14 +51,17 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
         }
         // TODO will be used later when having threads for controller and switches
         // this.selector.select();
-        Set<SelectionKey> keys = this.selector.selectedKeys();
+        Set<SelectionKey> selectionKeys = this.selector.selectedKeys();
         try {
-            for (SelectionKey key : keys) {
-                keys.remove(key);
+            for (Iterator<SelectionKey> i = selectionKeys.iterator(); i.hasNext(); ) {
+                SelectionKey key = i.next();
+                i.remove();
+
                 this.handleRWDOps(key);
                 this.handleSpecialKey(key);
             }
-        } catch (CancelledKeyException ignored) {
+        } catch (CancelledKeyException e) {
+            e.printStackTrace();
         }
     }
 
@@ -64,7 +71,7 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
      * @param key Selection key
      * @throws IOException Exception because of network elements
      */
-    protected abstract void handleSpecialKey(SelectionKey key) throws IOException;
+    protected abstract void handleSpecialKey(@NotNull SelectionKey key) throws IOException;
 
     /**
      * Called by upper classes Cycle() method
@@ -72,15 +79,17 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
      * @param key: SelectionKey in question
      * @throws IOException When socket I/O operation fails
      */
-    protected void handleRWDOps(SelectionKey key) throws IOException {
+    protected void handleRWDOps(@NotNull SelectionKey key) throws IOException {
         if (!(key.channel() instanceof SocketChannel)) {
             return;
         }
 
         SocketChannel channel = (SocketChannel) key.channel();
         ConnectionId id = keyMap.get(key);
-
-        if (key.isReadable()) {
+        if (id == null) {
+            throw new RuntimeException("Invalid ConnectionID");
+        }
+        if (key.isReadable() && key.isValid()) {
 
             int read = channel.read(buffer);
             if (read == -1) {
@@ -94,14 +103,14 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
 
             this.onData(id, channel, read);
         }
-        if (key.isWritable()) {
+        if (key.isWritable() && key.isValid()) {
             this.writePackets(id, channel);
             this.removeOutput(id);
         }
     }
 
     @Override
-    public void closeConnection(SocketEventArg arg) {
+    public void closeConnection(@NotNull SocketEventArg arg) {
         SelectionKey key = this.keyMap.inverse().get(arg.getId());
         this.keyMap.remove(key);
 
@@ -115,26 +124,26 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
         }
     }
 
-    private void onData(ConnectionId id, SocketChannel channel, int read) throws IOException {
+    private void onData(@NotNull ConnectionId id, @NotNull SocketChannel channel, int read) throws IOException {
         Vector<Byte> data = readRemainingBytes(channel, read);
 
         this.upperLayer.onData(new SocketEventArg(SenderType.Socket,
                 EventType.SendData, id, data));
     }
 
-    public void sendData(SocketEventArg arg) {
+    public void sendData(@NotNull SocketEventArg arg) {
         this.packetBuffer.addPacket(arg.getId(), arg.getExtraData());
         SelectionKey key = this.keyMap.inverse().get(arg.getId());
         this.addOutput(key);
     }
 
-    public boolean isReceiverAlive(SocketEventArg arg) {
+    public boolean isReceiverAlive(@NotNull SocketEventArg arg) {
         SelectionKey key = this.keyMap.inverse().get(arg.getId());
         return key != null && key.isValid();
     }
 
     @NotNull
-    public String getConnectionInfo(ConnectionId id) {
+    public String getConnectionInfo(@NotNull ConnectionId id) {
         // The exception is irrelevant as the channel is always connected,
         // that's why it's handled here
         try {
@@ -196,7 +205,7 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
         }
     }
 
-    void setUpperLayer(BasicSocketIOWatcher upperLayer) {
+    void setUpperLayer(@NotNull BasicSocketIOWatcher upperLayer) {
         this.upperLayer = upperLayer;
     }
 }

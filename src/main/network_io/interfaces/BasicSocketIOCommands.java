@@ -1,15 +1,20 @@
 package network_io.interfaces;
 
+import org.jetbrains.annotations.NotNull;
+import utils.ConnectionId;
 import utils.SocketEventArg;
 
 import java.io.IOException;
 
 public interface BasicSocketIOCommands {
-    void sendData(SocketEventArg arg);
+    void sendData(@NotNull SocketEventArg arg);
 
-    void closeConnection(SocketEventArg arg);
+    void closeConnection(@NotNull SocketEventArg arg);
 
     void cycle() throws IOException;
 
-    boolean isReceiverAlive(SocketEventArg arg);
+    boolean isReceiverAlive(@NotNull SocketEventArg arg);
+
+    @NotNull
+    String getConnectionInfo(@NotNull ConnectionId id);
 }

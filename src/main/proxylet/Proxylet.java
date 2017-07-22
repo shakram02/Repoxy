@@ -1,7 +1,7 @@
 package proxylet;
 
 import com.google.common.eventbus.Subscribe;
-import network_io.interfaces.BasicSocketIOWatcher;
+import org.jetbrains.annotations.NotNull;
 import utils.SenderType;
 import utils.SocketEventArg;
 
@@ -29,7 +29,7 @@ public abstract class Proxylet implements Closeable {
 
 
     @Subscribe
-    public abstract void dispatchEvent(SocketEventArg arg);
+    public abstract void dispatchEvent(@NotNull SocketEventArg arg);
 
     /**
      * Proxylet is about to close, clean up!

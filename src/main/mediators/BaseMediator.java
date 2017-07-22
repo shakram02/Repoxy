@@ -2,10 +2,10 @@ package mediators;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import org.jetbrains.annotations.NotNull;
 import proxylet.Proxylet;
 import regions.ControllersRegion;
 import regions.SwitchesRegion;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import utils.ControllerChangeEventArg;
 import utils.EventType;
 import utils.SenderType;
@@ -13,7 +13,6 @@ import utils.SocketEventArg;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.logging.Level;
 
 /**
  * Created by ahmed on 7/18/17.
@@ -34,7 +33,13 @@ public class BaseMediator extends Proxylet {
         this.switchesRegion = switchesRegion;
     }
 
-    public void registerController(ControllersRegion region) {
+    /**
+     * Adds a controller to the list of registered controller
+     * to receive socket events
+     *
+     * @param region Properly initialized {@link ControllersRegion}
+     */
+    public void registerController(@NotNull ControllersRegion region) {
         this.controllerRegions.add(region);
         this.controllerNotifier.register(region);
     }
@@ -50,10 +55,10 @@ public class BaseMediator extends Proxylet {
      * and from switches will need to access this method. thus, this
      * method is its synchronization point
      *
-     * @param arg socket event data
+     * @param arg socket event data containing the Sender and Event types
      */
     @Subscribe
-    public synchronized void dispatchEvent(SocketEventArg arg) {
+    public synchronized void dispatchEvent(@NotNull SocketEventArg arg) {
         SenderType senderType = arg.getSenderType();
         SocketEventArg redirected = SocketEventArg.Redirect(SenderType.Mediator, arg);
 
@@ -66,10 +71,14 @@ public class BaseMediator extends Proxylet {
                 this.onReplicaEvent(redirected);
             }
         }
-        this.postDispatch(arg); // FIXME, I NEED CODE!!!
+        this.postDispatch(arg);
     }
 
-
+    /**
+     * Performs user-defined checks after the event has been processed
+     *
+     * @param arg Event argument containing Type and Sender of the event
+     */
     protected void postDispatch(SocketEventArg arg) {
         // TODO Add to packet diff
         SenderType senderType = arg.getSenderType();
@@ -81,6 +90,8 @@ public class BaseMediator extends Proxylet {
             } else if (eventType == EventType.Disconnection) {
                 this.connectedCount--;
             }
+        } else if (senderType == SenderType.ReplicaRegion && eventType == EventType.Disconnection) {
+            throw new RuntimeException("Replicated controller disconnected");
         }
     }
 
@@ -88,11 +99,11 @@ public class BaseMediator extends Proxylet {
         return this.connectedCount > 0;
     }
 
-    private void onReplicaEvent(SocketEventArg arg) {
+    private void onReplicaEvent(@NotNull SocketEventArg arg) {
         System.out.println(String.format("Event from replica:%s", arg));
     }
 
-    public void setActiveController(String ip, int port) {
+    public void setActiveController(@NotNull String ip, int port) {
         ControllerChangeEventArg arg = new ControllerChangeEventArg(ip, port);
         this.controllerNotifier.post(arg);
     }

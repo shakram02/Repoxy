@@ -10,8 +10,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class ProxyBuilder {
-    private static final BaseMediator mediator = new BaseMediator();
-    private static final ArrayList<ControllersRegion> controllerRegions = new ArrayList<>();
+    private static final BaseMediator BASE_MEDIATOR = new BaseMediator();
+    private static final ArrayList<ControllersRegion> CONTROLLERS_REGIONS = new ArrayList<>();
     private static SwitchesRegion switches;
 
     private static ProxyBuilder instance;
@@ -28,8 +28,8 @@ public class ProxyBuilder {
         ConnectionAcceptorIOHandler acceptorIOHandler = new ConnectionAcceptorIOHandler();
         switches = new SwitchesRegion(acceptorIOHandler);
         acceptorIOHandler.setConnectionAcceptor(switches);
-        switches.setMediator(mediator);
-        mediator.setSwitchesRegion(switches);
+        switches.setMediator(BASE_MEDIATOR);
+        BASE_MEDIATOR.setSwitchesRegion(switches);
         return instance;
     }
 
@@ -37,10 +37,10 @@ public class ProxyBuilder {
         ConnectionCreatorIOHandler connectorElement = new ConnectionCreatorIOHandler();
         ControllersRegion controllerRegion = new ControllersRegion(connectorElement, ip, port);
         connectorElement.setUpperLayer(controllerRegion);
-        controllerRegion.setMediator(mediator);
+        controllerRegion.setMediator(BASE_MEDIATOR);
 
-        mediator.registerController(controllerRegion);
-        controllerRegions.add(controllerRegion);
+        BASE_MEDIATOR.registerController(controllerRegion);
+        CONTROLLERS_REGIONS.add(controllerRegion);
 
         return instance;
     }
@@ -51,10 +51,10 @@ public class ProxyBuilder {
     }
 
     public BaseMediator getMediator() {
-        return mediator;
+        return BASE_MEDIATOR;
     }
 
     public int getControllerCount() {
-        return controllerRegions.size();
+        return CONTROLLERS_REGIONS.size();
     }
 }
