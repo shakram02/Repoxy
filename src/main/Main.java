@@ -6,6 +6,8 @@ import regions.SwitchesRegion;
 import utils.ProxyBuilder;
 
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Packet flow:
@@ -30,7 +32,29 @@ public class Main {
                 .BuildSwitchesRegion();
 
         builder.startServer(localhost, of_port);
-        BaseMediator mediator = builder.getMediator();
+        final BaseMediator mediator = builder.getMediator();
+
+
+        TimerTask t = new TimerTask() {
+            int alt = 0;
+
+            @Override
+            public void run() {
+                if (!mediator.hasClients()) {
+                    return; // Cancel the task if nobody is connected
+                }
+
+                if (alt % 2 == 0) {
+                    mediator.setActiveController(localhost, replicated_controller_port);
+                } else {
+                    mediator.setActiveController(localhost, controller_port);
+                }
+                alt++;
+            }
+        };
+
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(t, 2000, 10000);
 
         while (true) {
             try {
@@ -40,6 +64,7 @@ public class Main {
                 break;
             }
             mediator.cycle();
+
         }
     }
 }
