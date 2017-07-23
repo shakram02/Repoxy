@@ -23,7 +23,7 @@ public class ConnectionCreatorIOHandler extends CommonIOHandler {
     @Override
     protected void handleSpecialKey(@NotNull SelectionKey key) throws IOException {
 
-        if (key.isConnectable() && key.isValid()) {
+        if (key.isValid() && key.isConnectable()) {
             SocketChannel channel = (SocketChannel) key.channel();
             this.onConnectable(key, channel);
         }

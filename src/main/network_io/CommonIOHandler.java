@@ -9,7 +9,6 @@ import utils.*;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -52,17 +51,15 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
         // TODO will be used later when having threads for controller and switches
         // this.selector.select();
         Set<SelectionKey> selectionKeys = this.selector.selectedKeys();
-        try {
-            for (Iterator<SelectionKey> i = selectionKeys.iterator(); i.hasNext(); ) {
-                SelectionKey key = i.next();
-                i.remove();
 
-                this.handleRWDOps(key);
-                this.handleSpecialKey(key);
-            }
-        } catch (CancelledKeyException e) {
-            e.printStackTrace();
+        for (Iterator<SelectionKey> i = selectionKeys.iterator(); i.hasNext(); ) {
+            SelectionKey key = i.next();
+            i.remove();
+
+            this.handleRWDOps(key);
+            this.handleSpecialKey(key);
         }
+
     }
 
     /**
@@ -80,7 +77,7 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
      * @throws IOException When socket I/O operation fails
      */
     protected void handleRWDOps(@NotNull SelectionKey key) throws IOException {
-        if (!(key.channel() instanceof SocketChannel)) {
+        if (!key.isValid() || !(key.channel() instanceof SocketChannel)) {
             return;
         }
 
@@ -88,11 +85,11 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
         ConnectionId id = keyMap.get(key);
         assert id != null : "Entry not found " + key;
 
-        if (key.isReadable() && key.isValid()) {
+        if (key.isValid() && key.isReadable()) {
 
             int read = channel.read(buffer);
             if (read == -1) {
-                SocketEventArg arg = new SocketEventArg(SenderType.Socket, EventType.Disconnection, id);
+                ConnectionIdEventArg arg = new ConnectionIdEventArg(SenderType.Socket, EventType.Disconnection, id);
                 this.closeConnection(arg);
                 // Notify mediator here as close connection when called by the mediator
                 // re-notifies the upper layer
@@ -102,16 +99,20 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
 
             this.onData(id, channel, read);
         }
-        if (key.isWritable() && key.isValid()) {
+        if (key.isValid() && key.isWritable()) {
             this.writePackets(id, channel);
             this.removeOutput(id);
         }
     }
 
     @Override
-    public void closeConnection(@NotNull SocketEventArg arg) {
+    public void closeConnection(@NotNull ConnectionIdEventArg arg) {
         SelectionKey key = this.keyMap.inverse().get(arg.getId());
         this.keyMap.remove(key);
+
+        if (key == null) {
+            return;
+        }
 
         key.cancel();
         try {
@@ -126,17 +127,16 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
     private void onData(@NotNull ConnectionId id, @NotNull SocketChannel channel, int read) throws IOException {
         Vector<Byte> data = readRemainingBytes(channel, read);
 
-        this.upperLayer.onData(new SocketEventArg(SenderType.Socket,
-                EventType.SendData, id, data));
+        this.upperLayer.onData(new SocketDataEventArg(SenderType.Socket, id, data));
     }
 
-    public void sendData(@NotNull SocketEventArg arg) {
+    public void sendData(@NotNull SocketDataEventArg arg) {
         this.packetBuffer.addPacket(arg.getId(), arg.getExtraData());
         SelectionKey key = this.keyMap.inverse().get(arg.getId());
         this.addOutput(key);
     }
 
-    public boolean isReceiverAlive(@NotNull SocketEventArg arg) {
+    public boolean isReceiverAlive(@NotNull ConnectionIdEventArg arg) {
         SelectionKey key = this.keyMap.inverse().get(arg.getId());
         return key != null && key.isValid();
     }

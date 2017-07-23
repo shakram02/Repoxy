@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import utils.ConnectionId;
 import utils.EventType;
 import utils.SenderType;
-import utils.SocketEventArg;
+import utils.ConnectionIdEventArg;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -18,7 +18,7 @@ public class ConnectionAcceptorIOHandler extends CommonIOHandler {
 
     @Override
     protected void handleSpecialKey(@NotNull SelectionKey key) throws IOException {
-        if (key.isAcceptable() && key.isValid()) {
+        if (key.isValid() && key.isAcceptable()) {
             ServerSocketChannel ch = (ServerSocketChannel) key.channel();
             this.onConnection(ch);
         }
@@ -33,7 +33,7 @@ public class ConnectionAcceptorIOHandler extends CommonIOHandler {
         ConnectionId id = ConnectionId.CreateNext();
         this.keyMap.put(key, id);
 
-        this.connectionAcceptor.onConnectionAccepted(new SocketEventArg(SenderType.Socket,
+        this.connectionAcceptor.onConnectionAccepted(new ConnectionIdEventArg(SenderType.Socket,
                 EventType.Connection, id));
     }
 
