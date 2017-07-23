@@ -1,6 +1,6 @@
 package of_packets;
 
-import com.google.common.io.ByteArrayDataOutput;
+import org.jetbrains.annotations.NotNull;
 import utils.io.PartitionReader;
 
 import java.io.ByteArrayInputStream;
@@ -13,28 +13,34 @@ public class OFStreamParser {
     private OFStreamParser() {
     }
 
-    public static OFStreamParseResult parseStream(ByteArrayDataOutput stream) {
+    @NotNull
+    public static OFStreamParseResult parseStream(byte[] bytes) {
         ArrayList<OFPacket> parsedPackets = new ArrayList<>();
 
-        ByteArrayInputStream s = new ByteArrayInputStream(stream.toByteArray());
-
+        ByteArrayInputStream s = new ByteArrayInputStream(bytes);
+        byte[] remaining = {};
 
         try (PartitionReader reader = new PartitionReader(OFPacketHeader.HEADER_LEN, s)) {
             while (reader.hasPartition()) {
                 Optional<OFPacket> maybePacket = OFStreamParser.ReadOnePacket(reader);
 
                 if (!maybePacket.isPresent()) {
-                    return new OFStreamParseResult(stream.toByteArray());
+                    return new OFStreamParseResult(bytes);
                 }
+                parsedPackets.add(maybePacket.get());
             }
+
+            if (reader.hasAny()) {
+                remaining = reader.getNextPartition();
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
 
+        return new OFStreamParseResult(parsedPackets, remaining);
 
-//        return new OFStreamParseResult(parsedPackets, )
-        return null;
     }
 
     /**

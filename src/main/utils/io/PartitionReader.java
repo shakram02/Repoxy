@@ -112,7 +112,7 @@ public class PartitionReader implements Closeable {
      */
     public boolean hasPartition() {
         try {
-            return this.stream.available() > this.partitionLength;
+            return this.stream.available() >= this.partitionLength;
         } catch (IOException e) {
             return false;
         }

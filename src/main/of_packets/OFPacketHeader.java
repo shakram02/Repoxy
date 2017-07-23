@@ -4,13 +4,16 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.*;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Represents an OF packet header
  */
-public class OFPacketHeader {
+public class OFPacketHeader implements Serializable {
     private static final HashMap<Integer, String> MSG_TYPE;
     public static final int HEADER_LEN = 8;
     private byte version;
@@ -116,5 +119,23 @@ public class OFPacketHeader {
         return messageType;
     }
 
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        int msgTID = MSG_TYPE.keySet().stream()
+                .filter(k -> Objects.equals(MSG_TYPE.get(k), this.messageType))
+                .collect(Collectors.toList()).get(0);
+
+        out.writeByte(this.version);
+        out.writeByte(msgTID);
+        out.writeShort(this.len);
+        out.writeInt(this.xId);
+
+    }
+
+    private void readObject(ObjectInputStream buff) throws IOException, ClassNotFoundException {
+        this.version = buff.readByte();
+        this.messageType = MSG_TYPE.get((int) buff.readByte());
+        this.len = buff.readUnsignedShort();
+        this.xId = buff.readInt();
+    }
 }
 
