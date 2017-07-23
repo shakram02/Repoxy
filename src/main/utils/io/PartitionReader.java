@@ -1,14 +1,17 @@
-package com.company;
+package utils.io;
 
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 
-public class PartitionReader implements Iterator {
+/**
+ * Reads a given open non-empty input stream into partitions of given length
+ * until the stream exhausted and not reset
+ */
+public class PartitionReader implements Closeable {
     private final int partitionLength;
     private final InputStream stream;
 
@@ -28,48 +31,39 @@ public class PartitionReader implements Iterator {
     }
 
     /**
-     * Returns the next partition of the stream, or the remaining bytes
-     * if the stream doesn't have {@link PartitionReader#partitionLength}
-     * number of bytes available
+     * Gets the next partition of the stream
      *
-     * @return An {@link Optional} of byte array if partitioning is valid
-     * <p>
-     * {@link Optional#EMPTY} If the stream is empty
-     * @throws IOException If the stream is closed
+     * @return Returns the next partition of the stream, or the remaining bytes
+     * if the stream has less than {@link PartitionReader#partitionLength}
+     * number of bytes available
+     * @throws IOException If the stream is closed or empty
      */
-    public Optional<byte[]> getNextPartition() throws IOException {
+    public byte[] getNextPartition() throws IOException {
 
         ByteArrayOutputStream out = new ByteArrayOutputStream(this.partitionLength);
+        this.streamedRead(out, this.partitionLength);
 
-        int read = this.streamedRead(out, this.partitionLength);
-        if (read == 0) {
-            return Optional.empty();
-        }
-
-        return Optional.of(out.toByteArray());
+        return out.toByteArray();
     }
 
     /**
-     * Returns a byte[] from the underlying stream.
-     * <p>
-     * If len is more than the available bytes in stream, the
-     * available bytes will be read and returned
+     * Reads a bulk of bytes from the underlying non-empty stream
      *
-     * @param len length of the bulk which should be less than the whole stream
-     * @return {@link Optional} of byte[] if the bulk is available
-     * <p>
-     * {@link Optional#EMPTY} if nothing was read
+     * @param len positive length of the bulk which should be less than the whole stream
+     * @return Returns a maximal munch up to len of the underlying stream
      */
-    public Optional<byte[]> getBulk(int len) throws IOException {
+    public byte[] getBulk(int len) throws IOException {
+        assert len > 0;
+
         ByteArrayOutputStream out =
-                new ByteArrayOutputStream(Math.max(this.stream.available(), len));
+                new ByteArrayOutputStream(Math.min(this.stream.available(), len));
 
         int read = this.streamedRead(out, len);
         if (read == 0) {
-            return Optional.empty();
+            throw new IOException("Stream is empty");
         }
 
-        return Optional.of(out.toByteArray());
+        return out.toByteArray();
     }
 
     /**
@@ -83,12 +77,13 @@ public class PartitionReader implements Iterator {
      * @throws IOException stream is closed
      */
     private int streamedRead(ByteArrayOutputStream out, int bufferSize) throws IOException {
+        assert this.stream.available() > 0;
+
         byte[] buffer = new byte[bufferSize];
 
         int read = this.stream.read(buffer);
 
         if (read == -1) {
-            this.stream.close();
             return 0;
         }
 
@@ -96,23 +91,39 @@ public class PartitionReader implements Iterator {
         return read;
     }
 
-    public Optional<List<byte[]>> getAllPartitions() throws IOException {
+    public List<byte[]> getAllPartitions() throws IOException {
         ArrayList<byte[]> finalResult = new ArrayList<>();
-        Optional<byte[]> result = getNextPartition();
 
-        while (result.isPresent()) {
-            finalResult.add(result.get());
+        // Using Do while to throw if the stream was empty
+        do {
+            byte[] result = getNextPartition();
+            finalResult.add(result);
         }
+        while (this.hasAny());
 
-        if (finalResult.isEmpty()) {
-            return Optional.empty();
-        }
-
-        return Optional.of(finalResult);
+        return finalResult;
     }
 
-    @Override
-    public boolean hasNext() {
+
+    /**
+     * Queries the underlying stream for one available partition
+     *
+     * @return whether the underlying stream has at least one partition
+     */
+    public boolean hasPartition() {
+        try {
+            return this.stream.available() > this.partitionLength;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Queries the underlying stream for Any available bytes ( stream > 0 )
+     *
+     * @return whether the underlying stream has any remaining bytes
+     */
+    public boolean hasAny() {
         try {
             return this.stream.available() > 0;
         } catch (IOException e) {
@@ -120,17 +131,12 @@ public class PartitionReader implements Iterator {
         }
     }
 
-    @Override
-    public byte[] next() {
-        try {
-            //noinspection ConstantConditions
-            return this.getNextPartition().get();
-        } catch (IOException e) {
-            return null;
-        }
-    }
-
     public void reset() throws IOException {
         stream.reset();
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.stream.close();
     }
 }
