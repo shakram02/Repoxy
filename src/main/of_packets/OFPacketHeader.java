@@ -9,16 +9,16 @@ import java.util.HashMap;
 /**
  * Represents an OF packet header
  */
-public class PacketHeader {
+public class OFPacketHeader {
     private static final HashMap<Integer, String> MSG_TYPE;
-    private static final int HEADER_LEN = 8;
+    public static final int HEADER_LEN = 8;
     private byte version;
     private String message_type;
     private short len;
     private int x_id;
     private boolean valid;
 
-    private PacketHeader(byte version, byte msg_t_id, short len, int x_id) {
+    private OFPacketHeader(byte version, byte msg_t_id, short len, int x_id) {
 
         this.version = version;
         this.len = len;
@@ -31,21 +31,21 @@ public class PacketHeader {
         }
     }
 
-    private PacketHeader() {
+    private OFPacketHeader() {
     }
 
-    private static PacketHeader CreateInvalid() {
-        PacketHeader header = new PacketHeader();
+    private static OFPacketHeader CreateInvalid() {
+        OFPacketHeader header = new OFPacketHeader();
         header.valid = false;
         return header;
     }
 
     @NotNull
-    public static PacketHeader ParsePacket(ByteArrayDataOutput dataOut) {
+    public static OFPacketHeader ParsePacket(ByteArrayDataOutput dataOut) {
         byte[] bytes = dataOut.toByteArray();
 
-        if (bytes.length < PacketHeader.HEADER_LEN) {
-            return PacketHeader.CreateInvalid();
+        if (bytes.length < OFPacketHeader.HEADER_LEN) {
+            return OFPacketHeader.CreateInvalid();
         }
 
         ByteBuffer buff = ByteBuffer.wrap(bytes);
@@ -55,7 +55,7 @@ public class PacketHeader {
         short len = buff.getShort();
         int x_id = buff.getInt();
 
-        return new PacketHeader(version, msg_t, len, x_id);
+        return new OFPacketHeader(version, msg_t, len, x_id);
     }
 
     @Override

@@ -2,7 +2,7 @@ package mediators;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import of_packets.PacketHeader;
+import of_packets.OFPacketHeader;
 import org.jetbrains.annotations.NotNull;
 import proxylet.Proxylet;
 import regions.ControllersRegion;
@@ -84,7 +84,7 @@ public class BaseMediator extends Proxylet {
         EventType eventType = arg.getReplyType();
 
         if (eventType == EventType.SendData) {
-            PacketHeader header = PacketHeader.ParsePacket(((SocketDataEventArg) arg).getExtraData());
+            OFPacketHeader header = OFPacketHeader.ParsePacket(((SocketDataEventArg) arg).getExtraData());
 
             if (header.isInvalid()) {
                 this.logger.info("Invalid OF PACKET");
