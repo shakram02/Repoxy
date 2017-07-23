@@ -1,10 +1,10 @@
 package network_io.interfaces;
 
 import org.jetbrains.annotations.NotNull;
-import utils.SocketEventArg;
+import utils.ConnectionIdEventArg;
+import utils.SocketDataEventArg;
 
 public interface BasicSocketIOWatcher {
-    void onDisconnect(@NotNull SocketEventArg arg);
-
-    void onData(@NotNull SocketEventArg arg);
+    void onDisconnect(@NotNull ConnectionIdEventArg arg);
+    void onData(@NotNull SocketDataEventArg arg);
 }

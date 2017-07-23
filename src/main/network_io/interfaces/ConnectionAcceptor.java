@@ -1,8 +1,8 @@
 package network_io.interfaces;
 
 import org.jetbrains.annotations.NotNull;
-import utils.SocketEventArg;
+import utils.ConnectionIdEventArg;
 
 public interface ConnectionAcceptor extends BasicSocketIOWatcher {
-    void onConnectionAccepted(@NotNull SocketEventArg arg);
+    void onConnectionAccepted(@NotNull ConnectionIdEventArg arg);
 }
