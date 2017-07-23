@@ -1,12 +1,12 @@
 package utils;
 
-public class ControllerChangeEventArg extends SocketEventArg {
+public class ControllerChangeEventArg extends BasicSocketEventArg {
 
     private final String ip;
     private final int port;
 
     public ControllerChangeEventArg(String ip, int port) {
-        super(SenderType.Mediator, EventType.ChangeController, null);
+        super(SenderType.Mediator, EventType.ChangeController);
         this.ip = ip;
         this.port = port;
     }

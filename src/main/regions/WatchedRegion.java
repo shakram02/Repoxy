@@ -7,11 +7,7 @@ import network_io.interfaces.BasicSocketIOCommands;
 import network_io.interfaces.BasicSocketIOWatcher;
 import org.jetbrains.annotations.NotNull;
 import proxylet.Proxylet;
-import utils.ConnectionId;
-import utils.EventType;
-import utils.SenderType;
-import utils.SocketEventArg;
-
+import utils.*;
 import java.io.IOException;
 
 /**
@@ -29,33 +25,44 @@ public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWat
      *
      * @param senderType type of the overriding class, for logging
      */
-    public WatchedRegion(@NotNull SenderType senderType,@NotNull  CommonIOHandler commander) {
+    public WatchedRegion(@NotNull SenderType senderType, @NotNull CommonIOHandler commander) {
         super(senderType);
         this.mediatorNotifier = new EventBus(senderType.toString());
         this.ioHandler = commander;
     }
 
     public void setMediator(@NotNull BaseMediator mediator) {
-        if (this.mediator != null) {
-            throw new IllegalStateException("Each region notifies only one mediator");
-        }
+        assert this.mediator == null : "Mediator is being set twice";
+
         this.mediator = mediator;
         this.mediatorNotifier.register(mediator);
     }
 
     @Override
-    public void dispatchEvent(@NotNull SocketEventArg arg) {
-        EventType eventType = arg.getReplyType();
-
+    public void dispatchEvent(@NotNull SocketEventArguments arg) {
         // Check before performing socket I/O operations
-        if (!this.isReceiverAlive(arg)) {
-            throw new IllegalStateException(String.format("Event receiver for {%s} isn't alive", arg));
+        assert arg instanceof ConnectionIdEventArg;
+        ConnectionIdEventArg idEventArg = (ConnectionIdEventArg) arg;
+
+        // Re notification of a disconnected controller,
+        // ignore it because it already disconnected
+        if (arg.getReplyType() == EventType.Disconnection
+                && !this.isReceiverAlive(idEventArg)) {
+            return;
         }
 
+        assert this.isReceiverAlive(idEventArg) : String.format("Event receiver for {%s} isn't alive", idEventArg);
+
+        EventType eventType = idEventArg.getReplyType();
+
         if (eventType == EventType.Disconnection) {
-            this.onDisconnect(arg);
+            this.onDisconnect(idEventArg);
         } else if (eventType == EventType.SendData) {
-            this.sendData(arg);
+            assert idEventArg instanceof SocketDataEventArg;
+            SocketDataEventArg dataEventArg = (SocketDataEventArg) idEventArg;
+            this.sendData(dataEventArg);
+        } else {
+            assert false : "Invalid event sender: " + idEventArg;
         }
     }
 
@@ -66,12 +73,14 @@ public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWat
      * @param arg disconnecting element info
      */
     @Override
-    public void onDisconnect(@NotNull SocketEventArg arg) {
+    public void onDisconnect(@NotNull ConnectionIdEventArg arg) {
         SenderType sender = arg.getSenderType();
         if (sender == SenderType.Socket) {
             this.notifyMediator(arg);
         } else if (sender == SenderType.Mediator) {
             this.ioHandler.closeConnection(arg);
+        } else {
+            assert false : "Invalid event sender: " + arg;
         }
     }
 
@@ -82,12 +91,12 @@ public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWat
      * @param arg data info
      */
     @Override
-    public void onData(@NotNull SocketEventArg arg) {
+    public void onData(@NotNull SocketDataEventArg arg) {
         this.notifyMediator(arg);
     }
 
     @Override
-    public boolean isReceiverAlive(@NotNull SocketEventArg arg) {
+    public boolean isReceiverAlive(@NotNull ConnectionIdEventArg arg) {
         return this.ioHandler.isReceiverAlive(arg);
     }
 
@@ -104,13 +113,13 @@ public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWat
      * @param arg Event argument containing what to send
      */
     @Override
-    public void sendData(@NotNull SocketEventArg arg) {
+    public void sendData(@NotNull SocketDataEventArg arg) {
         // a sendTo coming from a Terminal will always throw an exception
         this.ioHandler.sendData(arg);
     }
 
     @Override
-    public void closeConnection(@NotNull SocketEventArg arg) {
+    public void closeConnection(@NotNull ConnectionIdEventArg arg) {
         this.ioHandler.closeConnection(arg);
     }
 
@@ -129,12 +138,8 @@ public abstract class WatchedRegion extends Proxylet implements BasicSocketIOWat
         this.ioHandler.close();
     }
 
-    protected final void notifyMediator(SocketEventArg arg) {
-        if (this.mediator == null) {
-            throw new RuntimeException("Mediator isn't provided");
-        }
-
-        arg = SocketEventArg.Redirect(this.senderType, arg);
+    protected final void notifyMediator(SocketEventArguments arg) {
+        arg = arg.createRedirectedCopy(this.senderType);
         this.mediatorNotifier.post(arg);
     }
 }

@@ -2,14 +2,12 @@ package mediators;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import of_packets.PacketHeader;
 import org.jetbrains.annotations.NotNull;
 import proxylet.Proxylet;
 import regions.ControllersRegion;
 import regions.SwitchesRegion;
-import utils.ControllerChangeEventArg;
-import utils.EventType;
-import utils.SenderType;
-import utils.SocketEventArg;
+import utils.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -58,9 +56,10 @@ public class BaseMediator extends Proxylet {
      * @param arg socket event data containing the Sender and Event types
      */
     @Subscribe
-    public synchronized void dispatchEvent(@NotNull SocketEventArg arg) {
+    public synchronized void dispatchEvent(@NotNull SocketEventArguments arg) {
         SenderType senderType = arg.getSenderType();
-        SocketEventArg redirected = SocketEventArg.Redirect(SenderType.Mediator, arg);
+
+        SocketEventArguments redirected = arg.createRedirectedCopy(SenderType.Mediator);
 
         if (senderType == SenderType.SwitchesRegion) {
             this.controllerNotifier.post(redirected);
@@ -68,7 +67,7 @@ public class BaseMediator extends Proxylet {
             if (senderType == SenderType.ControllerRegion) {
                 this.switchesRegion.dispatchEvent(redirected);
             } else if (senderType == SenderType.ReplicaRegion) {
-                this.onReplicaEvent(redirected);
+                this.onReplicaEvent(arg);
             }
         }
         this.postDispatch(arg);
@@ -79,10 +78,22 @@ public class BaseMediator extends Proxylet {
      *
      * @param arg Event argument containing Type and Sender of the event
      */
-    protected void postDispatch(SocketEventArg arg) {
+    protected void postDispatch(@NotNull SocketEventArguments arg) {
         // TODO Add to packet diff
         SenderType senderType = arg.getSenderType();
         EventType eventType = arg.getReplyType();
+
+        if (eventType == EventType.SendData) {
+            PacketHeader header = PacketHeader.ParsePacket(((SocketDataEventArg) arg).getExtraData());
+
+            if (header.isInvalid()) {
+                this.logger.info("Invalid OF PACKET");
+                return;
+            }
+
+            this.logger.info(String.format("OF PACKET [%s] - LEN:[%d]",
+                    header.getMessage_type(), header.getLen()));
+        }
 
         if (senderType == SenderType.SwitchesRegion) {
             if (eventType == EventType.Connection) {
@@ -91,7 +102,7 @@ public class BaseMediator extends Proxylet {
                 this.connectedCount--;
             }
         } else if (senderType == SenderType.ReplicaRegion && eventType == EventType.Disconnection) {
-            throw new RuntimeException("Replicated controller disconnected");
+            this.logger.warning("Replicated controller disconnected, this will be ignored");
         }
     }
 
@@ -99,8 +110,8 @@ public class BaseMediator extends Proxylet {
         return this.connectedCount > 0;
     }
 
-    private void onReplicaEvent(@NotNull SocketEventArg arg) {
-        System.out.println(String.format("Event from replica:%s", arg));
+    private void onReplicaEvent(@NotNull SocketEventArguments arg) {
+//        this.logger.finest(String.format("Event from replica:%s", arg));
     }
 
     public void setActiveController(@NotNull String ip, int port) {

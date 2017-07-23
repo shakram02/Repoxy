@@ -14,6 +14,9 @@ import java.util.TimerTask;
  * - Regions
  * - Sockets
  * **Output**
+ * <p>
+ * The behaviour of the program is non-determined with respect to a disconnected
+ * replicated controller, no actions will be taken to resolve that.
  */
 public class Main {
     public static final String LOCALHOST = "127.0.0.1";

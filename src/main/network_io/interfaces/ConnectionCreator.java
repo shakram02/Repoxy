@@ -1,7 +1,7 @@
 package network_io.interfaces;
 
-import utils.SocketEventArg;
+import utils.ConnectionIdEventArg;
 
 public interface ConnectionCreator extends BasicSocketIOWatcher {
-    void connectTo(SocketEventArg args);
+    void connectTo(ConnectionIdEventArg args);
 }
