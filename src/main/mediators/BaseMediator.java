@@ -11,7 +11,6 @@ import utils.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.logging.Level;
 
 /**
  * Created by ahmed on 7/18/17.
@@ -88,10 +87,11 @@ public class BaseMediator extends Proxylet {
             PacketHeader header = PacketHeader.ParsePacket(((SocketDataEventArg) arg).getExtraData());
 
             if (header.isInvalid()) {
-                logger.log(Level.INFO,"Invalid OF PACKET");
+                this.logger.info("Invalid OF PACKET");
                 return;
             }
-            System.out.println(String.format("OF PACKET [%s] - LEN:[%d]",
+
+            this.logger.info(String.format("OF PACKET [%s] - LEN:[%d]",
                     header.getMessage_type(), header.getLen()));
         }
 
@@ -102,7 +102,7 @@ public class BaseMediator extends Proxylet {
                 this.connectedCount--;
             }
         } else if (senderType == SenderType.ReplicaRegion && eventType == EventType.Disconnection) {
-            this.logger.log(Level.INFO, "Replicated controller disconnected, this will be ignored");
+            this.logger.warning("Replicated controller disconnected, this will be ignored");
         }
     }
 
@@ -111,7 +111,7 @@ public class BaseMediator extends Proxylet {
     }
 
     private void onReplicaEvent(@NotNull SocketEventArguments arg) {
-//        System.out.println(String.format("Event from replica:%s", arg));
+//        this.logger.finest(String.format("Event from replica:%s", arg));
     }
 
     public void setActiveController(@NotNull String ip, int port) {

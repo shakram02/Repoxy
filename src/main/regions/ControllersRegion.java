@@ -50,9 +50,12 @@ public final class ControllersRegion extends WatchedRegion implements Connection
     public void dispatchEvent(@NotNull SocketEventArguments arg) {
         EventType eventType = arg.getReplyType();
 
+        // Log the main controller stuff
+        String state = this == ControllersRegion.activeController ? "Active" : "Replicated";
         if (this.senderType == SenderType.ControllerRegion) {
-            String state = this == ControllersRegion.activeController ? "Active" : "Replicated";
-            System.out.println(String.format("[%s-ControllerRegion] %s", state, arg));
+            this.logger.info(String.format("[%s-ControllerRegion] %s", state, arg));
+        } else {
+            this.logger.finest(String.format("[%s-ControllerRegion] %s", state, arg));
         }
 
         if (eventType == EventType.ChangeController) {
