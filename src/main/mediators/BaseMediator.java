@@ -11,6 +11,7 @@ import utils.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Optional;
 
 /**
  * Created by ahmed on 7/18/17.
@@ -84,15 +85,18 @@ public class BaseMediator extends Proxylet {
         EventType eventType = arg.getReplyType();
 
         if (eventType == EventType.SendData) {
-            OFPacketHeader header = OFPacketHeader.ParsePacket(((SocketDataEventArg) arg).getExtraData());
+            Optional<OFPacketHeader> maybeHeader = OFPacketHeader
+                    .ParseHeader(((SocketDataEventArg) arg).getExtraData().toByteArray());
 
-            if (header.isInvalid()) {
+            if (!maybeHeader.isPresent() || maybeHeader.get().isInvalid()) {
                 this.logger.info("Invalid OF PACKET");
                 return;
             }
 
+            OFPacketHeader header = maybeHeader.get();
+
             this.logger.info(String.format("OF PACKET [%s] - LEN:[%d]",
-                    header.getMessage_type(), header.getLen()));
+                    header.getMessageType(), header.getLen()));
         }
 
         if (senderType == SenderType.SwitchesRegion) {
