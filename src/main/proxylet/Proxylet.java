@@ -3,7 +3,7 @@ package proxylet;
 import com.google.common.eventbus.Subscribe;
 import org.jetbrains.annotations.NotNull;
 import utils.SenderType;
-import utils.SocketEventArg;
+import utils.SocketEventArguments;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -29,7 +29,7 @@ public abstract class Proxylet implements Closeable {
 
 
     @Subscribe
-    public abstract void dispatchEvent(@NotNull SocketEventArg arg);
+    public abstract void dispatchEvent(@NotNull SocketEventArguments arg);
 
     /**
      * Proxylet is about to close, clean up!

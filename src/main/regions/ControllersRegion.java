@@ -50,8 +50,10 @@ public final class ControllersRegion extends WatchedRegion implements Connection
     public void dispatchEvent(@NotNull SocketEventArguments arg) {
         EventType eventType = arg.getReplyType();
 
-        String state = this == ControllersRegion.activeController ? "Active" : "Replicated";
-        System.out.println(String.format("[%s-ControllerRegion] %s", state, arg));
+        if (this.senderType == SenderType.ControllerRegion) {
+            String state = this == ControllersRegion.activeController ? "Active" : "Replicated";
+            System.out.println(String.format("[%s-ControllerRegion] %s", state, arg));
+        }
 
         if (eventType == EventType.ChangeController) {
             this.changeActiveController(arg);
@@ -69,7 +71,7 @@ public final class ControllersRegion extends WatchedRegion implements Connection
             // and terminating this event, as the controller will send a HELLO.
             // and ignore if this is a replicated controller
             if (this.senderType == SenderType.ControllerRegion) {
-                this.logger.log(Level.SEVERE, "## Trying to re-connect to main controller");
+                this.logger.log(Level.SEVERE, "## Trying to re-connect to main controller ##");
                 this.restartConnection(idEventArg);
             }
 

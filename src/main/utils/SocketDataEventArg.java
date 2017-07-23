@@ -1,20 +1,19 @@
 package utils;
 
+import com.google.common.io.ByteArrayDataOutput;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 public class SocketDataEventArg extends ConnectionIdEventArg {
 
-    private List<Byte> extraData;
+    private ByteArrayDataOutput extraData;
 
     public SocketDataEventArg(@NotNull SenderType senderType, @NotNull ConnectionId id,
-                              @NotNull List<Byte> extraData) {
+                              @NotNull ByteArrayDataOutput extraData) {
         super(senderType, EventType.SendData, id);
         this.extraData = extraData;
     }
 
-    public List<Byte> getExtraData() {
+    public ByteArrayDataOutput getExtraData() {
         return extraData;
     }
 

@@ -2,6 +2,7 @@ package mediators;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import of_packets.PacketHeader;
 import org.jetbrains.annotations.NotNull;
 import proxylet.Proxylet;
 import regions.ControllersRegion;
@@ -83,6 +84,17 @@ public class BaseMediator extends Proxylet {
         SenderType senderType = arg.getSenderType();
         EventType eventType = arg.getReplyType();
 
+        if (eventType == EventType.SendData) {
+            PacketHeader header = PacketHeader.ParsePacket(((SocketDataEventArg) arg).getExtraData());
+
+            if (header.isInvalid()) {
+                logger.log(Level.INFO,"Invalid OF PACKET");
+                return;
+            }
+            System.out.println(String.format("OF PACKET [%s] - LEN:[%d]",
+                    header.getMessage_type(), header.getLen()));
+        }
+
         if (senderType == SenderType.SwitchesRegion) {
             if (eventType == EventType.Connection) {
                 this.connectedCount++;
@@ -99,7 +111,7 @@ public class BaseMediator extends Proxylet {
     }
 
     private void onReplicaEvent(@NotNull SocketEventArguments arg) {
-        System.out.println(String.format("Event from replica:%s", arg));
+//        System.out.println(String.format("Event from replica:%s", arg));
     }
 
     public void setActiveController(@NotNull String ip, int port) {

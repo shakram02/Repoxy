@@ -1,5 +1,6 @@
 package of_packets;
 
+import com.google.common.io.ByteArrayDataOutput;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
@@ -10,28 +11,49 @@ import java.util.HashMap;
  */
 public class PacketHeader {
     private static final HashMap<Integer, String> MSG_TYPE;
-    private static final int INVALID_VERSION = 113;
-
+    private static final int HEADER_LEN = 8;
     private byte version;
     private String message_type;
     private short len;
-    private long x_id;
+    private int x_id;
+    private boolean valid;
 
-    private PacketHeader(byte version, byte msg_t_id, short len, long x_id) {
+    private PacketHeader(byte version, byte msg_t_id, short len, int x_id) {
 
         this.version = version;
         this.len = len;
         this.x_id = x_id;
-        this.message_type = MSG_TYPE.getOrDefault((int) msg_t_id, "Invalid OF Packet");
+        if (MSG_TYPE.containsKey((int) msg_t_id)) {
+            this.message_type = MSG_TYPE.get((int) msg_t_id);
+            this.valid = true;
+        } else {
+            this.valid = false;
+        }
+    }
+
+    private PacketHeader() {
+    }
+
+    private static PacketHeader CreateInvalid() {
+        PacketHeader header = new PacketHeader();
+        header.valid = false;
+        return header;
     }
 
     @NotNull
-    public static PacketHeader ParsePacket(byte[] bytes) {
+    public static PacketHeader ParsePacket(ByteArrayDataOutput dataOut) {
+        byte[] bytes = dataOut.toByteArray();
+
+        if (bytes.length < PacketHeader.HEADER_LEN) {
+            return PacketHeader.CreateInvalid();
+        }
+
         ByteBuffer buff = ByteBuffer.wrap(bytes);
-        byte version = (byte) buff.getChar();
-        byte msg_t = (byte) buff.getChar();
+
+        byte version = buff.get();
+        byte msg_t = buff.get();
         short len = buff.getShort();
-        long x_id = buff.getLong();
+        int x_id = buff.getInt();
 
         return new PacketHeader(version, msg_t, len, x_id);
     }
@@ -44,11 +66,11 @@ public class PacketHeader {
     }
 
     public boolean isValid() {
-        return this.version == INVALID_VERSION && this.len != -1;
+        return this.valid;
     }
 
     public boolean isInvalid() {
-        return !this.isValid();
+        return !this.valid;
     }
 
     static {

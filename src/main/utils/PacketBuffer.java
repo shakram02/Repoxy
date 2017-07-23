@@ -3,15 +3,14 @@ package utils;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
-import java.util.List;
 
 /**
  * Buffer for packets
  */
-public class PacketBuffer extends QueueMap<ConnectionId, List<Byte>> {
+public class PacketBuffer extends QueueMap<ConnectionId, byte[]> {
 
 
-    public void addPacket(ConnectionId id, List<Byte> packet) {
+    public void addPacket(ConnectionId id, byte[] packet) {
         super.addObject(id, packet);
     }
 
@@ -26,12 +25,7 @@ public class PacketBuffer extends QueueMap<ConnectionId, List<Byte>> {
     @NotNull
     public ByteBuffer getNextPacket(ConnectionId id) {
 
-        List<Byte> nextPacket = super.getNext(id);
-
-        byte[] result = new byte[nextPacket.size()];
-        for (int i = 0; i < nextPacket.size(); i++) {
-            result[i] = nextPacket.get(i);
-        }
-        return ByteBuffer.wrap(result);
+        byte[] nextPacket = super.getNext(id);
+        return ByteBuffer.wrap(nextPacket);
     }
 }

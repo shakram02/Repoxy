@@ -1,6 +1,8 @@
 package network_io;
 
 import com.google.common.collect.HashBiMap;
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
 import network_io.interfaces.BasicSocketIOCommands;
 import network_io.interfaces.BasicSocketIOWatcher;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +16,6 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.Vector;
 
 /**
  * Implementation of common socket IO events
@@ -125,13 +126,13 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
     }
 
     private void onData(@NotNull ConnectionId id, @NotNull SocketChannel channel, int read) throws IOException {
-        Vector<Byte> data = readRemainingBytes(channel, read);
+        ByteArrayDataOutput data = readRemainingBytes(channel, read);
 
         this.upperLayer.onData(new SocketDataEventArg(SenderType.Socket, id, data));
     }
 
     public void sendData(@NotNull SocketDataEventArg arg) {
-        this.packetBuffer.addPacket(arg.getId(), arg.getExtraData());
+        this.packetBuffer.addPacket(arg.getId(), arg.getExtraData().toByteArray());
         SelectionKey key = this.keyMap.inverse().get(arg.getId());
         this.addOutput(key);
     }
@@ -181,19 +182,19 @@ public abstract class CommonIOHandler implements BasicSocketIOCommands, Closeabl
      * @throws IOException Socket I/O Error
      */
     @NotNull
-    private Vector<Byte> readRemainingBytes(SocketChannel channel, int count)
+    private ByteArrayDataOutput readRemainingBytes(SocketChannel channel, int count)
             throws IOException {
-        Vector<Byte> bytes = new Vector<>(BUFFER_SIZE);
+        ByteArrayDataOutput dataOutput = ByteStreams.newDataOutput();
 
         while (count > 0) {
-            buffer.rewind();
-            for (int i = 0; i < count; i++) {
-                bytes.add(buffer.get());
+            buffer.flip();
+            while (buffer.hasRemaining()) {
+                dataOutput.write(buffer.get());
             }
             buffer.clear();
             count = channel.read(buffer);
         }
-        return bytes;
+        return dataOutput;
     }
 
     @Override
