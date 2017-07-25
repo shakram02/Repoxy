@@ -74,7 +74,7 @@ public final class ControllersRegion extends WatchedRegion implements Connection
             // and terminating this event, as the controller will send a HELLO.
             // and ignore if this is a replicated controller
             if (this.senderType == SenderType.ControllerRegion) {
-                this.logger.log(Level.SEVERE, "## Trying to re-connect to main controller ##");
+                this.logger.log(Level.SEVERE, "## Trying to re-connect to controller ##");
                 this.restartConnection(idEventArg);
             }
 

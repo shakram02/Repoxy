@@ -1,11 +1,11 @@
 package of_packets;
 
-import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NotNull;
 import utils.io.PartitionReader;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Optional;
 
 public class OFStreamParser {
@@ -13,28 +13,34 @@ public class OFStreamParser {
     private OFStreamParser() {
     }
 
-    public static OFStreamParseResult parseStream(ByteArrayDataOutput stream) {
-        ArrayList<OFPacket> parsedPackets = new ArrayList<>();
+    @NotNull
+    public static OFStreamParseResult parseStream(byte[] bytes) {
+        ImmutableList.Builder<OFPacket> parsedPackets = new ImmutableList.Builder<>();
 
-        ByteArrayInputStream s = new ByteArrayInputStream(stream.toByteArray());
-
+        ByteArrayInputStream s = new ByteArrayInputStream(bytes);
+        byte[] remaining = {};
 
         try (PartitionReader reader = new PartitionReader(OFPacketHeader.HEADER_LEN, s)) {
             while (reader.hasPartition()) {
                 Optional<OFPacket> maybePacket = OFStreamParser.ReadOnePacket(reader);
 
                 if (!maybePacket.isPresent()) {
-                    return new OFStreamParseResult(stream.toByteArray());
+                    return new OFStreamParseResult(bytes);
                 }
+                parsedPackets.add(maybePacket.get());
             }
+
+            if (reader.hasAny()) {
+                remaining = reader.getNextPartition();
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
 
+        return new OFStreamParseResult(parsedPackets.build(), remaining);
 
-//        return new OFStreamParseResult(parsedPackets, )
-        return null;
     }
 
     /**

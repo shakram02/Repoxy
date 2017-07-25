@@ -1,8 +1,11 @@
 package mediators;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import of_packets.OFPacketHeader;
+import of_packets.OFPacket;
+import of_packets.OFStreamParseResult;
+import of_packets.OFStreamParser;
 import org.jetbrains.annotations.NotNull;
 import proxylet.Proxylet;
 import regions.ControllersRegion;
@@ -11,7 +14,6 @@ import utils.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Optional;
 
 /**
  * Created by ahmed on 7/18/17.
@@ -85,18 +87,25 @@ public class BaseMediator extends Proxylet {
         EventType eventType = arg.getReplyType();
 
         if (eventType == EventType.SendData) {
-            Optional<OFPacketHeader> maybeHeader = OFPacketHeader
-                    .ParseHeader(((SocketDataEventArg) arg).getExtraData().toByteArray());
+            OFStreamParseResult result = OFStreamParser.
+                    parseStream(((SocketDataEventArg) arg).getExtraData().toByteArray());
 
-            if (!maybeHeader.isPresent() || maybeHeader.get().isInvalid()) {
+            if (!result.hasPackets() && result.hasRemaining()) {
                 this.logger.info("Invalid OF PACKET");
                 return;
             }
 
-            OFPacketHeader header = maybeHeader.get();
 
-            this.logger.info(String.format("OF PACKET [%s] - LEN:[%d]",
-                    header.getMessageType(), header.getLen()));
+            if (result.hasPackets()) {
+                ImmutableList<OFPacket> packets = result.getPackets();
+                this.logger.info(String.format("#%d OF PACKETS", packets.size()));
+            }
+
+            if (result.hasRemaining()) {
+                throw new RuntimeException(
+                        String.format("Remaining: %d bytes", result.getRemaining().length));
+            }
+
         }
 
         if (senderType == SenderType.SwitchesRegion) {
