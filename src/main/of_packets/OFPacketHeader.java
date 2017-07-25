@@ -22,7 +22,7 @@ public class OFPacketHeader implements Serializable {
     private int xId;
     private boolean valid;
 
-    private OFPacketHeader(byte version, byte msg_t_id, int len, int x_id) {
+    public OFPacketHeader(byte version, byte msg_t_id, int len, int x_id) {
 
         // FIXME some TCP packets may match the OFMSG type. we need to find
         // a better checking mechanism as raw TCP packets are used for testing so far
@@ -39,12 +39,6 @@ public class OFPacketHeader implements Serializable {
     }
 
     private OFPacketHeader() {
-    }
-
-    private static OFPacketHeader CreateInvalid() {
-        OFPacketHeader header = new OFPacketHeader();
-        header.valid = false;
-        return header;
     }
 
     /**
@@ -119,6 +113,7 @@ public class OFPacketHeader implements Serializable {
         return messageType;
     }
 
+    // Serialize the object to be read by the JVM
     private void writeObject(ObjectOutputStream out) throws IOException {
         int msgTID = MSG_TYPE.keySet().stream()
                 .filter(k -> Objects.equals(MSG_TYPE.get(k), this.messageType))
@@ -131,6 +126,7 @@ public class OFPacketHeader implements Serializable {
 
     }
 
+    // Deserialize the object to be for the JVM
     private void readObject(ObjectInputStream buff) throws IOException, ClassNotFoundException {
         this.version = buff.readByte();
         this.messageType = MSG_TYPE.get((int) buff.readByte());

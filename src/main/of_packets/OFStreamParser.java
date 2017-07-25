@@ -1,11 +1,11 @@
 package of_packets;
 
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import utils.io.PartitionReader;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Optional;
 
 public class OFStreamParser {
@@ -15,7 +15,7 @@ public class OFStreamParser {
 
     @NotNull
     public static OFStreamParseResult parseStream(byte[] bytes) {
-        ArrayList<OFPacket> parsedPackets = new ArrayList<>();
+        ImmutableList.Builder<OFPacket> parsedPackets = new ImmutableList.Builder<>();
 
         ByteArrayInputStream s = new ByteArrayInputStream(bytes);
         byte[] remaining = {};
@@ -39,7 +39,7 @@ public class OFStreamParser {
             throw new RuntimeException(e);
         }
 
-        return new OFStreamParseResult(parsedPackets, remaining);
+        return new OFStreamParseResult(parsedPackets.build(), remaining);
 
     }
 

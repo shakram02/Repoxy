@@ -2,6 +2,10 @@ package of_packets;
 
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
 public class OFStreamParserTest {
 
 
@@ -29,6 +33,28 @@ public class OFStreamParserTest {
         assert header.getMessageType().equals("Barrier Reply");
 
         assert result.hasPackets();
+    }
+
+    @Test(expected = AssertionError.class)
+    public void testSerialization() throws IOException {
+        // All assertions will fail as binary serialization adds JVM attributes to
+        // the serialized object
+
+        byte[] bytes = new byte[]{1, 0, 0, 8, 0, 0, 0, 1};
+        OFPacketHeader helloHeader = new OFPacketHeader((byte) 1, (byte) 0, 8, 1);
+
+        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+        ObjectOutputStream objStream = new ObjectOutputStream(outStream);
+        objStream.writeObject(helloHeader);
+        objStream.flush();
+        byte[] serialized = outStream.toByteArray();
+
+        assert bytes.length == serialized.length : "Different lengths";
+
+        for (int i = 0; i < serialized.length; i++) {
+            assert (int) serialized[i] == bytes[i] :
+                    String.format("Object bytes not equal, left: %d right: %d", serialized[i], bytes[i]);
+        }
     }
 
     @Test
