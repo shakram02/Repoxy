@@ -27,12 +27,11 @@ public class Main {
     public static void main(String[] args) throws IOException {
         ProxyBuilder builder = ProxyBuilder.createInstance()
                 .BuildController(LOCALHOST, CONTROLLER_PORT)
-                .BuildController(LOCALHOST, REPLICATED_CONTROLLER_PORT)
-                .BuildSwitchesRegion();
+                .BuildController(LOCALHOST, REPLICATED_CONTROLLER_PORT);
 
         builder.startServer(LOCALHOST, OF_PORT);
         final BaseMediator mediator = builder.getMediator();
-
+        System.out.println(String.format("Listening to [%d]", OF_PORT));
 
         TimerTask t = new TimerTask() {
             int alt = 0;

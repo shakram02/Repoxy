@@ -3,46 +3,51 @@ package mediators;
 import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import network_io.ConnectionAcceptorIOHandler;
+import network_io.interfaces.SocketIOer;
 import of_packets.OFPacket;
 import of_packets.OFStreamParseResult;
 import of_packets.OFStreamParser;
 import org.jetbrains.annotations.NotNull;
 import proxylet.Proxylet;
-import regions.ControllersRegion;
-import regions.SwitchesRegion;
 import utils.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
 /**
- * Created by ahmed on 7/18/17.
+ * The mediator registers for events from the controller side and switches side
  */
 public class BaseMediator extends Proxylet {
-    private SwitchesRegion switchesRegion;
+    private final ConnectionAcceptorIOHandler switchSockets;
+
     private final EventBus controllerNotifier;
-    private final ArrayList<ControllersRegion> controllerRegions;
+    private final ArrayList<SocketIOer> controllerRegions; // Replace with connection creator
     private int connectedCount;
 
-    public BaseMediator() {
+    public BaseMediator(ConnectionAcceptorIOHandler switchSockets) {
         super(SenderType.Mediator);
         controllerNotifier = new EventBus(BaseMediator.class.getName());
         this.controllerRegions = new ArrayList<>();
+        this.switchSockets = switchSockets;
+        this.switchSockets.registerForEvents(this);
     }
 
-    public void setSwitchesRegion(SwitchesRegion switchesRegion) {
-        this.switchesRegion = switchesRegion;
-    }
 
     /**
      * Adds a controller to the list of registered controller
      * to receive socket events
      *
-     * @param region Properly initialized {@link ControllersRegion}
+     * @param region Properly initialized {@link SocketIOer}
      */
-    public void registerController(@NotNull ControllersRegion region) {
+    public void registerController(@NotNull SocketIOer region) {
         this.controllerRegions.add(region);
+        // Controller registers for socket events
+        region.registerForEvents(this);
+
+        // Mediator notifies controller with events
         this.controllerNotifier.register(region);
+
     }
 
     /**
@@ -68,7 +73,12 @@ public class BaseMediator extends Proxylet {
             this.controllerNotifier.post(redirected);
         } else {
             if (senderType == SenderType.ControllerRegion) {
-                this.switchesRegion.dispatchEvent(redirected);
+                // Log non data events
+                if (arg.getReplyType() != EventType.SendData) {
+                    this.logger.info(arg.toString());
+                }
+
+                this.switchSockets.addToCommandQueue(redirected);
             } else if (senderType == SenderType.ReplicaRegion) {
                 this.onReplicaEvent(arg);
             }
@@ -102,8 +112,8 @@ public class BaseMediator extends Proxylet {
             }
 
             if (result.hasRemaining()) {
-                throw new RuntimeException(
-                        String.format("Remaining: %d bytes", result.getRemaining().length));
+                throw new RuntimeException(String.format("Remaining: %d bytes",
+                        result.getRemaining().length));
             }
 
         }
@@ -128,22 +138,27 @@ public class BaseMediator extends Proxylet {
     }
 
     public void setActiveController(@NotNull String ip, int port) {
-        ControllerChangeEventArg arg = new ControllerChangeEventArg(ip, port);
+        SocketAddressInfoEventArg arg = new SocketAddressInfoEventArg(ip, port);
         this.controllerNotifier.post(arg);
     }
 
     @Override
     public void close() throws IOException {
-        this.switchesRegion.close();
-        for (ControllersRegion region : this.controllerRegions) {
+        this.switchSockets.close();
+        for (SocketIOer region : this.controllerRegions) {
             region.close();
         }
     }
 
-    @Override
-    public void cycle() {
-        this.switchesRegion.cycle();
-        for (ControllersRegion region : this.controllerRegions) {
+    public void cycle() throws IOException {
+        try {
+            // Do socket io cycle
+            this.switchSockets.cycle();
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+
+        for (SocketIOer region : this.controllerRegions) {
             region.cycle();
         }
     }
