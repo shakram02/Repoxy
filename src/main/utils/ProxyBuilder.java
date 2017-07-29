@@ -4,7 +4,7 @@ import mediators.BaseMediator;
 import network_io.ConnectionAcceptorIOHandler;
 import network_io.ControllerIOHandler;
 import utils.events.SocketAddressInfoEventArg;
-import verifiers.SocketEventWatcher;
+import utils.events.SocketEventObserver;
 
 import javax.management.RuntimeErrorException;
 import java.io.IOException;
@@ -41,7 +41,7 @@ public class ProxyBuilder {
         return instance;
     }
 
-    public  ProxyBuilder addWatcher(SocketEventWatcher watcher) {
+    public  ProxyBuilder addWatcher(SocketEventObserver watcher) {
         ProxyBuilder.BaseMediator.registerWatcher(watcher);
         return instance;
     }
