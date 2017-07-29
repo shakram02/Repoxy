@@ -1,5 +1,7 @@
 import mediators.BaseMediator;
 import utils.ProxyBuilder;
+import verifiers.ClientCounter;
+import verifiers.OFPacketVerifier;
 
 import java.io.IOException;
 import java.util.Timer;
@@ -26,19 +28,25 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         ProxyBuilder builder = ProxyBuilder.createInstance()
-                .BuildController(LOCALHOST, CONTROLLER_PORT)
-                .BuildController(LOCALHOST, REPLICATED_CONTROLLER_PORT);
+                .addController(LOCALHOST, CONTROLLER_PORT)
+                .addController(LOCALHOST, REPLICATED_CONTROLLER_PORT);
 
         builder.startServer(LOCALHOST, OF_PORT);
         final BaseMediator mediator = builder.getMediator();
         System.out.println(String.format("Listening to [%d]", OF_PORT));
+
+        ClientCounter counter = new ClientCounter();
+        OFPacketVerifier packetVerifier = new OFPacketVerifier();
+
+        mediator.registerWatcher(counter);
+        mediator.registerWatcher(packetVerifier);
 
         TimerTask t = new TimerTask() {
             int alt = 0;
 
             @Override
             public void run() {
-                if (!mediator.hasClients()) {
+                if (!counter.hasClients()) {
                     return; // Cancel the task if nobody is connected
                 }
 
@@ -52,11 +60,10 @@ public class Main {
         };
 
         Timer timer = new Timer();
-//        timer.scheduleAtFixedRate(t, 2000, 10000);
+        timer.scheduleAtFixedRate(t, 2000, 10000);
 
         while (true) {
             mediator.cycle();
         }
-
     }
 }

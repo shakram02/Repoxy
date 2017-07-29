@@ -70,7 +70,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
 
     public void cycle() throws IOException {
         // FIXME use threads to avoid querying the queue a lot
-        Optional<ConnectionIdEventArg> arg = this.fetchInputQueueItem();
+        Optional<SocketEventArguments> arg = this.fetchInputQueueItem();
         arg.ifPresent(this::processEvent);
 
         int count = this.selector.selectNow();
@@ -94,9 +94,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
 
     @Override
     public void processEvent(@NotNull SocketEventArguments arg) {
-        assert arg instanceof ConnectionIdEventArg;
-
-        this.dispatchEvent((ConnectionIdEventArg) arg);
+        this.dispatchEvent(arg);
     }
 
     /**
@@ -109,12 +107,17 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
         this.addToCommandQueue(args);
     }
 
-    private Optional<ConnectionIdEventArg> fetchInputQueueItem() {
+    private Optional<SocketEventArguments> fetchInputQueueItem() {
         if (this.commandQueue.isEmpty()) {
             return Optional.empty();
         }
 
         SocketEventArguments arg = this.commandQueue.poll();
+
+        if(!(arg instanceof ConnectionIdEventArg)){
+            return Optional.of(arg);
+        }
+
         ConnectionIdEventArg idArg = (ConnectionIdEventArg) arg;
 
         // Check if the controller is alive when IO is needed
@@ -191,12 +194,12 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
      *
      * @param arg Item to process
      */
-    private void dispatchEvent(@NotNull ConnectionIdEventArg arg) {
+    private void dispatchEvent(@NotNull SocketEventArguments arg) {
 
         EventType type = arg.getReplyType();
 
         if (type == EventType.Disconnection) {
-            this.closeConnection(arg);
+            this.closeConnection((ConnectionIdEventArg) arg);
         } else if (type == EventType.SendData) {
             this.sendData((SocketDataEventArg) arg);
         } else {
