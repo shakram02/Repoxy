@@ -1,4 +1,4 @@
-package utils;
+package utils.events;
 
 /**
  * Event type for Proxylets

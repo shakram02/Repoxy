@@ -3,10 +3,10 @@ package verifiers;
 import of_packets.OFPacket;
 import of_packets.OFStreamParseResult;
 import of_packets.OFStreamParser;
-import utils.EventType;
+import utils.events.EventType;
 import utils.SenderType;
-import utils.SocketDataEventArg;
-import utils.SocketEventArguments;
+import utils.events.SocketDataEventArg;
+import utils.events.SocketEventArguments;
 
 import java.util.List;
 import java.util.logging.Logger;
