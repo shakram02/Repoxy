@@ -29,6 +29,7 @@ public class Main {
     public static final int OF_PORT = 6833;
     public static final int CONTROLLER_PORT = 6834;
     public static final int REPLICATED_CONTROLLER_PORT = 6835;
+    public static final int WIND_SIZE = 20;
 
     public static void main(String[] args) throws IOException {
         setupLogging();
@@ -44,7 +45,7 @@ public class Main {
         System.out.println(String.format("%s Listening to [%d] %s", ConsoleColors.BLUE, OF_PORT, ConsoleColors.RESET));
 
         ClientCounter counter = new ClientCounter();
-        OFPacketVerifier packetVerifier = new OFPacketVerifier();
+        OFPacketVerifier packetVerifier = new OFPacketVerifier(WIND_SIZE);
 
         mediator.registerWatcher(counter);
         mediator.registerWatcher(packetVerifier);
