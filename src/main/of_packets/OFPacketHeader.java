@@ -113,6 +113,10 @@ public class OFPacketHeader implements Serializable {
         return messageType;
     }
 
+    public int getXId() {
+        return xId;
+    }
+
     // Serialize the object to be read by the JVM
     private void writeObject(ObjectOutputStream out) throws IOException {
         int msgTID = MSG_TYPE.keySet().stream()
