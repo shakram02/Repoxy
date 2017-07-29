@@ -3,6 +3,7 @@ package utils;
 import mediators.BaseMediator;
 import network_io.ConnectionAcceptorIOHandler;
 import network_io.ControllerIOHandler;
+import verifiers.SocketEventWatcher;
 
 import javax.management.RuntimeErrorException;
 import java.io.IOException;
@@ -26,8 +27,8 @@ public class ProxyBuilder {
         return instance;
     }
 
-    public ProxyBuilder BuildController(String ip, int port) {
-        ControllerIOHandler connectorElement = new ControllerIOHandler(SenderType.ReplicaRegion, ip, port);
+    public ProxyBuilder addController(String ip, int port) {
+        ControllerIOHandler connectorElement = new ControllerIOHandler(ip, port);
         ProxyBuilder.BaseMediator.registerController(connectorElement);
         CONTROLLERS_REGIONS.add(connectorElement);
 
@@ -36,6 +37,11 @@ public class ProxyBuilder {
 
     public ProxyBuilder startServer(String ip, int port) throws IOException {
         switches.createServer(new SocketAddressInfoEventArg(ip, port));
+        return instance;
+    }
+
+    public  ProxyBuilder addWatcher(SocketEventWatcher watcher) {
+        ProxyBuilder.BaseMediator.registerWatcher(watcher);
         return instance;
     }
 
