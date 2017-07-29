@@ -11,7 +11,7 @@ import utils.events.EventType;
 import utils.SenderType;
 import utils.events.SocketAddressInfoEventArg;
 import utils.events.SocketEventArguments;
-import verifiers.SocketEventWatcher;
+import utils.events.SocketEventObserver;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -61,7 +61,7 @@ public class BaseMediator extends Proxylet {
      *
      * @param verifier An object that contains event verification code
      */
-    public void registerWatcher(@NotNull SocketEventWatcher verifier) {
+    public void registerWatcher(@NotNull SocketEventObserver verifier) {
         this.verifiersNotifier.register(verifier);
     }
 

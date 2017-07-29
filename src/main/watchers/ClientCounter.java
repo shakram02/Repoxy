@@ -1,14 +1,16 @@
-package verifiers;
+package watchers;
 
+import org.jetbrains.annotations.NotNull;
 import utils.events.EventType;
 import utils.SenderType;
 import utils.events.SocketEventArguments;
+import utils.events.SocketEventObserver;
 
-public class ClientCounter implements SocketEventWatcher {
+public class ClientCounter implements SocketEventObserver {
     private int connectedCount;
 
     @Override
-    public void processEvent(SocketEventArguments arg) {
+    public void dispatchEvent(@NotNull SocketEventArguments arg) {
         SenderType senderType = arg.getSenderType();
         EventType eventType = arg.getReplyType();
 

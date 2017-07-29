@@ -1,7 +1,7 @@
 import mediators.BaseMediator;
 import utils.ProxyBuilder;
-import verifiers.ClientCounter;
-import verifiers.OFPacketVerifier;
+import watchers.ClientCounter;
+import watchers.OFPacketVerifier;
 
 import java.io.IOException;
 import java.util.Timer;

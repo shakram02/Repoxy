@@ -1,18 +1,20 @@
-package verifiers;
+package watchers;
 
 import of_packets.OFPacket;
 import of_packets.OFStreamParseResult;
 import of_packets.OFStreamParser;
+import org.jetbrains.annotations.NotNull;
 import utils.events.EventType;
 import utils.SenderType;
 import utils.events.SocketDataEventArg;
 import utils.events.SocketEventArguments;
+import utils.events.SocketEventObserver;
 
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class OFPacketVerifier implements SocketEventWatcher {
+public class OFPacketVerifier implements SocketEventObserver {
     Logger logger;
 
     public OFPacketVerifier() {
@@ -20,7 +22,7 @@ public class OFPacketVerifier implements SocketEventWatcher {
     }
 
     @Override
-    public void processEvent(SocketEventArguments arg) {
+    public void dispatchEvent(@NotNull SocketEventArguments arg) {
         if (arg.getReplyType() != EventType.SendData ||
                 arg.getSenderType() == SenderType.ReplicaRegion) {
             return;
