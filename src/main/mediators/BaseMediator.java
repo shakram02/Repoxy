@@ -1,19 +1,21 @@
 package mediators;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import network_io.ConnectionAcceptorIOHandler;
 import network_io.interfaces.SocketIOer;
-import of_packets.OFPacket;
-import of_packets.OFStreamParseResult;
-import of_packets.OFStreamParser;
 import org.jetbrains.annotations.NotNull;
 import proxylet.Proxylet;
-import utils.*;
+import utils.EventType;
+import utils.SenderType;
+import utils.SocketAddressInfoEventArg;
+import utils.SocketEventArguments;
+import verifiers.SocketEventWatcher;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.Executors;
 
 /**
  * The mediator registers for events from the controller side and switches side
@@ -22,13 +24,17 @@ public class BaseMediator extends Proxylet {
     private final ConnectionAcceptorIOHandler switchSockets;
 
     private final EventBus controllerNotifier;
+    private final AsyncEventBus verifiersNotifier;
     private final ArrayList<SocketIOer> controllerRegions; // Replace with connection creator
-    private int connectedCount;
 
     public BaseMediator(ConnectionAcceptorIOHandler switchSockets) {
         super(SenderType.Mediator);
-        controllerNotifier = new EventBus(BaseMediator.class.getName());
+        this.controllerNotifier = new EventBus(BaseMediator.class.getName());
         this.controllerRegions = new ArrayList<>();
+
+        // Run the event checkers on other threads
+        this.verifiersNotifier = new AsyncEventBus(Executors.newCachedThreadPool());
+
         this.switchSockets = switchSockets;
         this.switchSockets.registerForEvents(this);
     }
@@ -48,6 +54,15 @@ public class BaseMediator extends Proxylet {
         // Mediator notifies controller with events
         this.controllerNotifier.register(region);
 
+    }
+
+    /**
+     * Registers a packet verifier for packet events
+     *
+     * @param verifier An object that contains event verification code
+     */
+    public void registerWatcher(@NotNull SocketEventWatcher verifier) {
+        this.verifiersNotifier.register(verifier);
     }
 
     /**
@@ -83,58 +98,15 @@ public class BaseMediator extends Proxylet {
                 this.onReplicaEvent(arg);
             }
         }
-        this.postDispatch(arg);
+
+        this.verifiersNotifier.post(arg);
     }
 
-    /**
-     * Performs user-defined checks after the event has been processed
-     *
-     * @param arg Event argument containing Type and Sender of the event
-     */
-    protected void postDispatch(@NotNull SocketEventArguments arg) {
-        // TODO Add to packet diff
-        SenderType senderType = arg.getSenderType();
-        EventType eventType = arg.getReplyType();
-
-        if (eventType == EventType.SendData) {
-            OFStreamParseResult result = OFStreamParser.
-                    parseStream(((SocketDataEventArg) arg).getExtraData().toByteArray());
-
-            if (!result.hasPackets() && result.hasRemaining()) {
-                this.logger.info("Invalid OF PACKET");
-                return;
-            }
-
-
-            if (result.hasPackets()) {
-                ImmutableList<OFPacket> packets = result.getPackets();
-                this.logger.info(String.format("#%d OF PACKETS", packets.size()));
-            }
-
-            if (result.hasRemaining()) {
-                throw new RuntimeException(String.format("Remaining: %d bytes",
-                        result.getRemaining().length));
-            }
-
-        }
-
-        if (senderType == SenderType.SwitchesRegion) {
-            if (eventType == EventType.Connection) {
-                this.connectedCount++;
-            } else if (eventType == EventType.Disconnection) {
-                this.connectedCount--;
-            }
-        } else if (senderType == SenderType.ReplicaRegion && eventType == EventType.Disconnection) {
-            this.logger.warning("Replicated controller disconnected, this will be ignored");
-        }
-    }
-
-    public boolean hasClients() {
-        return this.connectedCount > 0;
-    }
 
     private void onReplicaEvent(@NotNull SocketEventArguments arg) {
-//        this.logger.finest(String.format("Event from replica:%s", arg));
+        if (arg.getReplyType() == EventType.Disconnection) {
+            this.logger.warning("Replicated controller disconnected, this will be ignored");
+        }
     }
 
     public void setActiveController(@NotNull String ip, int port) {
