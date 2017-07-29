@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.logging.Logger;
 
 /**
  * Creates connections to controller
@@ -16,11 +17,15 @@ public class ControllerIOHandler extends CommonIOHandler {
     @NotNull
     private final String address;
     private final int port;
+    private final Logger logger;
 
-    public ControllerIOHandler(@NotNull SenderType selfType, @NotNull String address, int port) {
-        super(selfType);
+    public ControllerIOHandler(@NotNull String address, int port) {
+        // Start as replica, then the status will be updated
+        super(SenderType.ReplicaRegion);
+
         this.address = address;
         this.port = port;
+        this.logger = Logger.getLogger(String.format("%s/%d", this.address, this.port));
 
         // If no active controllers are set. make this one the active controller
         if (ControllerIOHandler.activeControllerHandler == null) {
@@ -97,11 +102,12 @@ public class ControllerIOHandler extends CommonIOHandler {
     }
 
     private void setActiveControllerHandler(SocketAddressInfoEventArg controllerChangeArg) {
-        if (ControllerIOHandler.activeControllerHandler != this &&
-                this.address.equals(controllerChangeArg.getIp()) &&
+        if (this.address.equals(controllerChangeArg.getIp()) &&
                 this.port == controllerChangeArg.getPort()) {
+            this.logger.info(String.format("[%d] Set to main controller", this.port));
             this.selfType = SenderType.ControllerRegion;
         } else {
+            this.logger.info(String.format("[%d] Set to secondary controller", this.port));
             this.selfType = SenderType.ReplicaRegion;
         }
     }
