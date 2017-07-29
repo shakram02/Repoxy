@@ -2,7 +2,7 @@ package network_io.interfaces;
 
 import org.jetbrains.annotations.NotNull;
 import utils.ConnectionId;
-import utils.SocketEventArguments;
+import utils.events.SocketEventArguments;
 import utils.events.SocketEventObserver;
 
 import java.io.Closeable;

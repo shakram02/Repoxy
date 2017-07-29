@@ -1,7 +1,9 @@
-package utils;
+package utils.events;
 
 import com.google.common.io.ByteArrayDataOutput;
 import org.jetbrains.annotations.NotNull;
+import utils.ConnectionId;
+import utils.SenderType;
 
 public class SocketDataEventArg extends ConnectionIdEventArg {
 

@@ -1,8 +1,8 @@
 package verifiers;
 
-import utils.EventType;
+import utils.events.EventType;
 import utils.SenderType;
-import utils.SocketEventArguments;
+import utils.events.SocketEventArguments;
 
 public class ClientCounter implements SocketEventWatcher {
     private int connectedCount;

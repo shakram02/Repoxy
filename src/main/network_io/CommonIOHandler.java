@@ -8,7 +8,7 @@ import com.google.common.io.ByteStreams;
 import network_io.interfaces.SocketIOer;
 import org.jetbrains.annotations.NotNull;
 import utils.*;
-import utils.events.SocketEventObserver;
+import utils.events.*;
 
 import java.io.Closeable;
 import java.io.IOException;

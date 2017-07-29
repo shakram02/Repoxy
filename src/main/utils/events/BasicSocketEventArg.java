@@ -1,4 +1,6 @@
-package utils;
+package utils.events;
+
+import utils.SenderType;
 
 public class BasicSocketEventArg implements SocketEventArguments {
 

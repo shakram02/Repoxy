@@ -1,6 +1,8 @@
-package utils;
+package utils.events;
 
 import org.jetbrains.annotations.NotNull;
+import utils.ConnectionId;
+import utils.SenderType;
 
 /**
  * Socket Event args for better event dispatching

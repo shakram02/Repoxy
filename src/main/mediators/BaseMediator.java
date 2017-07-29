@@ -7,10 +7,10 @@ import network_io.ConnectionAcceptorIOHandler;
 import network_io.interfaces.SocketIOer;
 import org.jetbrains.annotations.NotNull;
 import proxylet.Proxylet;
-import utils.EventType;
+import utils.events.EventType;
 import utils.SenderType;
-import utils.SocketAddressInfoEventArg;
-import utils.SocketEventArguments;
+import utils.events.SocketAddressInfoEventArg;
+import utils.events.SocketEventArguments;
 import verifiers.SocketEventWatcher;
 
 import java.io.IOException;

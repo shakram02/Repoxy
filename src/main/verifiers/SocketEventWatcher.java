@@ -1,7 +1,7 @@
 package verifiers;
 
 import com.google.common.eventbus.Subscribe;
-import utils.SocketEventArguments;
+import utils.events.SocketEventArguments;
 
 public interface SocketEventWatcher {
     @Subscribe
