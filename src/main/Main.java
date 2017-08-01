@@ -1,11 +1,15 @@
 import mediators.BaseMediator;
 import utils.ProxyBuilder;
+import utils.logging.ColoredConsoleFormatter;
+import utils.logging.ColoredConsoleHandler;
+import utils.logging.ConsoleColors;
 import watchers.ClientCounter;
 import watchers.OFPacketVerifier;
 
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.*;
 
 /**
  * Packet flow:
@@ -27,13 +31,17 @@ public class Main {
     public static final int REPLICATED_CONTROLLER_PORT = 6835;
 
     public static void main(String[] args) throws IOException {
+        setupLogging();
+
+        Logger.getLogger(Main.class.getName()).info("INDOO");
+
         ProxyBuilder builder = ProxyBuilder.createInstance()
                 .addController(LOCALHOST, CONTROLLER_PORT)
                 .addController(LOCALHOST, REPLICATED_CONTROLLER_PORT);
 
         builder.startServer(LOCALHOST, OF_PORT);
         final BaseMediator mediator = builder.getMediator();
-        System.out.println(String.format("Listening to [%d]", OF_PORT));
+        System.out.println(String.format("%s Listening to [%d] %s", ConsoleColors.BLUE, OF_PORT, ConsoleColors.RESET));
 
         ClientCounter counter = new ClientCounter();
         OFPacketVerifier packetVerifier = new OFPacketVerifier();
@@ -41,6 +49,27 @@ public class Main {
         mediator.registerWatcher(counter);
         mediator.registerWatcher(packetVerifier);
 
+//        createAndRunSwitcher(mediator,counter);
+
+        while (true) {
+            mediator.cycle();
+        }
+
+    }
+
+    private static void setupLogging() {
+        Logger globalLogger = Logger.getLogger("");
+
+        // Remove the default console handler
+        for (Handler h : globalLogger.getHandlers()) {
+            globalLogger.removeHandler(h);
+        }
+
+        // Add custom handler
+        globalLogger.addHandler(new ColoredConsoleHandler());
+    }
+
+    private static void createAndRunSwitcher(final BaseMediator mediator, final ClientCounter counter) {
         TimerTask t = new TimerTask() {
             int alt = 0;
 
@@ -59,11 +88,9 @@ public class Main {
             }
         };
 
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(t, 2000, 10000);
+//        Timer timer = new Timer();
+//        timer.scheduleAtFixedRate(t, 2000, 10000);
+//        timer.cancel();
 
-        while (true) {
-            mediator.cycle();
-        }
     }
 }
