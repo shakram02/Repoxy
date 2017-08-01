@@ -114,4 +114,8 @@ public class ControllerIOHandler extends CommonIOHandler {
             this.selfType = SenderType.ReplicaRegion;
         }
     }
+
+    public static ControllerIOHandler getActiveControllerHandler() {
+        return ControllerIOHandler.activeControllerHandler;
+    }
 }

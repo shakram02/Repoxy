@@ -45,7 +45,7 @@ public class OFPacketDiffer {
     }
 
     private boolean diffPackets(OFPacket first, OFPacket second) {
-        return matchHeaders(first, second) && this.matchData(first, second);
+        return matchHeaders(first, second);
     }
 
     private boolean matchHeaders(OFPacket first, OFPacket second) {
