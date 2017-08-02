@@ -44,6 +44,8 @@ public class ConnectionAcceptorIOHandler extends CommonIOHandler {
         ConnectionId id = ConnectionId.CreateNext();
         this.keyMap.put(key, id);
 
+        this.logger.info(key.channel().toString());
+
         ConnectionIdEventArg eventArg = new ConnectionIdEventArg(this.selfType, EventType.Connection, id);
         this.addToOutputQueue(eventArg);
     }

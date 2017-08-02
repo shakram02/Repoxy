@@ -4,6 +4,8 @@ import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import network_io.ConnectionAcceptorIOHandler;
+import network_io.ControllerIOHandler;
+import network_io.ControllerManager;
 import network_io.interfaces.SocketIOer;
 import org.jetbrains.annotations.NotNull;
 import proxylet.Proxylet;
@@ -14,6 +16,7 @@ import utils.events.SocketEventArguments;
 import utils.events.SocketEventObserver;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.concurrent.Executors;
 
@@ -22,38 +25,25 @@ import java.util.concurrent.Executors;
  */
 public class BaseMediator extends Proxylet {
     private final ConnectionAcceptorIOHandler switchSockets;
-
-    private final EventBus controllerNotifier;
+    private final ControllerManager controllerManager;
     private final AsyncEventBus verifiersNotifier;
-    private final ArrayList<SocketIOer> controllerRegions; // Replace with connection creator
+
 
     public BaseMediator(ConnectionAcceptorIOHandler switchSockets) {
         super(SenderType.Mediator);
-        this.controllerNotifier = new EventBus(BaseMediator.class.getName());
-        this.controllerRegions = new ArrayList<>();
 
         // Run the event checkers on other threads
         this.verifiersNotifier = new AsyncEventBus(Executors.newCachedThreadPool());
+        this.controllerManager = new ControllerManager(this);
 
         this.switchSockets = switchSockets;
         this.switchSockets.registerForEvents(this);
+
     }
 
 
-    /**
-     * Adds a controller to the list of registered controller
-     * to receive socket events
-     *
-     * @param region Properly initialized {@link SocketIOer}
-     */
-    public void registerController(@NotNull SocketIOer region) {
-        this.controllerRegions.add(region);
-        // Controller registers for socket events
-        region.registerForEvents(this);
-
-        // Mediator notifies controller with events
-        this.controllerNotifier.register(region);
-
+    public void registerController(SocketIOer region) {
+        this.controllerManager.registerController(region);
     }
 
     /**
@@ -82,10 +72,9 @@ public class BaseMediator extends Proxylet {
     public synchronized void dispatchEvent(@NotNull SocketEventArguments arg) {
         SenderType senderType = arg.getSenderType();
 
-        SocketEventArguments redirected = arg.createRedirectedCopy(SenderType.Mediator);
-
         if (senderType == SenderType.SwitchesRegion) {
-            this.controllerNotifier.post(redirected);
+            // TODO notify the main controller first using the main thread
+            this.controllerManager.notifyControllers(arg);
         } else {
             if (senderType == SenderType.ControllerRegion) {
                 // Log non data events
@@ -93,7 +82,7 @@ public class BaseMediator extends Proxylet {
                     this.logger.info(arg.toString());
                 }
 
-                this.switchSockets.addToCommandQueue(redirected);
+                this.switchSockets.addToCommandQueue(arg);
             } else if (senderType == SenderType.ReplicaRegion) {
                 this.onReplicaEvent(arg);
             }
@@ -110,16 +99,14 @@ public class BaseMediator extends Proxylet {
     }
 
     public void setActiveController(@NotNull String ip, int port) {
-        SocketAddressInfoEventArg arg = new SocketAddressInfoEventArg(ip, port);
-        this.controllerNotifier.post(arg);
+        // TODO change the main controller first using the main thread
+        this.controllerManager.setActiveController(ip, port);
     }
 
     @Override
     public void close() throws IOException {
         this.switchSockets.close();
-        for (SocketIOer region : this.controllerRegions) {
-            region.close();
-        }
+        this.controllerManager.closeControllers();
     }
 
     public void cycle() throws IOException {
@@ -130,9 +117,7 @@ public class BaseMediator extends Proxylet {
             throw new IllegalStateException(e);
         }
 
-        for (SocketIOer region : this.controllerRegions) {
-            region.cycle();
-        }
+        this.controllerManager.cycleControllers();
     }
 
 }

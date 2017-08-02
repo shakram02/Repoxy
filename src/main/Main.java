@@ -7,6 +7,7 @@ import watchers.ClientCounter;
 import watchers.OFPacketVerifier;
 
 import java.io.IOException;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.*;
@@ -26,14 +27,24 @@ import java.util.logging.*;
  */
 public class Main {
     public static final String LOCALHOST = "127.0.0.1";
-    public static final int OF_PORT = 6833;
-    public static final int CONTROLLER_PORT = 6834;
-    public static final int REPLICATED_CONTROLLER_PORT = 6835;
+    public static int OF_PORT = 6833;
+    public static int CONTROLLER_PORT = 6834;
+    public static int REPLICATED_CONTROLLER_PORT = 6835;
+    public static final int WIND_SIZE = 20;
+    private static final Logger logger = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) throws IOException {
         setupLogging();
 
-        Logger.getLogger(Main.class.getName()).info("INDOO");
+//        int max = 65000;
+//        int min = 45000;
+//        int randomPort = ((int) (Math.random() * (max + 1 - min))) + min;
+        int randomPort = 6833;
+        OF_PORT = randomPort;
+        CONTROLLER_PORT = randomPort + 1;
+        REPLICATED_CONTROLLER_PORT = randomPort + 2;
+        System.out.println(String.format("Ports: [%d] [%d] [%d]",
+                OF_PORT, CONTROLLER_PORT, REPLICATED_CONTROLLER_PORT));
 
         ProxyBuilder builder = ProxyBuilder.createInstance()
                 .addController(LOCALHOST, CONTROLLER_PORT)
@@ -41,10 +52,10 @@ public class Main {
 
         builder.startServer(LOCALHOST, OF_PORT);
         final BaseMediator mediator = builder.getMediator();
-        System.out.println(String.format("%s Listening to [%d] %s", ConsoleColors.BLUE, OF_PORT, ConsoleColors.RESET));
+        logger.log(Level.INFO, "%s Listening to " + OF_PORT);
 
         ClientCounter counter = new ClientCounter();
-        OFPacketVerifier packetVerifier = new OFPacketVerifier();
+        OFPacketVerifier packetVerifier = new OFPacketVerifier(WIND_SIZE);
 
         mediator.registerWatcher(counter);
         mediator.registerWatcher(packetVerifier);
@@ -88,9 +99,8 @@ public class Main {
             }
         };
 
-//        Timer timer = new Timer();
-//        timer.scheduleAtFixedRate(t, 2000, 10000);
-//        timer.cancel();
-
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(t, 2000, 10000);
+        timer.cancel();
     }
 }

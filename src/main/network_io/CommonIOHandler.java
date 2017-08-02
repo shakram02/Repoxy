@@ -114,7 +114,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
 
         SocketEventArguments arg = this.commandQueue.poll();
 
-        if(!(arg instanceof ConnectionIdEventArg)){
+        if (!(arg instanceof ConnectionIdEventArg)) {
             return Optional.of(arg);
         }
 
@@ -189,6 +189,16 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
         this.addOutput(key);
     }
 
+    private void onDisconnect(@NotNull ConnectionId id) {
+        ConnectionIdEventArg arg =
+                new ConnectionIdEventArg(this.selfType, EventType.Disconnection, id);
+
+        this.closeConnection(arg);
+        // Notify mediator here as close connection when called by the mediator
+        // re-notifies the upper layer
+        this.addToOutputQueue(arg);
+    }
+
     /**
      * Process an item from the input queue
      *
@@ -227,13 +237,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
 
             int read = channel.read(buffer);
             if (read == -1) {
-                ConnectionIdEventArg arg =
-                        new ConnectionIdEventArg(this.selfType, EventType.Disconnection, id);
-
-                this.closeConnection(arg);
-                // Notify mediator here as close connection when called by the mediator
-                // re-notifies the upper layer
-                this.addToOutputQueue(arg);
+                this.onDisconnect(id);
                 return;
             }
 
