@@ -72,13 +72,28 @@ public class ControllerManager implements SocketEventObserver {
     }
 
     public void closeControllers() throws IOException {
+        SocketIOer mainController = ControllerIOHandler.getActiveControllerHandler();
+        mainController.close();
+
         for (SocketIOer controller : this.controllerHandlers) {
+            if (controller == mainController) {
+                continue;
+            }
+
             controller.close();
         }
     }
 
     public void cycleControllers() throws IOException {
+        SocketIOer mainController = ControllerIOHandler.getActiveControllerHandler();
+        mainController.cycle();
+
+
         for (SocketIOer controller : this.controllerHandlers) {
+            if (controller == mainController) {
+                continue;
+            }
+
             controller.cycle();
         }
     }
@@ -93,20 +108,15 @@ public class ControllerManager implements SocketEventObserver {
         // TODO I'm not sure if this mechanism is true (that of all controllers will dispatch correctly)
         if (eventArgs.getSenderType() == SenderType.ControllerRegion) {
             this.mediator.dispatchEvent(eventArgs);
-            return;
-        }
 
-        this.eventArgQueue.add(eventArgs);
-        // If the events in the queue is equal to the number of the available controllers - 1 (main controller)
-        // notify the mediator.
-        int controllerCount = this.controllerHandlers.size();
-        if (this.eventArgQueue.size() != controllerCount - 1) {
-            return;
-        }
+            for (SocketEventArguments arg : this.eventArgQueue) {
+                this.mediatorNotifier.post(arg);
+            }
 
-        for (SocketEventArguments arg : this.eventArgQueue) {
-            this.mediatorNotifier.post(arg);
+            this.eventArgQueue.clear();
+
+        } else {
+            this.eventArgQueue.add(eventArgs);
         }
-        this.eventArgQueue.clear();
     }
 }

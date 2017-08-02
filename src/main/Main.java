@@ -30,11 +30,11 @@ public class Main {
     public static int OF_PORT = 6833;
     public static int CONTROLLER_PORT = 6834;
     public static int REPLICATED_CONTROLLER_PORT = 6835;
-    public static final int WIND_SIZE = 100;
+    public static final int WIND_SIZE = 20;
+    private static final Logger logger = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) throws IOException {
         setupLogging();
-        Logger.getLogger(Main.class.getName()).info("INDOO");
 
 //        int max = 65000;
 //        int min = 45000;
@@ -52,7 +52,7 @@ public class Main {
 
         builder.startServer(LOCALHOST, OF_PORT);
         final BaseMediator mediator = builder.getMediator();
-        System.out.println(String.format("%s Listening to [%d] %s", ConsoleColors.BLUE, OF_PORT, ConsoleColors.RESET));
+        logger.log(Level.INFO, "%s Listening to " + OF_PORT);
 
         ClientCounter counter = new ClientCounter();
         OFPacketVerifier packetVerifier = new OFPacketVerifier(WIND_SIZE);
@@ -99,10 +99,8 @@ public class Main {
             }
         };
 
-//        Timer timer = new Timer();
-//        timer.scheduleAtFixedRate(t, 2000, 10000);
-//        timer.cancel();
-
-
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(t, 2000, 10000);
+        timer.cancel();
     }
 }

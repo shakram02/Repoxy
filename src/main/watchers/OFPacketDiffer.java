@@ -5,10 +5,12 @@ import org.jetbrains.annotations.NotNull;
 import utils.LimitedSizeQueue;
 
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class OFPacketDiffer {
     private final LimitedSizeQueue<OFPacket> mainPackets;
-
+    private static final Logger logger = Logger.getLogger(OFPacketDiffer.class.getName());
     /*
      * TODO
      * ----
@@ -36,6 +38,7 @@ public class OFPacketDiffer {
              itPrimary.hasNext(); ) {
 
             OFPacket packet = itPrimary.next();
+
             if (this.diffPackets(packet, secondaryPacket)) {
                 return true;
             }
@@ -45,13 +48,15 @@ public class OFPacketDiffer {
     }
 
     private boolean diffPackets(OFPacket first, OFPacket second) {
-        return matchHeaders(first, second);
+        return matchHeaders(first, second) && matchData(first, second);
     }
 
     private boolean matchHeaders(OFPacket first, OFPacket second) {
         // Same packets have same header and content (maybe header only)
-        return first.getPakcetType().equals(second.getPakcetType()) &&
-                first.isHeaderOnly() && second.isHeaderOnly();
+        boolean typeMatch = first.getPakcetType().equals(second.getPakcetType());
+        boolean headerOnly = first.isHeaderOnly() == second.isHeaderOnly();
+
+        return typeMatch && headerOnly;
     }
 
     private boolean matchData(OFPacket first, OFPacket second) {

@@ -10,6 +10,8 @@ import utils.events.EventType;
 import utils.events.SocketDataEventArg;
 import utils.events.SocketEventArguments;
 import utils.events.SocketEventObserver;
+import utils.logging.ConsoleColors;
+import utils.logging.NetworkLogLevels;
 
 import java.util.List;
 import java.util.Optional;
@@ -43,12 +45,10 @@ public class OFPacketVerifier implements SocketEventObserver {
 
 
     private void processPackets(SenderType sender, List<OFPacket> packets) {
-        LineBasedStringBuilder sb = new LineBasedStringBuilder();
 
         for (OFPacket p : packets) {
 
-            sb.appendTabbedLine(String.format("xid [%d] %s",
-                    p.getHeader().getXId(), p.getPakcetType()));
+            this.logger.log(NetworkLogLevels.getLevel(sender), p.getPakcetType());
 
             if (sender == SenderType.ControllerRegion) {
                 this.differ.addToWindow(p);
@@ -56,14 +56,14 @@ public class OFPacketVerifier implements SocketEventObserver {
 
                 // FIXME needs some modification
                 if (this.differ.checkInWindow(p)) {
-                    sb.appendLine("##Packet in window");
+                    this.logger.log(NetworkLogLevels.DIFFER,
+                            ConsoleColors.GREEN_BOLD + "Packet in window:" + p.getPakcetType());
                 } else {
-                    sb.appendLine("Packet wasn't matched");
+                    this.logger.log(NetworkLogLevels.DIFFER,
+                            ConsoleColors.RED_BOLD + "Packet wasn't matched:" + p.getPakcetType());
                 }
             }
         }
-
-        this.logger.info(sb.toString());
     }
 
     private Optional<List<OFPacket>> parseDataStream(SocketDataEventArg arg) {
@@ -82,8 +82,7 @@ public class OFPacketVerifier implements SocketEventObserver {
             return Optional.empty();    // FIXME Skip echos
         }
 
-        this.logger.info(String.format("\n#%d of-packets from [ %s ]",
-                packetCount, arg.getSenderType()));
+        this.logger.log(NetworkLogLevels.getLevel(arg), ">> " + packetCount + " packets");
 
         return Optional.of(filtered);
     }
