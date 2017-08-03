@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Logger;
 
 
 /**
@@ -242,8 +243,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
             }
 
             this.onData(id, channel, read);
-        }
-        if (key.isValid() && key.isWritable()) {
+        } else if (key.isValid() && key.isWritable()) {
             this.writePackets(id, channel);
             this.removeOutput(id);
         }
@@ -340,6 +340,8 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
      * @param arg Event data argument to be added
      */
     protected void addToOutputQueue(SocketEventArguments arg) {
+        Logger.getLogger(CommonIOHandler.class.getName()).warning(arg.toString());
+
         this.eventQueue.add(arg);
         this.notifier.post(arg);
     }
