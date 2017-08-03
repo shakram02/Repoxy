@@ -16,13 +16,16 @@ import java.util.stream.Collectors;
 public class OFPacketHeader implements Serializable {
     private static final HashMap<Integer, String> MSG_TYPE;
     public static final int HEADER_LEN = 8;
+
     private byte version;
-    private String messageType;
     private int len;
     private int xId;
-    private boolean valid;
+    private int messageCode;
 
-    public OFPacketHeader(byte version, byte msg_t_id, int len, int x_id) {
+    private boolean valid;
+    private String messageType;
+
+    public OFPacketHeader(byte version, byte messageCode, int len, int x_id) {
 
         // FIXME some TCP packets may match the OFMSG type. we need to find
         // a better checking mechanism as raw TCP packets are used for testing so far
@@ -30,8 +33,9 @@ public class OFPacketHeader implements Serializable {
         this.version = version;
         this.len = len;
         this.xId = x_id;
-        if (MSG_TYPE.containsKey((int) msg_t_id)) {
-            this.messageType = MSG_TYPE.get((int) msg_t_id);
+        this.messageCode = messageCode;
+        if (MSG_TYPE.containsKey((int) messageCode)) {
+            this.messageType = MSG_TYPE.get((int) messageCode);
             this.valid = true;
         } else {
             this.valid = false;
@@ -64,6 +68,10 @@ public class OFPacketHeader implements Serializable {
         int x_id = buff.readInt();
 
         return Optional.of(new OFPacketHeader(version, msg_t, len, x_id));
+    }
+
+    public boolean isEquivalentTo(OFPacketHeader other) {
+        return this.xId == other.xId && this.len == other.len && this.messageCode == other.messageCode;
     }
 
     @Override
