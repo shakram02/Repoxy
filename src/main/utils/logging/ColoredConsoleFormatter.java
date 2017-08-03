@@ -28,6 +28,10 @@ public class ColoredConsoleFormatter extends Formatter {
             return ConsoleColors.RED_UNDERLINED;
         } else if (level == Level.INFO) {
             return ConsoleColors.BLUE_BRIGHT;
+        } else if (level == Level.WARNING) {
+            return ConsoleColors.YELLOW_BOLD;
+        }else if(level == Level.SEVERE ){
+            return ConsoleColors.RED_BOLD_BRIGHT;
         }
         return ConsoleColors.WHITE;
     }
