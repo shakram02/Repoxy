@@ -52,7 +52,7 @@ public class Main {
 
         builder.startServer(LOCALHOST, OF_PORT);
         final BaseMediator mediator = builder.getMediator();
-        logger.log(Level.INFO, "%s Listening to " + OF_PORT);
+        logger.log(Level.INFO, "Listening to " + OF_PORT);
 
         ClientCounter counter = new ClientCounter();
         OFPacketVerifier packetVerifier = new OFPacketVerifier(WIND_SIZE, mediator);
