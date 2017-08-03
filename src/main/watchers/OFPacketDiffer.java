@@ -1,6 +1,7 @@
 package watchers;
 
 import of_packets.OFPacket;
+import of_packets.OFPacketHeader;
 import org.jetbrains.annotations.NotNull;
 import utils.LimitedSizeQueue;
 
@@ -78,10 +79,10 @@ public class OFPacketDiffer {
 
     private boolean matchHeaders(OFPacket first, OFPacket second) {
         // Same packets have same header and content (maybe header only)
-        boolean typeMatch = first.getPakcetType().equals(second.getPakcetType());
+        boolean headerMatch = first.getHeader().isEquivalentTo(second.getHeader());
         boolean headerOnly = first.isHeaderOnly() == second.isHeaderOnly();
 
-        return typeMatch && headerOnly;
+        return headerMatch && headerOnly;
     }
 
     private boolean matchData(OFPacket first, OFPacket second) {

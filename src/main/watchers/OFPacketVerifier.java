@@ -59,7 +59,8 @@ public class OFPacketVerifier implements SocketEventObserver {
 
         for (OFPacket p : packets) {
 
-            this.logger.log(NetworkLogLevels.getLevel(sender), p.getPakcetType());
+            this.logger.log(NetworkLogLevels.getLevel(sender),
+                    "xid:" + p.getHeader().getXId() + "  " + p.getPakcetType());
 
             if (sender == SenderType.ControllerRegion) {
                 this.differ.addToPrimaryWindow(p);
