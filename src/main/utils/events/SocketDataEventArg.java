@@ -1,6 +1,7 @@
 package utils.events;
 
 import com.google.common.io.ByteArrayDataOutput;
+import of_packets.OFStreamParser;
 import org.jetbrains.annotations.NotNull;
 import utils.ConnectionId;
 import utils.SenderType;
@@ -24,5 +25,12 @@ public class SocketDataEventArg extends ConnectionIdEventArg {
         SocketDataEventArg redirected = (SocketDataEventArg) super.createRedirectedCopy(newSender);
         redirected.extraData = this.extraData;
         return redirected;
+    }
+
+    @Override
+    public String toString() {
+        // Get the header of the first packet
+        return super.toString() + "[" + OFStreamParser.parseStream(this.extraData.toByteArray())
+                .getPackets().get(0).getHeader().getMessageType() + "]";
     }
 }
