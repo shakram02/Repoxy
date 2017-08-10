@@ -69,13 +69,4 @@ public class ConnectionAcceptorIOHandler extends CommonIOHandler {
 
         server.socket().bind(new InetSocketAddress(address, port));
     }
-
-    @Override
-    protected void addToOutputQueue(SocketEventArguments arg) {
-        if (arg.getReplyType() != EventType.SendData) {
-            this.logger.info(String.format("Output event %s", arg));
-        }
-
-        super.addToOutputQueue(arg);
-    }
 }

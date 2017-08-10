@@ -120,11 +120,11 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
     public void cycle() throws IOException {
         try {
 
-            this.readNetworkIoEvents();
+            this.cycleControllers();
             this.readControllerIoEvents();
 
-            this.cycleControllers();
             this.switchSockets.cycle();
+            this.readNetworkIoEvents();
 
         } catch (IOException e) {
             throw new IllegalStateException(e);
@@ -155,6 +155,7 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
 
     private void cycleControllers() throws IOException {
         for (ControllerIOHandler controller : this.controllerHandlers) {
+            this.logger.warning("Cycle " + controller.toString());
             controller.cycle();
         }
     }

@@ -1,13 +1,10 @@
-import mediators.BaseMediator;
+import mediators.ProxyMediator;
 import utils.ProxyBuilder;
-import utils.logging.ColoredConsoleFormatter;
 import utils.logging.ColoredConsoleHandler;
-import utils.logging.ConsoleColors;
 import watchers.ClientCounter;
 import watchers.OFPacketVerifier;
 
 import java.io.IOException;
-import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.*;
@@ -51,7 +48,7 @@ public class Main {
                 .addController(LOCALHOST, REPLICATED_CONTROLLER_PORT);
 
         builder.startServer(LOCALHOST, OF_PORT);
-        final BaseMediator mediator = builder.getMediator();
+        final ProxyMediator mediator = builder.getMediator();
         logger.log(Level.INFO, "Listening to " + OF_PORT);
 
         ClientCounter counter = new ClientCounter();
@@ -80,7 +77,7 @@ public class Main {
         globalLogger.addHandler(new ColoredConsoleHandler());
     }
 
-    private static void createAndRunSwitcher(final BaseMediator mediator, final ClientCounter counter) {
+    private static void createAndRunSwitcher(final ProxyMediator mediator, final ClientCounter counter) {
         TimerTask t = new TimerTask() {
             int alt = 0;
 

@@ -3,7 +3,6 @@ package network_io.interfaces;
 import org.jetbrains.annotations.NotNull;
 import utils.ConnectionId;
 import utils.events.SocketEventArguments;
-import utils.events.SocketEventObserver;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -24,19 +23,9 @@ public interface SocketIOer extends Closeable {
     void addToCommandQueue(@NotNull SocketEventArguments arg);
 
     /**
-     * Process a socket event "Now" without adding it to the event queue
-     *
-     * @param arg Urgent socket event data
-     */
-    void processEvent(@NotNull SocketEventArguments arg) throws IOException;
-
-    /**
      * Retrieves the next event from the IO Event queue
      *
      * @return An optional the contains the IO event, or empty
      */
-    @NotNull
-    Optional<SocketEventArguments> getFromEventQueue();
-
-    void registerForEvents(SocketEventObserver observer);
+    Optional<SocketEventArguments> getOldestEvent();
 }
