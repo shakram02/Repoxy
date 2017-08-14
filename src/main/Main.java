@@ -55,7 +55,7 @@ public class Main {
         logger.log(Level.INFO, "%s Listening to " + OF_PORT);
 
         ClientCounter counter = new ClientCounter();
-        OFPacketVerifier packetVerifier = new OFPacketVerifier(WIND_SIZE);
+        OFPacketVerifier packetVerifier = new OFPacketVerifier(WIND_SIZE, mediator);
 
         mediator.registerWatcher(counter);
         mediator.registerWatcher(packetVerifier);

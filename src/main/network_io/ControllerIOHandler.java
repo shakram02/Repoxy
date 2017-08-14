@@ -17,6 +17,7 @@ import java.util.logging.Logger;
  */
 public class ControllerIOHandler extends CommonIOHandler {
     private static ControllerIOHandler activeControllerHandler;
+
     @NotNull
     private final String address;
     private final int port;
@@ -117,5 +118,14 @@ public class ControllerIOHandler extends CommonIOHandler {
 
     public static ControllerIOHandler getActiveControllerHandler() {
         return ControllerIOHandler.activeControllerHandler;
+    }
+
+    @NotNull
+    public String getAddress() {
+        return address;
+    }
+
+    public int getPort() {
+        return port;
     }
 }

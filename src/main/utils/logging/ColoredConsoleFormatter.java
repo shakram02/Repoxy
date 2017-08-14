@@ -12,7 +12,7 @@ public class ColoredConsoleFormatter extends Formatter {
         String levelColor = this.levelColor(logRecord.getLevel());
 
         return levelColor + "[" + logRecord.getLevel() + " - " +
-                logRecord.getSourceMethodName() + "] "
+                logRecord.getSourceMethodName() + " - " + logRecord.getSourceClassName() + "] "
                 + logRecord.getMessage()
                 + "\n" + ConsoleColors.RESET;
     }

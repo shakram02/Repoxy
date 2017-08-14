@@ -1,7 +1,6 @@
 package mediators;
 
 import com.google.common.eventbus.AsyncEventBus;
-import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import network_io.ConnectionAcceptorIOHandler;
 import network_io.ControllerIOHandler;
@@ -9,15 +8,10 @@ import network_io.ControllerManager;
 import network_io.interfaces.SocketIOer;
 import org.jetbrains.annotations.NotNull;
 import proxylet.Proxylet;
-import utils.events.EventType;
+import utils.events.*;
 import utils.SenderType;
-import utils.events.SocketAddressInfoEventArg;
-import utils.events.SocketEventArguments;
-import utils.events.SocketEventObserver;
 
 import java.io.IOException;
-import java.net.Socket;
-import java.util.ArrayList;
 import java.util.concurrent.Executors;
 
 /**
@@ -42,7 +36,7 @@ public class BaseMediator extends Proxylet {
     }
 
 
-    public void registerController(SocketIOer region) {
+    public void registerController(ControllerIOHandler region) {
         this.controllerManager.registerController(region);
     }
 
@@ -75,14 +69,24 @@ public class BaseMediator extends Proxylet {
         if (senderType == SenderType.SwitchesRegion) {
             // TODO notify the main controller first using the main thread
             this.controllerManager.notifyControllers(arg);
+        } else if (arg instanceof ControllerFailureArgs) {
+            this.controllerManager.elevateSecondaryController();
         } else {
             if (senderType == SenderType.ControllerRegion) {
+
                 // Log non data events
                 if (arg.getReplyType() != EventType.SendData) {
                     this.logger.info(arg.toString());
                 }
 
-                this.switchSockets.addToCommandQueue(arg);
+                if (arg.getReplyType() == EventType.Disconnection) {
+                    this.logger.info("Elevating secondary controller, main one disconnected!!!");
+                    this.controllerManager.elevateSecondaryController();
+                } else {
+                    this.switchSockets.addToCommandQueue(arg);
+                }
+
+
             } else if (senderType == SenderType.ReplicaRegion) {
                 this.onReplicaEvent(arg);
             }
