@@ -1,6 +1,6 @@
 package utils;
 
-import mediators.BaseMediator;
+import mediators.ProxyMediator;
 import network_io.ConnectionAcceptorIOHandler;
 import network_io.ControllerIOHandler;
 import utils.events.SocketAddressInfoEventArg;
@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class ProxyBuilder {
-    private static BaseMediator BaseMediator;
+    private static ProxyMediator ProxyMediator;
     private static final ArrayList<ControllerIOHandler> CONTROLLERS_REGIONS = new ArrayList<>();
     private static ConnectionAcceptorIOHandler switches;
 
@@ -23,14 +23,14 @@ public class ProxyBuilder {
         }
         ProxyBuilder.switches = new ConnectionAcceptorIOHandler();
 
-        ProxyBuilder.BaseMediator = new BaseMediator(switches);
+        ProxyBuilder.ProxyMediator = new ProxyMediator(switches);
         ProxyBuilder.instance = new ProxyBuilder();
         return instance;
     }
 
     public ProxyBuilder addController(String ip, int port) {
         ControllerIOHandler connectorElement = new ControllerIOHandler(ip, port);
-        ProxyBuilder.BaseMediator.registerController(connectorElement);
+        ProxyBuilder.ProxyMediator.registerController(connectorElement);
         CONTROLLERS_REGIONS.add(connectorElement);
 
         return instance;
@@ -42,12 +42,12 @@ public class ProxyBuilder {
     }
 
     public  ProxyBuilder addWatcher(SocketEventObserver watcher) {
-        ProxyBuilder.BaseMediator.registerWatcher(watcher);
+        ProxyBuilder.ProxyMediator.registerWatcher(watcher);
         return instance;
     }
 
-    public BaseMediator getMediator() {
-        return ProxyBuilder.BaseMediator;
+    public ProxyMediator getMediator() {
+        return ProxyBuilder.ProxyMediator;
     }
 
     public int getControllerCount() {
