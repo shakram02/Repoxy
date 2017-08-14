@@ -325,7 +325,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
      * @param arg Event data argument to be added
      */
     protected void addToOutputQueue(SocketEventArguments arg) {
-        logger.warning(arg.toString());
+//        logger.warning(arg.toString());
         this.eventQueue.add(arg);
     }
 

@@ -155,7 +155,6 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
 
     private void cycleControllers() throws IOException {
         for (ControllerIOHandler controller : this.controllerHandlers) {
-            this.logger.warning("Cycle " + controller.toString());
             controller.cycle();
         }
     }
