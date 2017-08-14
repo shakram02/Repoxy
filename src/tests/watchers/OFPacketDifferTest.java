@@ -15,11 +15,14 @@ class OFPacketDifferTest {
         byte[] barrierReplyBytes = new byte[]{1, 19, 0, 8, 0, 0, 0, 1};
         OFPacket barrierReply = OFStreamParser.parseStream(barrierReplyBytes).getPackets().get(0);
 
-        differ.addToWindow(hello);
-        differ.addToWindow(barrierReply);
+        differ.addToPrimaryWindow(hello);
+        differ.addToPrimaryWindow(barrierReply);
 
-        Assert.assertTrue(differ.checkInWindow(barrierReply));
-        Assert.assertTrue(differ.checkInWindow(hello));
+        differ.addToSecondaryWindow(hello);
+        differ.addToSecondaryWindow(barrierReply);
+
+        Assert.assertTrue(differ.countUnmatchedPackets() == 0);
+        Assert.assertTrue(differ.countUnmatchedPackets() == 0);
     }
 
     @Test
@@ -27,11 +30,12 @@ class OFPacketDifferTest {
         OFPacketDiffer differ = new OFPacketDiffer(3);
         byte[] helloBytes = new byte[]{1, 0, 0, 8, 0, 0, 0, 1};
         OFPacket hello = OFStreamParser.parseStream(helloBytes).getPackets().get(0);
-        differ.addToWindow(hello);
+        differ.addToPrimaryWindow(hello);
 
         byte[] barrierReplyBytes = new byte[]{1, 19, 0, 8, 0, 0, 0, 1};
         OFPacket barrierReply = OFStreamParser.parseStream(barrierReplyBytes).getPackets().get(0);
+        differ.addToSecondaryWindow(barrierReply);
 
-        Assert.assertFalse(differ.checkInWindow(barrierReply));
+        Assert.assertTrue(differ.countUnmatchedPackets() == 1);
     }
 }

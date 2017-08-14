@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 public class OFPacketDiffer {
     private final LimitedSizeQueue<OFPacket> mainPackets;
+    private final LimitedSizeQueue<OFPacket> secondaryPackets;
     private static final Logger logger = Logger.getLogger(OFPacketDiffer.class.getName());
     /*
      * TODO
@@ -26,24 +27,48 @@ public class OFPacketDiffer {
 
     public OFPacketDiffer(int windSize) {
         this.mainPackets = new LimitedSizeQueue<>(windSize);
+        this.secondaryPackets = new LimitedSizeQueue<>(windSize);
     }
 
-    public void addToWindow(@NotNull OFPacket packet) {
+    public synchronized void addToPrimaryWindow(@NotNull OFPacket packet) {
         this.mainPackets.add(packet);
     }
 
-    public boolean checkInWindow(@NotNull OFPacket secondaryPacket) {
+    public synchronized void addToSecondaryWindow(@NotNull OFPacket packet) {
+        this.secondaryPackets.add(packet);
+    }
 
+    public synchronized int countUnmatchedPackets() {
+        int unmatchedCount = 0;
+
+        // Calculate the number of packets in both windows, remove matched packets and return the number of mismatched
+        // packets
         for (Iterator<OFPacket> itPrimary = this.mainPackets.descendingIterator();
              itPrimary.hasNext(); ) {
+            OFPacket primaryPacket = itPrimary.next();
 
-            OFPacket packet = itPrimary.next();
-
-            if (this.diffPackets(packet, secondaryPacket)) {
-                return true;
+            if (!findPacket(primaryPacket)) {
+                unmatchedCount++;
+            } else {
+                // Remove the matched packet
+                itPrimary.remove();
             }
         }
 
+        return unmatchedCount;
+    }
+
+    private boolean findPacket(OFPacket packet) {
+        for (Iterator<OFPacket> itSecondary = this.secondaryPackets.descendingIterator();
+             itSecondary.hasNext(); ) {
+            OFPacket secondaryPacket = itSecondary.next();
+
+            if (this.diffPackets(packet, secondaryPacket)) {
+                // Remove the matched packet
+                itSecondary.remove();
+                return true;
+            }
+        }
         return false;
     }
 

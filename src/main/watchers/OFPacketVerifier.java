@@ -4,7 +4,6 @@ import of_packets.OFPacket;
 import of_packets.OFStreamParseResult;
 import of_packets.OFStreamParser;
 import org.jetbrains.annotations.NotNull;
-import utils.LineBasedStringBuilder;
 import utils.SenderType;
 import utils.events.EventType;
 import utils.events.SocketDataEventArg;
@@ -29,6 +28,7 @@ public class OFPacketVerifier implements SocketEventObserver {
 
     @Override
     public void dispatchEvent(@NotNull SocketEventArguments arg) {
+
         if (arg.getReplyType() != EventType.SendData) {
             return;
         }
@@ -51,18 +51,15 @@ public class OFPacketVerifier implements SocketEventObserver {
             this.logger.log(NetworkLogLevels.getLevel(sender), p.getPakcetType());
 
             if (sender == SenderType.ControllerRegion) {
-                this.differ.addToWindow(p);
+                this.differ.addToPrimaryWindow(p);
             } else if (sender == SenderType.ReplicaRegion) {
-
-                // FIXME needs some modification
-                if (this.differ.checkInWindow(p)) {
-                    this.logger.log(NetworkLogLevels.DIFFER,
-                            ConsoleColors.GREEN_BOLD + "Packet in window:" + p.getPakcetType());
-                } else {
-                    this.logger.log(NetworkLogLevels.DIFFER,
-                            ConsoleColors.RED_BOLD + "Packet wasn't matched:" + p.getPakcetType());
-                }
+                this.differ.addToSecondaryWindow(p);
             }
+
+            // FIXME needs some modification
+            int unmatched = this.differ.countUnmatchedPackets();
+            this.logger.log(NetworkLogLevels.DIFFER,
+                    ConsoleColors.WHITE_BOLD_BRIGHT + "Unmatched:" + unmatched);
         }
     }
 
