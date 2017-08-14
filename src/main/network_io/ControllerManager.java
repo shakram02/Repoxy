@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class ControllerManager implements SocketEventObserver {
     private final EventBus controllerNotifier;
     private final EventBus mediatorNotifier;
-    private final ArrayList<SocketIOer> controllerHandlers; // Replace with connection creator
+    private final ArrayList<ControllerIOHandler> controllerHandlers; // Replace with connection creator
     private final BaseMediator mediator;
     private final ConcurrentLinkedQueue<SocketEventArguments> eventArgQueue;
 
@@ -36,9 +36,9 @@ public class ControllerManager implements SocketEventObserver {
      * Adds a controller to the list of registered controller
      * to receive socket events
      *
-     * @param region Properly initialized {@link SocketIOer}
+     * @param region Properly initialized {@link ControllerIOHandler}
      */
-    public void registerController(@NotNull SocketIOer region) {
+    public void registerController(@NotNull ControllerIOHandler region) {
         this.controllerHandlers.add(region);
         // Controller registers for socket events
         region.registerForEvents(this);
@@ -69,6 +69,16 @@ public class ControllerManager implements SocketEventObserver {
         this.controllerNotifier.post(new SocketAddressInfoEventArg(ip, port));
         this.controllerNotifier.unregister(ControllerIOHandler.getActiveControllerHandler());
 
+    }
+
+    public void elevateSecondaryController() {
+        if (this.controllerHandlers.size() <= 1) {
+            return;
+        }
+
+        ControllerIOHandler backup = this.controllerHandlers.get(1);
+        this.setActiveController(backup.getAddress(), backup.getPort());
+        this.controllerHandlers.remove(0);
     }
 
     public void closeControllers() throws IOException {

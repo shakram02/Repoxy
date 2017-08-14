@@ -1,17 +1,16 @@
 package watchers;
 
+import com.google.common.eventbus.EventBus;
 import of_packets.OFPacket;
 import of_packets.OFStreamParseResult;
 import of_packets.OFStreamParser;
 import org.jetbrains.annotations.NotNull;
 import utils.SenderType;
-import utils.events.EventType;
-import utils.events.SocketDataEventArg;
-import utils.events.SocketEventArguments;
-import utils.events.SocketEventObserver;
+import utils.events.*;
 import utils.logging.ConsoleColors;
 import utils.logging.NetworkLogLevels;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -20,10 +19,16 @@ import java.util.stream.Collectors;
 public class OFPacketVerifier implements SocketEventObserver {
     private final Logger logger;
     private final OFPacketDiffer differ;
+    private final int windowSize;
+    private final EventBus mediatorNotifier;
 
-    public OFPacketVerifier(int windSize) {
+    public OFPacketVerifier(int windSize, SocketEventObserver mediator) {
         this.logger = Logger.getLogger(OFPacketVerifier.class.getName());
+        windowSize = windSize;
         this.differ = new OFPacketDiffer(windSize);
+
+        mediatorNotifier = new EventBus(OFPacketVerifier.class.getName());
+        mediatorNotifier.register(mediator);
     }
 
     @Override
@@ -40,11 +45,17 @@ public class OFPacketVerifier implements SocketEventObserver {
             return;
         }
 
-        this.processPackets(sender, parseResult.get());
+        int mismatchedPacketCount = this.countMismatchedPackets(sender, parseResult.get());
+
+        if (mismatchedPacketCount >= (this.windowSize / 2)) {
+            // Alert!
+            logger.warning("Changing controller!!!");
+            mediatorNotifier.post(new ControllerFailureArgs());
+        }
     }
 
 
-    private void processPackets(SenderType sender, List<OFPacket> packets) {
+    private int countMismatchedPackets(SenderType sender, List<OFPacket> packets) {
 
         for (OFPacket p : packets) {
 
@@ -55,12 +66,14 @@ public class OFPacketVerifier implements SocketEventObserver {
             } else if (sender == SenderType.ReplicaRegion) {
                 this.differ.addToSecondaryWindow(p);
             }
-
-            // FIXME needs some modification
-            int unmatched = this.differ.countUnmatchedPackets();
-            this.logger.log(NetworkLogLevels.DIFFER,
-                    ConsoleColors.WHITE_BOLD_BRIGHT + "Unmatched:" + unmatched);
         }
+
+        // FIXME needs some modification
+        int unmatched = this.differ.countUnmatchedPackets();
+        this.logger.log(NetworkLogLevels.DIFFER,
+                ConsoleColors.WHITE_BOLD_BRIGHT + "Unmatched:" + unmatched);
+
+        return unmatched;
     }
 
     private Optional<List<OFPacket>> parseDataStream(SocketDataEventArg arg) {
