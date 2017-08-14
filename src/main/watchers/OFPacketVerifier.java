@@ -10,7 +10,6 @@ import utils.events.*;
 import utils.logging.ConsoleColors;
 import utils.logging.NetworkLogLevels;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -22,10 +21,10 @@ public class OFPacketVerifier implements SocketEventObserver {
     private final int windowSize;
     private final EventBus mediatorNotifier;
 
-    public OFPacketVerifier(int windSize, SocketEventObserver mediator) {
+    public OFPacketVerifier(int windSize, SocketEventObserver mediator, int timestampThreshold) {
         this.logger = Logger.getLogger(OFPacketVerifier.class.getName());
         windowSize = windSize;
-        this.differ = new OFPacketDiffer(windSize);
+        this.differ = new OFPacketDiffer(windSize, timestampThreshold);
 
         mediatorNotifier = new EventBus(OFPacketVerifier.class.getName());
         mediatorNotifier.register(mediator);
@@ -45,7 +44,7 @@ public class OFPacketVerifier implements SocketEventObserver {
             return;
         }
 
-        int mismatchedPacketCount = this.countMismatchedPackets(sender, parseResult.get());
+        int mismatchedPacketCount = this.countMismatchedPackets(sender, parseResult.get(), arg.getTimeStamp());
 
         if (mismatchedPacketCount >= (this.windowSize / 2)) {
             // Alert!
@@ -55,7 +54,7 @@ public class OFPacketVerifier implements SocketEventObserver {
     }
 
 
-    private int countMismatchedPackets(SenderType sender, List<OFPacket> packets) {
+    private int countMismatchedPackets(SenderType sender, List<OFPacket> packets, long timestamp) {
 
         for (OFPacket p : packets) {
 
@@ -63,9 +62,9 @@ public class OFPacketVerifier implements SocketEventObserver {
                     "xid:" + p.getHeader().getXId() + "  " + p.getPakcetType());
 
             if (sender == SenderType.ControllerRegion) {
-                this.differ.addToPrimaryWindow(p);
+                this.differ.addToPrimaryWindow(p, timestamp);
             } else if (sender == SenderType.ReplicaRegion) {
-                this.differ.addToSecondaryWindow(p);
+                this.differ.addToSecondaryWindow(p, timestamp);
             }
         }
 

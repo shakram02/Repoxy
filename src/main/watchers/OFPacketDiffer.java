@@ -1,17 +1,17 @@
 package watchers;
 
 import of_packets.OFPacket;
-import of_packets.OFPacketHeader;
 import org.jetbrains.annotations.NotNull;
 import utils.LimitedSizeQueue;
+import utils.StampedPacket;
 
 import java.util.Iterator;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class OFPacketDiffer {
-    private final LimitedSizeQueue<OFPacket> mainPackets;
-    private final LimitedSizeQueue<OFPacket> secondaryPackets;
+    private final LimitedSizeQueue<StampedPacket> mainPackets;
+    private final LimitedSizeQueue<StampedPacket> secondaryPackets;
+    private final int timeoutMills;
     private static final Logger logger = Logger.getLogger(OFPacketDiffer.class.getName());
     /*
      * TODO
@@ -26,17 +26,18 @@ public class OFPacketDiffer {
      *
      */
 
-    public OFPacketDiffer(int windSize) {
+    public OFPacketDiffer(int windSize, int timeoutMills) {
         this.mainPackets = new LimitedSizeQueue<>(windSize);
         this.secondaryPackets = new LimitedSizeQueue<>(windSize);
+        this.timeoutMills = timeoutMills;
     }
 
-    public synchronized void addToPrimaryWindow(@NotNull OFPacket packet) {
-        this.mainPackets.add(packet);
+    public synchronized void addToPrimaryWindow(@NotNull OFPacket packet, long timestamp) {
+        this.mainPackets.add(new StampedPacket(packet, timestamp));
     }
 
-    public synchronized void addToSecondaryWindow(@NotNull OFPacket packet) {
-        this.secondaryPackets.add(packet);
+    public synchronized void addToSecondaryWindow(@NotNull OFPacket packet, long timestamp) {
+        this.secondaryPackets.add(new StampedPacket(packet, timestamp));
     }
 
     public synchronized int countUnmatchedPackets() {
@@ -44,11 +45,11 @@ public class OFPacketDiffer {
 
         // Calculate the number of packets in both windows, remove matched packets and return the number of mismatched
         // packets
-        for (Iterator<OFPacket> itPrimary = this.mainPackets.descendingIterator();
+        for (Iterator<StampedPacket> itPrimary = this.mainPackets.descendingIterator();
              itPrimary.hasNext(); ) {
-            OFPacket primaryPacket = itPrimary.next();
+            StampedPacket primaryPacket = itPrimary.next();
 
-            if (!findPacket(primaryPacket)) {
+            if (!verifyPacket(primaryPacket)) {
                 unmatchedCount++;
             } else {
                 // Remove the matched packet
@@ -59,18 +60,25 @@ public class OFPacketDiffer {
         return unmatchedCount;
     }
 
-    private boolean findPacket(OFPacket packet) {
-        for (Iterator<OFPacket> itSecondary = this.secondaryPackets.descendingIterator();
+    private boolean verifyPacket(StampedPacket primaryPacket) {
+        for (Iterator<StampedPacket> itSecondary = this.secondaryPackets.descendingIterator();
              itSecondary.hasNext(); ) {
-            OFPacket secondaryPacket = itSecondary.next();
+            StampedPacket secondaryPacket = itSecondary.next();
 
-            if (this.diffPackets(packet, secondaryPacket)) {
+            boolean timedOut = Math.abs(primaryPacket.timestamp - secondaryPacket.timestamp) > this.timeoutMills;
+
+            if (this.diffPackets(primaryPacket.packet, secondaryPacket.packet) && !timedOut) {
                 // Remove the matched packet
                 itSecondary.remove();
                 return true;
             }
         }
         return false;
+    }
+
+    public void clearPacketQueues() {
+        this.secondaryPackets.clear();
+        this.mainPackets.clear();
     }
 
     private boolean diffPackets(OFPacket first, OFPacket second) {
