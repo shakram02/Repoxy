@@ -1,18 +1,22 @@
 package watchers;
 
 import of_packets.OFPacket;
-import of_packets.OFPacketHeader;
 import org.jetbrains.annotations.NotNull;
 import utils.LimitedSizeQueue;
+import utils.StampedPacket;
+import utils.logging.ConsoleColors;
 
+import java.io.Console;
 import java.util.Iterator;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class OFPacketDiffer {
-    private final LimitedSizeQueue<OFPacket> mainPackets;
-    private final LimitedSizeQueue<OFPacket> secondaryPackets;
+    private final LimitedSizeQueue<StampedPacket> mainPackets;
+    private final LimitedSizeQueue<StampedPacket> secondaryPackets;
+    private final int timeoutMills;
+    private long lastValidTime;
     private static final Logger logger = Logger.getLogger(OFPacketDiffer.class.getName());
+    private boolean ignoreComparison;
     /*
      * TODO
      * ----
@@ -26,29 +30,35 @@ public class OFPacketDiffer {
      *
      */
 
-    public OFPacketDiffer(int windSize) {
+    public OFPacketDiffer(int windSize, int timeoutMills) {
         this.mainPackets = new LimitedSizeQueue<>(windSize);
         this.secondaryPackets = new LimitedSizeQueue<>(windSize);
+        this.timeoutMills = timeoutMills;
     }
 
-    public synchronized void addToPrimaryWindow(@NotNull OFPacket packet) {
-        this.mainPackets.add(packet);
+    public synchronized void addToPrimaryWindow(@NotNull OFPacket packet, long timestamp) {
+        this.mainPackets.add(new StampedPacket(packet, timestamp));
     }
 
-    public synchronized void addToSecondaryWindow(@NotNull OFPacket packet) {
-        this.secondaryPackets.add(packet);
+    public synchronized void addToSecondaryWindow(@NotNull OFPacket packet, long timestamp) {
+        this.secondaryPackets.add(new StampedPacket(packet, timestamp));
     }
 
     public synchronized int countUnmatchedPackets() {
         int unmatchedCount = 0;
 
+        if (this.ignoreComparison) {
+            logger.info("Comparison ignored");
+            return 0;
+        }
+
         // Calculate the number of packets in both windows, remove matched packets and return the number of mismatched
         // packets
-        for (Iterator<OFPacket> itPrimary = this.mainPackets.descendingIterator();
+        for (Iterator<StampedPacket> itPrimary = this.mainPackets.descendingIterator();
              itPrimary.hasNext(); ) {
-            OFPacket primaryPacket = itPrimary.next();
+            StampedPacket primaryPacket = itPrimary.next();
 
-            if (!findPacket(primaryPacket)) {
+            if (!verifyPacket(primaryPacket)) {
                 unmatchedCount++;
             } else {
                 // Remove the matched packet
@@ -59,22 +69,48 @@ public class OFPacketDiffer {
         return unmatchedCount;
     }
 
-    private boolean findPacket(OFPacket packet) {
-        for (Iterator<OFPacket> itSecondary = this.secondaryPackets.descendingIterator();
+    private boolean verifyPacket(StampedPacket primaryPacket) {
+        for (Iterator<StampedPacket> itSecondary = this.secondaryPackets.descendingIterator();
              itSecondary.hasNext(); ) {
-            OFPacket secondaryPacket = itSecondary.next();
+            StampedPacket secondaryPacket = itSecondary.next();
 
-            if (this.diffPackets(packet, secondaryPacket)) {
+            if (this.diffPackets(primaryPacket.packet, secondaryPacket.packet)) {
                 // Remove the matched packet
                 itSecondary.remove();
-                return true;
+
+                long timeDifference = primaryPacket.timestamp - secondaryPacket.timestamp;
+                boolean timedOut = Math.abs(timeDifference) > this.timeoutMills;
+
+                if (secondaryPacket.timestamp <= this.lastValidTime ||
+                        primaryPacket.timestamp <= this.lastValidTime) {
+                    // Packets that were left out after controller switching due to timeout
+                    // should be compared without the time out constrain to avoid packet accumulation
+                    // in the packet queue
+                    timedOut = false;
+                }
+
+                logger.info("Time difference: " + timeDifference + " " +
+                        (timedOut ? ConsoleColors.RED_BOLD_BRIGHT + "TIMEOUT" : "") +
+                        ConsoleColors.RESET +
+                        (timeDifference < 0 ?
+                                " Secondary late" :
+                                (timeDifference == 0 ?
+                                        "" : " Primary late")));
+                // Packet content match. Now check time out and return it
+                return timedOut;
             }
         }
         return false;
     }
 
+    public void clearPacketQueues() {
+        this.secondaryPackets.clear();
+        this.mainPackets.clear();
+    }
+
     private boolean diffPackets(OFPacket first, OFPacket second) {
-        return matchHeaders(first, second) && matchData(first, second);
+//        return matchHeaders(first, second) && matchData(first, second);
+        return matchHeaders(first, second);
     }
 
     private boolean matchHeaders(OFPacket first, OFPacket second) {
@@ -100,5 +136,13 @@ public class OFPacketDiffer {
         }
 
         return true;
+    }
+
+    public void setLastValidTime(long lastValidTime) {
+        // TODO: Remove this field,
+        // it's just present because now only 2 controllers are used,
+        // if one is removed, then nothing is available to compare to.
+        this.ignoreComparison = true;
+        this.lastValidTime = lastValidTime;
     }
 }
