@@ -49,6 +49,7 @@ public class OFPacketVerifier implements SocketEventObserver {
         if (mismatchedPacketCount >= (this.windowSize / 2)) {
             // Alert!
             logger.warning("Changing controller!!!");
+            differ.setLastValidTime(arg.getTimeStamp());
             mediatorNotifier.post(new ControllerFailureArgs());
         }
     }
@@ -71,7 +72,7 @@ public class OFPacketVerifier implements SocketEventObserver {
         // FIXME needs some modification
         int unmatched = this.differ.countUnmatchedPackets();
         this.logger.log(NetworkLogLevels.DIFFER,
-                ConsoleColors.WHITE_BOLD_BRIGHT + "Unmatched:" + unmatched);
+                ConsoleColors.RED_BOLD + "Unmatched:" + unmatched + ConsoleColors.RESET);
 
         return unmatched;
     }
