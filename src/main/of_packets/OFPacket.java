@@ -20,7 +20,7 @@ public class OFPacket {
         return this.data.length == 0;
     }
 
-    public String getPakcetType() {
+    public String getPacketType() {
         return this.header.getMessageType();
     }
 
@@ -32,4 +32,9 @@ public class OFPacket {
         return data;
     }
 
+    @Override
+    public String toString() {
+        // TODO extend this
+        return this.header.toString();
+    }
 }
