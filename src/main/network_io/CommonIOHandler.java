@@ -1,13 +1,10 @@
 package network_io;
 
 import com.google.common.collect.HashBiMap;
-import com.google.common.collect.Queues;
-import com.google.common.eventbus.Subscribe;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import network_io.interfaces.SocketIOer;
 import org.jetbrains.annotations.NotNull;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import utils.ConnectionId;
 import utils.PacketBuffer;
 import utils.SenderType;
@@ -26,8 +23,6 @@ import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
 
 
@@ -112,16 +107,6 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
         }
     }
 
-    /**
-     * Called by the notifier
-     *
-     * @param args information about the raised event
-     */
-    @Subscribe
-    protected void onEvent(SocketEventArguments args) {
-        throw new NotImplementedException();
-    }
-
     private Optional<SocketEventArguments> fetchInputQueueItem() {
         if (this.commandQueue.isEmpty()) {
             return Optional.empty();
@@ -199,7 +184,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
     }
 
     private void sendData(@NotNull SocketDataEventArg arg) {
-        this.packetBuffer.addPacket(arg.getId(), arg.getExtraData().toByteArray());
+        this.packetBuffer.addPacket(arg.getId(), arg.toByteArray());
         SelectionKey key = this.keyMap.inverse().get(arg.getId());
         this.addOutput(key);
     }
