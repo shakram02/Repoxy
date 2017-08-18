@@ -223,7 +223,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
             }
 
             this.onData(id, channel, read);
-        } else if (key.isValid() && key.isWritable()) {
+        } else if (key.isValid() && key.isWritable() && ((SocketChannel) key.channel()).isConnected()) {
             this.writePackets(id, channel);
             this.removeOutput(id);
         }
