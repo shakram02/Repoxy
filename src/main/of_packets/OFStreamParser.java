@@ -6,6 +6,7 @@ import utils.io.PartitionReader;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Optional;
 
 public class OFStreamParser {
@@ -41,6 +42,23 @@ public class OFStreamParser {
 
         return new OFStreamParseResult(parsedPackets.build(), remaining);
 
+    }
+
+    public static ByteBuffer serializePacket(OFPacket packet) {
+        OFPacketHeader header = packet.getHeader();
+        ByteBuffer buffer = ByteBuffer.allocate(header.getLen());
+
+        buffer.put(header.getVersion());
+        buffer.put(header.getMessageCode());
+        buffer.putShort((short) header.getLen());
+        buffer.putInt(header.getXId());
+
+        if (packet.getData().length != 0) {
+            buffer.put(packet.getData());
+        }
+
+
+        return buffer;
     }
 
     /**
