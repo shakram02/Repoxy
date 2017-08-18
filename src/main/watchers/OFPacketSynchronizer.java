@@ -11,18 +11,19 @@ import utils.logging.NetworkLogLevels;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class OFPacketVerifier implements SocketEventObserver {
+public class OFPacketSynchronizer implements SocketEventObserver {
     private final Logger logger;
     private final OFPacketDiffer differ;
     private final int windowSize;
     private final EventBus mediatorNotifier;
 
-    public OFPacketVerifier(int windSize, SocketEventObserver mediator, int timestampThreshold) {
-        this.logger = Logger.getLogger(OFPacketVerifier.class.getName());
+    public OFPacketSynchronizer(int windSize, SocketEventObserver mediator) {
+        this.logger = Logger.getLogger(OFPacketSynchronizer.class.getName());
+
         windowSize = windSize;
         this.differ = new OFPacketDiffer(windSize, timestampThreshold);
 
-        mediatorNotifier = new EventBus(OFPacketVerifier.class.getName());
+        mediatorNotifier = new EventBus(OFPacketSynchronizer.class.getName());
         mediatorNotifier.register(mediator);
     }
 

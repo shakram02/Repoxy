@@ -102,7 +102,7 @@ public class OFPacketHeader implements Serializable {
     }
 
     public boolean isEquivalentTo(OFPacketHeader other) {
-        return this.xId == other.xId && this.len == other.len && this.messageCode == other.messageCode;
+        return this.len == other.len && this.messageCode == other.messageCode;
     }
 
     @Override
@@ -110,10 +110,6 @@ public class OFPacketHeader implements Serializable {
         return String.format(
                 "VER:%d TYPE:%s LEN:%d T_ID:%d%n",
                 this.version, this.messageType, this.len, this.xId);
-    }
-
-    public boolean isValid() {
-        return this.valid;
     }
 
     public boolean isInvalid() {
