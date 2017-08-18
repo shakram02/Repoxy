@@ -14,14 +14,37 @@ import java.util.stream.Collectors;
  * Represents an OF packet header
  */
 public class OFPacketHeader implements Serializable {
-    private static final HashMap<Integer, String> MSG_TYPE;
     public static final int HEADER_LEN = 8;
+    private static final HashMap<Integer, String> MSG_TYPE;
+
+    static {
+        MSG_TYPE = new HashMap<>();
+        MSG_TYPE.put(0, "Hello");
+        MSG_TYPE.put(1, "Error");
+        MSG_TYPE.put(2, "Echo Request");
+        MSG_TYPE.put(3, "Echo Reply");
+        MSG_TYPE.put(4, "Vendor");
+        MSG_TYPE.put(5, "Features Request");
+        MSG_TYPE.put(6, "Features Reply");
+        MSG_TYPE.put(7, "Get Config Request");
+        MSG_TYPE.put(8, "Get Config Reply");
+        MSG_TYPE.put(9, "Set Config");
+        MSG_TYPE.put(10, "Packet Input Notification");
+        MSG_TYPE.put(11, "Flow Removed Notification");
+        MSG_TYPE.put(12, "Port Status Notification");
+        MSG_TYPE.put(13, "Packet Output");
+        MSG_TYPE.put(14, "Flow Modification");
+        MSG_TYPE.put(15, "Port Modification");
+        MSG_TYPE.put(16, "Stats Request");
+        MSG_TYPE.put(17, "Stats Reply");
+        MSG_TYPE.put(18, "Barrier Request");
+        MSG_TYPE.put(19, "Barrier Reply");
+    }
 
     private byte version;
     private int len;
     private int xId;
-    private int messageCode;
-
+    private byte messageCode;
     private boolean valid;
     private String messageType;
 
@@ -70,6 +93,14 @@ public class OFPacketHeader implements Serializable {
         return Optional.of(new OFPacketHeader(version, msg_t, len, x_id));
     }
 
+    public byte getVersion() {
+        return version;
+    }
+
+    public byte getMessageCode() {
+        return messageCode;
+    }
+
     public boolean isEquivalentTo(OFPacketHeader other) {
         return this.xId == other.xId && this.len == other.len && this.messageCode == other.messageCode;
     }
@@ -87,30 +118,6 @@ public class OFPacketHeader implements Serializable {
 
     public boolean isInvalid() {
         return !this.valid;
-    }
-
-    static {
-        MSG_TYPE = new HashMap<>();
-        MSG_TYPE.put(0, "Hello");
-        MSG_TYPE.put(1, "Error");
-        MSG_TYPE.put(2, "Echo Request");
-        MSG_TYPE.put(3, "Echo Reply");
-        MSG_TYPE.put(4, "Vendor");
-        MSG_TYPE.put(5, "Features Request");
-        MSG_TYPE.put(6, "Features Reply");
-        MSG_TYPE.put(7, "Get Config Request");
-        MSG_TYPE.put(8, "Get Config Reply");
-        MSG_TYPE.put(9, "Set Config");
-        MSG_TYPE.put(10, "Packet Input Notification");
-        MSG_TYPE.put(11, "Flow Removed Notification");
-        MSG_TYPE.put(12, "Port Status Notification");
-        MSG_TYPE.put(13, "Packet Output");
-        MSG_TYPE.put(14, "Flow Modification");
-        MSG_TYPE.put(15, "Port Modification");
-        MSG_TYPE.put(16, "Stats Request");
-        MSG_TYPE.put(17, "Stats Reply");
-        MSG_TYPE.put(18, "Barrier Request");
-        MSG_TYPE.put(19, "Barrier Reply");
     }
 
     public int getLen() {
