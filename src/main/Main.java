@@ -16,16 +16,17 @@ import java.util.logging.*;
   inet 192.168.56.1  netmask 255.255.255.0  broadcast 192.168.56.255
  */
 public class Main {
-    public static final String LOCALHOST = "192.168.1.5";
-    public static final String CONT_4 = "192.168.1.3";
-    public static final String CONT_5 = "192.168.1.9";
+    private static final String LOCALHOST = "192.168.1.5";
+    private static final String CONT_4 = "192.168.1.104";
+    private static final String CONT_5 = "192.168.1.105";
     public static int OF_PORT = 6833;
     public static int CONTROLLER_PORT = 6834;
     public static int REPLICATED_CONTROLLER_PORT = 6835;
 
     private static final Logger logger = Logger.getLogger(Main.class.getName());
 
-    public static final int WIND_SIZE = 30;
+    private static final int WIND_SIZE = 30;
+    private static final int TIMEOUT_MILLIS = 200;
 
     public static void main(String[] args) throws IOException {
         setupLogging();
@@ -43,7 +44,7 @@ public class Main {
         logger.log(Level.INFO, "Listening to " + OF_PORT);
 
         ClientCounter counter = new ClientCounter();
-        OFPacketSynchronizer packetVerifier = new OFPacketSynchronizer(WIND_SIZE, mediator);
+        OFPacketSynchronizer packetVerifier = new OFPacketSynchronizer(WIND_SIZE, mediator, TIMEOUT_MILLIS);
 
 
         mediator.registerWatcher(counter);
