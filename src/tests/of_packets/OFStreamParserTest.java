@@ -1,10 +1,14 @@
 package of_packets;
 
+
+
+import com.google.common.primitives.Bytes;
 import org.junit.Test;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.nio.ByteBuffer;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class OFStreamParserTest {
 
@@ -35,25 +39,39 @@ public class OFStreamParserTest {
         assert result.hasPackets();
     }
 
-    @Test(expected = AssertionError.class)
-    public void testSerialization() throws IOException {
+    @Test
+    public void testSerializationHeaderOnly() throws IOException {
         // All assertions will fail as binary serialization adds JVM attributes to
         // the serialized object
 
         byte[] bytes = new byte[]{1, 0, 0, 8, 0, 0, 0, 1};
         OFPacketHeader helloHeader = new OFPacketHeader((byte) 1, (byte) 0, 8, 1);
 
-        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-        ObjectOutputStream objStream = new ObjectOutputStream(outStream);
-        objStream.writeObject(helloHeader);
-        objStream.flush();
-        byte[] serialized = outStream.toByteArray();
+        ByteBuffer buffer = OFStreamParser.serializePacket(new OFPacket(helloHeader, new byte[]{}));
+        byte[] parsed = buffer.array();
 
-        assert bytes.length == serialized.length : "Different lengths";
 
-        for (int i = 0; i < serialized.length; i++) {
-            assert (int) serialized[i] == bytes[i] :
-                    String.format("Object bytes not equal, left: %d right: %d", serialized[i], bytes[i]);
+        for (int i = 0; i < bytes.length; i++) {
+            assertEquals(bytes[i], parsed[i]);
+        }
+    }
+
+    @Test
+    public void testSerializationData() {
+        byte[] headerBytes = new byte[]{1, 0, 0, 10, 0, 0, 0, 1};
+        byte[] dataBytes = new byte[]{125, 54};
+        byte[] packetBytes = Bytes.concat(headerBytes, dataBytes);
+
+
+        OFPacket packet = OFStreamParser.parseStream(packetBytes).getPackets().get(0);
+        ByteBuffer buffer = OFStreamParser.serializePacket(packet);
+
+        byte[] parsed = buffer.array();
+
+        assertEquals(packetBytes.length, parsed.length);
+
+        for (int i = 0; i < packetBytes.length; i++) {
+            assertEquals(packetBytes[i], parsed[i]);
         }
     }
 
