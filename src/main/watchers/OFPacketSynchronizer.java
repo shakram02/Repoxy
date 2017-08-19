@@ -1,8 +1,8 @@
 package watchers;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.EventBus;
 import of_packets.OFPacket;
+import of_packets.OFStreamParser;
 import org.jetbrains.annotations.NotNull;
 import utils.SenderType;
 import utils.events.ControllerFailureArgs;
@@ -11,6 +11,7 @@ import utils.events.SocketEventArguments;
 import utils.events.SocketEventObserver;
 import utils.logging.ConsoleColors;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -20,7 +21,7 @@ public class OFPacketSynchronizer implements SocketEventObserver {
     private final int windowSize;
     private final EventBus mediatorNotifier;
 
-    public OFPacketSynchronizer(int windSize, SocketEventObserver mediator) {
+    public OFPacketSynchronizer(int windSize, SocketEventObserver mediator, int timestampThreshold) {
         this.logger = Logger.getLogger(OFPacketSynchronizer.class.getName());
 
         windowSize = windSize;
@@ -39,19 +40,17 @@ public class OFPacketSynchronizer implements SocketEventObserver {
 
         SocketDataEventArg dataEventArg = (SocketDataEventArg) arg;
         SenderType sender = dataEventArg.getSenderType();
+        List<OFPacket> packets = dataEventArg.getPackets();
 
-        ImmutableList<OFPacket> filteredPackets = this.filterEchoPackets(dataEventArg);
+        this.logger.info("\n" + this.stringifyPackets(sender, packets));
 
-        if (sender == SenderType.SwitchesRegion || filteredPackets.isEmpty()) {
-            // Switches packets need not be compared
+        if (sender == SenderType.SwitchesRegion) {
+            // Switch packets need not be compared
             return;
         }
 
-        int mismatchedPacketCount = this.countMismatchedPackets(sender, filteredPackets);
-        this.logger.info(ConsoleColors.WHITE_BOLD_BRIGHT + "Unmatched:"
-                + mismatchedPacketCount + ConsoleColors.RESET +
-                "\n" + this.stringifyPackets(filteredPackets));
-
+        int mismatchedPacketCount =
+                this.countMismatchedPackets(sender, packets, dataEventArg.getTimeStamp());
 
 
         if (mismatchedPacketCount >= (this.windowSize / 2)) {
@@ -77,20 +76,23 @@ public class OFPacketSynchronizer implements SocketEventObserver {
         return this.differ.countUnmatchedPackets();
     }
 
-    private ImmutableList<OFPacket> filterEchoPackets(SocketDataEventArg dataEventArg) {
-        return dataEventArg.getPackets().stream()
-                .filter(p -> !p.getPacketType().startsWith("Echo"))
-                .collect(ImmutableList.toImmutableList());
-
-    }
-
-
-    private String stringifyPackets(List<OFPacket> packets) {
+    private String stringifyPackets(SenderType sender, List<OFPacket> packets) {
         StringBuilder infoBuilder = new StringBuilder();
+        infoBuilder.append(ConsoleColors.CYAN_BRIGHT);
+        infoBuilder.append("From:");
+        infoBuilder.append(sender);
+        infoBuilder.append("\n");
+
         packets.forEach(p -> {
-            infoBuilder.append(p.toString());
+            infoBuilder.append("\t");
+            infoBuilder.append(p.getHeader().getXId());
             infoBuilder.append(" ");
+            infoBuilder.append(p.getPacketType());
+            infoBuilder.append("\n\t\t");
+            infoBuilder.append(Arrays.toString(OFStreamParser.serializePacket(p).array()));
+            infoBuilder.append("\n");
         });
+        infoBuilder.append(ConsoleColors.RESET);
 
         return infoBuilder.toString();
     }
