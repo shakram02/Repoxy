@@ -1,6 +1,7 @@
 package watchers;
 
 import com.google.common.eventbus.EventBus;
+import of_packets.OFMsgType;
 import of_packets.OFPacket;
 import of_packets.OFStreamParser;
 import org.jetbrains.annotations.NotNull;
@@ -96,6 +97,9 @@ public class OFPacketSynchronizer implements SocketEventObserver {
         infoBuilder.append("\n");
 
         packets.forEach(p -> {
+            if (p.getHeader().getXId() == 0) {
+                return;
+            }
             infoBuilder.append("\t");
             infoBuilder.append(p.getHeader().getXId());
             infoBuilder.append(" ");
