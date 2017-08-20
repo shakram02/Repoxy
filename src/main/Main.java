@@ -1,4 +1,5 @@
 import mediators.ProxyMediator;
+import utils.LocalhostIpSupplier;
 import utils.ProxyBuilder;
 import utils.logging.ColoredConsoleHandler;
 import watchers.ClientCounter;
@@ -7,16 +8,12 @@ import watchers.OFPacketSynchronizer;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.*;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-/*
-  The Guest OSs connect to
-
-  vboxnet0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
-  inet 192.168.56.1  netmask 255.255.255.0  broadcast 192.168.56.255
- */
 public class Main {
-    private static final String LOCALHOST = "192.168.1.5";
+    private static String LOCALHOST;
     private static final String CONT_4 = "192.168.1.104";
     private static final String CONT_5 = "192.168.1.105";
     public static int OF_PORT = 6833;
@@ -31,8 +28,10 @@ public class Main {
     public static void main(String[] args) throws IOException {
         setupLogging();
 
-        System.out.println(String.format("Ports: [%d] [%d] [%d]",
-                OF_PORT, CONTROLLER_PORT, REPLICATED_CONTROLLER_PORT));
+        LOCALHOST = LocalhostIpSupplier.getLocalHostLANAddress().getHostAddress();
+
+        System.out.println(String.format("Local IP: [%s] Ports: [%d] [%d] [%d]",
+                LOCALHOST, OF_PORT, CONTROLLER_PORT, REPLICATED_CONTROLLER_PORT));
 
         ProxyBuilder builder = ProxyBuilder.createInstance()
                 .addController(CONT_4, CONTROLLER_PORT)
