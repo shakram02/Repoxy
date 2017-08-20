@@ -46,6 +46,8 @@ public class SocketDataEventArg extends ConnectionIdEventArg {
         StringBuilder desc = new StringBuilder();
 
         for (OFPacket p : this.packets) {
+            desc.append(p.getHeader().getXId());
+            desc.append(" - ");
             desc.append(p.getPacketType());
             desc.append(" ");
         }
