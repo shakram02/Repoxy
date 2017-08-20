@@ -78,7 +78,19 @@ public class OFPacketSynchronizer implements SocketEventObserver {
 
     private String stringifyPackets(SenderType sender, List<OFPacket> packets) {
         StringBuilder infoBuilder = new StringBuilder();
-        infoBuilder.append(ConsoleColors.CYAN_BRIGHT);
+        String color = "";
+        switch (sender) {
+            case ReplicaRegion:
+                color = ConsoleColors.CYAN_BRIGHT;
+                break;
+            case ControllerRegion:
+                color = ConsoleColors.GREEN_BRIGHT;
+                break;
+            case SwitchesRegion:
+                color = ConsoleColors.BLUE;
+                break;
+        }
+        infoBuilder.append(color);
         infoBuilder.append("From:");
         infoBuilder.append(sender);
         infoBuilder.append("\n");
