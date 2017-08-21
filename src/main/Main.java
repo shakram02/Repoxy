@@ -23,7 +23,7 @@ public class Main {
     private static final Logger logger = Logger.getLogger(Main.class.getName());
 
     private static final int WIND_SIZE = 30;
-    private static final int TIMEOUT_MILLIS = 200;
+    private static final int TIMEOUT_MILLIS = 6000;
 
     public static void main(String[] args) throws IOException {
         setupLogging();
