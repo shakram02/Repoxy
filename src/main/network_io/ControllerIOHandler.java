@@ -1,7 +1,5 @@
 package network_io;
 
-import com.google.common.collect.ImmutableList;
-import of_packets.OFPacket;
 import org.jetbrains.annotations.NotNull;
 import utils.*;
 import utils.events.*;
@@ -72,7 +70,7 @@ public class ControllerIOHandler extends CommonIOHandler {
         key.interestOps(SelectionKey.OP_READ);
     }
 
-    public void createConnection(@NotNull ConnectionIdEventArg arg) {
+    public void createConnection(@NotNull SocketEventArguments arg) {
         ConnectionId id = arg.getId();
         try {
             SocketChannel client = SocketChannel.open();
@@ -90,7 +88,7 @@ public class ControllerIOHandler extends CommonIOHandler {
     }
 
     /**
-     * Handles special events that are not handled in the base class
+     * Handles special utils.events that are not handled in the base class
      * <p>
      * The special event for this class is controller change event
      * and opening new connections
@@ -103,8 +101,7 @@ public class ControllerIOHandler extends CommonIOHandler {
             SocketAddressInfoEventArg controllerChangeArg = (SocketAddressInfoEventArg) arg;
             this.setActiveControllerHandler(controllerChangeArg);
         } else {
-            ConnectionIdEventArg connectionEventArg = (ConnectionIdEventArg) arg;
-            this.createConnection(connectionEventArg);
+            this.createConnection(arg);
         }
 
     }

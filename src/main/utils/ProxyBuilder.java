@@ -1,10 +1,9 @@
 package utils;
 
+import utils.events.ImmutableSocketAddressInfoEventArg;
 import mediators.ProxyMediator;
 import network_io.ConnectionAcceptorIOHandler;
 import network_io.ControllerIOHandler;
-import utils.events.SocketAddressInfoEventArg;
-import utils.events.SocketEventObserver;
 
 import javax.management.RuntimeErrorException;
 import java.io.IOException;
@@ -36,21 +35,17 @@ public class ProxyBuilder {
         return instance;
     }
 
-    public ProxyBuilder startServer(String ip, int port) throws IOException {
-        switches.createServer(new SocketAddressInfoEventArg(ip, port));
-        return instance;
-    }
+    public void startServer(String ip, int port) throws IOException {
+        switches.createServer(
+                ImmutableSocketAddressInfoEventArg
+                        .builder()
+                        .ip(ip)
+                        .port(port)
+                        .build());
 
-    public  ProxyBuilder addWatcher(SocketEventObserver watcher) {
-        ProxyBuilder.ProxyMediator.registerWatcher(watcher);
-        return instance;
     }
 
     public ProxyMediator getMediator() {
         return ProxyBuilder.ProxyMediator;
-    }
-
-    public int getControllerCount() {
-        return CONTROLLERS_REGIONS.size();
     }
 }

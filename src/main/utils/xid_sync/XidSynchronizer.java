@@ -7,7 +7,6 @@ import of_packets.OFPacketHeader;
 import org.jetbrains.annotations.NotNull;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import utils.ConnectionId;
-import utils.events.SocketDataEventArg;
 import utils.packet_store.PacketStore;
 
 import java.util.Optional;

@@ -10,10 +10,10 @@ class OFPacketDifferTest {
     void checkSimilar() {
         OFPacketDiffer differ = new OFPacketDiffer(3, 100);
         byte[] helloBytes = new byte[]{1, 0, 0, 8, 0, 0, 0, 1};
-        OFPacket hello = OFStreamParser.parseStream(helloBytes).getPackets().get(0);
+        OFPacket hello = OFStreamParser.parseStream(helloBytes).get(0);
 
         byte[] barrierReplyBytes = new byte[]{1, 19, 0, 8, 0, 0, 0, 1};
-        OFPacket barrierReply = OFStreamParser.parseStream(barrierReplyBytes).getPackets().get(0);
+        OFPacket barrierReply = OFStreamParser.parseStream(barrierReplyBytes).get(0);
 
         // This packet should timeout
         differ.addToPrimaryWindow(hello, 100);
@@ -34,11 +34,11 @@ class OFPacketDifferTest {
         OFPacketDiffer differ = new OFPacketDiffer(3, 101);
 
         byte[] helloBytes = new byte[]{1, 0, 0, 8, 0, 0, 0, 1};
-        OFPacket hello = OFStreamParser.parseStream(helloBytes).getPackets().get(0);
+        OFPacket hello = OFStreamParser.parseStream(helloBytes).get(0);
         differ.addToPrimaryWindow(hello, 10);
 
         byte[] barrierReplyBytes = new byte[]{1, 19, 0, 8, 0, 0, 0, 1};
-        OFPacket barrierReply = OFStreamParser.parseStream(barrierReplyBytes).getPackets().get(0);
+        OFPacket barrierReply = OFStreamParser.parseStream(barrierReplyBytes).get(0);
         differ.addToSecondaryWindow(barrierReply, 11);
 
         Assert.assertTrue(differ.countUnmatchedPackets() == 1);

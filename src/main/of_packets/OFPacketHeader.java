@@ -71,6 +71,8 @@ public abstract class OFPacketHeader {
 
     @NotNull
     public static Optional<OFPacketHeader> ParseHeader(byte[] bytes) {
+        // FIXME remove this unnecessary code.
+        // parsing errors are programmers mistakes and shouldn't be checked
         if (bytes.length < OFPacketHeader.HEADER_LEN) {
             return Optional.empty();
         }

@@ -1,10 +1,10 @@
 package watchers;
 
 import com.google.common.eventbus.EventBus;
+import utils.events.ImmutableControllerFailureArgs;
 import of_packets.OFPacket;
 import org.jetbrains.annotations.NotNull;
 import utils.SenderType;
-import utils.events.ControllerFailureArgs;
 import utils.events.SocketDataEventArg;
 import utils.events.SocketEventArguments;
 import utils.events.SocketEventObserver;
@@ -45,14 +45,14 @@ public class OFDelayChecker implements SocketEventObserver {
         }
 
         int mismatchedPacketCount =
-                this.countMismatchedPackets(sender, packets, dataEventArg.getTimeStamp());
+                this.countMismatchedPackets(sender, packets, dataEventArg.getTimestamp());
 
 
         if (mismatchedPacketCount >= (this.windowSize / 2)) {
             // Alert!
             logger.warning("Changing controller!!!");
-            differ.setLastValidTime(arg.getTimeStamp());
-            mediatorNotifier.post(new ControllerFailureArgs());
+            differ.setLastValidTime(arg.getTimestamp());
+            mediatorNotifier.post(ImmutableControllerFailureArgs.builder().build());
         }
     }
 

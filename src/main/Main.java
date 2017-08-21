@@ -27,7 +27,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         setupLogging();
-        boolean oneMachineRun = false;
+        boolean oneMachineRun = true;
 
         //noinspection ConstantConditions
         if (oneMachineRun) {

@@ -1,9 +1,12 @@
 package mediators;
 
 import com.google.common.eventbus.Subscribe;
+
+import utils.events.ImmutableSocketAddressInfoEventArg;
 import network_io.ConnectionAcceptorIOHandler;
 import network_io.ControllerIOHandler;
 import org.jetbrains.annotations.NotNull;
+
 import utils.SenderType;
 import utils.events.*;
 
@@ -15,7 +18,7 @@ import java.util.logging.Logger;
 
 
 /**
- * The mediator registers for events from the controller side and switches side
+ * The mediator registers for utils.events from the controller side and switches side
  */
 public class ProxyMediator implements Closeable, SocketEventObserver {
     private final ConnectionAcceptorIOHandler switchSockets;
@@ -40,7 +43,7 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
     }
 
     /**
-     * Registers a packet verifier for packet events
+     * Registers a packet verifier for packet utils.events
      *
      * @param verifier An object that contains event verification code
      */
@@ -55,7 +58,7 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
      * This method also receives event bus notifications when the Mediator
      * is registered to lower layers
      * <p>
-     * This method is marked as synchronized as events from controllers
+     * This method is marked as synchronized as utils.events from controllers
      * and from switches will need to access this method. thus, this
      * method is its synchronization point
      *
@@ -73,7 +76,7 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
         } else {
             if (senderType == SenderType.ControllerRegion) {
 
-                // Log non data events
+                // Log non data utils.events
                 if (arg.getReplyType() != EventType.SendData) {
                     this.logger.info(arg.toString());
                 }
@@ -108,7 +111,8 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
     }
 
     public void setActiveController(@NotNull String ip, int port) {
-        this.notifyControllers(new SocketAddressInfoEventArg(ip, port));
+        this.notifyControllers(ImmutableSocketAddressInfoEventArg.builder()
+                .ip(ip).port(port).build());
     }
 
     @Override
