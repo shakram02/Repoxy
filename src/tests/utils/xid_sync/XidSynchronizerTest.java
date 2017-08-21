@@ -1,5 +1,6 @@
 package utils.xid_sync;
 
+import of_packets.XidSynchronizer;
 import utils.events.ImmutableSocketDataEventArg;
 import of_packets.OFStreamParser;
 import org.junit.jupiter.api.Test;

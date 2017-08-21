@@ -1,4 +1,4 @@
-package utils.xid_sync;
+package of_packets;
 
 import com.google.common.collect.ImmutableList;
 import of_packets.OFMsgType;
