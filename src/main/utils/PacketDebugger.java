@@ -10,8 +10,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class PacketDebugger {
-    public void debugPackets(SenderType sender, SocketDataEventArg arg) {
-        String debugMessage = stringifyPackets(sender, arg.getPackets());
+    public void debugPackets(SocketDataEventArg arg) {
+        String debugMessage = stringifyPackets(arg.getSenderType(), arg.getPackets());
         if (debugMessage.length() == 0) {
             return;
         }
@@ -45,9 +45,7 @@ public class PacketDebugger {
             }
             count++;
             infoBuilder.append("\t");
-            infoBuilder.append(p.getHeader().getXId());
-            infoBuilder.append(" ");
-            infoBuilder.append(p.getPacketType());
+            infoBuilder.append(p.getHeader());
             infoBuilder.append("\n\t\t");
             infoBuilder.append(Arrays.toString(OFStreamParser.serializePacket(p).array()));
             infoBuilder.append("\n");
