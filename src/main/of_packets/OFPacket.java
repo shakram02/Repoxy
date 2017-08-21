@@ -19,11 +19,7 @@ public abstract class OFPacket {
         return this.withHeader(freshHeader);
     }
 
-    public boolean isHeaderOnly() {
-        return this.getData().length == 0;
-    }
-
-    public Byte getMessageCode() {
+    public byte getMessageCode() {
         return this.getHeader().getMessageCode();
     }
 
