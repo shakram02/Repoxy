@@ -1,11 +1,16 @@
 package utils.events;
 
 import org.immutables.value.Value;
+import utils.ConnectionId;
 import utils.SenderType;
 
 @Value.Immutable
 public abstract class ControllerFailureArgs implements SocketEventArguments {
 
+    @Override
+    public ConnectionId getId() {
+        throw new IllegalStateException();
+    }
 
     @Override
     @Value.Lazy
