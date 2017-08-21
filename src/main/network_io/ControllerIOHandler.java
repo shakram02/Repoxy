@@ -1,10 +1,12 @@
 package network_io;
 
+import com.google.common.collect.ImmutableList;
+import of_packets.OFPacket;
 import org.jetbrains.annotations.NotNull;
 import utils.*;
-import utils.events.ConnectionIdEventArg;
-import utils.events.SocketAddressInfoEventArg;
-import utils.events.SocketEventArguments;
+import utils.events.*;
+import utils.packet_store.PacketStore;
+import utils.xid_sync.XidSynchronizer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -22,6 +24,7 @@ public class ControllerIOHandler extends CommonIOHandler {
     private final String address;
     private final int port;
     private final Logger logger;
+    private final XidSynchronizer xidSynchronizer;
 
     public ControllerIOHandler(@NotNull String address, int port) {
         // Start as replica, then the status will be updated
@@ -36,8 +39,39 @@ public class ControllerIOHandler extends CommonIOHandler {
             ControllerIOHandler.activeControllerHandler = this;
             this.selfType = SenderType.ControllerRegion;
         }
+        this.logger.info(String.format("Connection created: %s , %s", this.selfType, port));
+        xidSynchronizer = new XidSynchronizer(new PacketStore());
     }
 
+    @Override
+    protected void addToOutputQueue(SocketEventArguments arg) {
+        if (arg instanceof SocketDataEventArg && this.selfType == SenderType.ReplicaRegion) {
+            super.addToCommandQueue(arg);
+        } else {
+            super.addToOutputQueue(arg);
+        }
+    }
+
+    private SocketDataEventArg syncDataEventArgs(SocketDataEventArg arg) {
+        // TODO implement this function
+//        ImmutableList<OFPacket> modified = xidSynchronizer.syncListXids(arg.getId(),
+//                arg.getPackets());
+//
+//        return SocketDataEventArg.createWithPackets(arg, modified);
+        return arg;
+    }
+
+    /**
+     * @param arg Command for socket IO (CloseConnection/SendData)
+     */
+    @Override
+    public void addToCommandQueue(@NotNull SocketEventArguments arg) {
+        if (arg instanceof SocketDataEventArg && selfType == SenderType.ReplicaRegion) {
+            super.addToCommandQueue(arg);
+        } else {
+            super.addToCommandQueue(arg);
+        }
+    }
 
     /**
      * Called by upper class's Cycle() method
@@ -114,10 +148,6 @@ public class ControllerIOHandler extends CommonIOHandler {
             this.logger.info(String.format("[%d] Set to secondary controller", this.port));
             this.selfType = SenderType.ReplicaRegion;
         }
-    }
-
-    public static ControllerIOHandler getActiveControllerHandler() {
-        return ControllerIOHandler.activeControllerHandler;
     }
 
     @NotNull

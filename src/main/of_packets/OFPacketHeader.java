@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 /**
  * Represents an OF packet header
  */
-public class OFPacketHeader implements Serializable {
+public class OFPacketHeader {
     public static final int HEADER_LEN = 8;
     private static final HashMap<Integer, String> MSG_TYPE;
 
@@ -108,8 +108,8 @@ public class OFPacketHeader implements Serializable {
     @Override
     public String toString() {
         return String.format(
-                "VER:%d TYPE:%s LEN:%d T_ID:%d%n",
-                this.version, this.messageType, this.len, this.xId);
+                "type:%s xId:%d len:%d%n",
+                this.messageType, this.xId, this.len);
     }
 
     public boolean isInvalid() {
@@ -128,25 +128,23 @@ public class OFPacketHeader implements Serializable {
         return xId;
     }
 
-    // Serialize the object to be read by the JVM
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        int msgTID = MSG_TYPE.keySet().stream()
-                .filter(k -> Objects.equals(MSG_TYPE.get(k), this.messageType))
-                .collect(Collectors.toList()).get(0);
+    public static OFPacketHeader createNewWithXid(OFPacketHeader header, int xid) {
+        OFPacketHeader clone = header.clone();
+        clone.xId = xid;
 
-        out.writeByte(this.version);
-        out.writeByte(msgTID);
-        out.writeShort(this.len);
-        out.writeInt(this.xId);
-
+        return clone;
     }
 
-    // Deserialize the object to be for the JVM
-    private void readObject(ObjectInputStream buff) throws IOException, ClassNotFoundException {
-        this.version = buff.readByte();
-        this.messageType = MSG_TYPE.get((int) buff.readByte());
-        this.len = buff.readUnsignedShort();
-        this.xId = buff.readInt();
+    @Override
+    protected OFPacketHeader clone() {
+        OFPacketHeader cloned = new OFPacketHeader();
+        cloned.len = this.len;
+        cloned.version = this.version;
+        cloned.xId = this.xId;
+        cloned.valid = this.valid;
+        cloned.messageCode = this.messageCode;
+        cloned.messageType = this.messageType;
+        return cloned;
     }
 }
 

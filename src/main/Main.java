@@ -3,7 +3,7 @@ import utils.LocalhostIpSupplier;
 import utils.ProxyBuilder;
 import utils.logging.ColoredConsoleHandler;
 import watchers.ClientCounter;
-import watchers.OFPacketSynchronizer;
+import watchers.OFDelayChecker;
 
 import java.io.IOException;
 import java.util.Timer;
@@ -23,7 +23,7 @@ public class Main {
     private static final Logger logger = Logger.getLogger(Main.class.getName());
 
     private static final int WIND_SIZE = 30;
-    private static final int TIMEOUT_MILLIS = 200;
+    private static final int TIMEOUT_MILLIS = 6000;
 
     public static void main(String[] args) throws IOException {
         setupLogging();
@@ -43,7 +43,7 @@ public class Main {
         logger.log(Level.INFO, "Listening to " + OF_PORT);
 
         ClientCounter counter = new ClientCounter();
-        OFPacketSynchronizer packetVerifier = new OFPacketSynchronizer(WIND_SIZE, mediator, TIMEOUT_MILLIS);
+        OFDelayChecker packetVerifier = new OFDelayChecker(WIND_SIZE, mediator, TIMEOUT_MILLIS);
 
 
         mediator.registerWatcher(counter);

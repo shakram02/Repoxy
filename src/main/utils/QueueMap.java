@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+// TODO make the type hold a List<X> instead of specifying concurrent linked queue
 public class QueueMap<K, V> {
     private ConcurrentHashMap<K, ConcurrentLinkedQueue<V>> map;
 
