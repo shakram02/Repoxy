@@ -2,6 +2,7 @@ package watchers;
 
 import of_packets.OFPacket;
 import org.jetbrains.annotations.NotNull;
+import utils.ImmutableStampedPacket;
 import utils.LimitedSizeQueue;
 import utils.StampedPacket;
 import utils.logging.ConsoleColors;
@@ -37,11 +38,18 @@ public class OFPacketDiffer {
     }
 
     public synchronized void addToPrimaryWindow(@NotNull OFPacket packet, long timestamp) {
-        this.mainPackets.add(new StampedPacket(packet, timestamp));
+        this.mainPackets.add(
+                ImmutableStampedPacket.builder()
+                        .packet(packet)
+                        .timestamp(timestamp)
+                        .build());
     }
 
     public synchronized void addToSecondaryWindow(@NotNull OFPacket packet, long timestamp) {
-        this.secondaryPackets.add(new StampedPacket(packet, timestamp));
+        this.secondaryPackets.add(ImmutableStampedPacket.builder()
+                .packet(packet)
+                .timestamp(timestamp)
+                .build());
     }
 
     public synchronized int countUnmatchedPackets() {
@@ -74,18 +82,18 @@ public class OFPacketDiffer {
              itSecondary.hasNext(); ) {
             StampedPacket secondaryPacket = itSecondary.next();
 
-            if (!primaryPacket.packet.equals(secondaryPacket.packet)) {
+            if (!primaryPacket.getPacket().equals(secondaryPacket.getPacket())) {
                 continue;
             }
 
             // Remove the matched packet
             itSecondary.remove();
 
-            long timeDifference = primaryPacket.timestamp - secondaryPacket.timestamp;
+            long timeDifference = primaryPacket.getTimestamp() - secondaryPacket.getTimestamp();
             boolean timedOut = Math.abs(timeDifference) > this.timeoutMills;
 
-            if (secondaryPacket.timestamp <= this.lastValidTime ||
-                    primaryPacket.timestamp <= this.lastValidTime) {
+            if (secondaryPacket.getTimestamp() <= this.lastValidTime ||
+                    primaryPacket.getTimestamp() <= this.lastValidTime) {
                 // Packets that were left out after controller switching due to timeout
                 // should be compared without the time out constrain to avoid packet accumulation
                 // in the packet queue
