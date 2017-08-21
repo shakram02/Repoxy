@@ -1,8 +1,11 @@
 package network_io;
 
+import com.google.common.collect.ImmutableList;
+import of_packets.OFPacket;
 import org.jetbrains.annotations.NotNull;
 import utils.*;
 import utils.events.*;
+import utils.packet_store.PacketStore;
 import utils.xid_sync.XidSynchronizer;
 
 import java.io.IOException;
@@ -36,25 +39,38 @@ public class ControllerIOHandler extends CommonIOHandler {
             ControllerIOHandler.activeControllerHandler = this;
             this.selfType = SenderType.ControllerRegion;
         }
-        xidSynchronizer = new XidSynchronizer();
+        this.logger.info(String.format("Connection created: %s , %s", this.selfType, port));
+        xidSynchronizer = new XidSynchronizer(new PacketStore());
     }
 
     @Override
     protected void addToOutputQueue(SocketEventArguments arg) {
-        if (arg instanceof SocketDataEventArg
-                && this.selfType == SenderType.ReplicaRegion) {
-            xidSynchronizer.adjust((SocketDataEventArg) arg);
+        if (arg instanceof SocketDataEventArg && this.selfType == SenderType.ReplicaRegion) {
+            super.addToCommandQueue(arg);
+        } else {
+            super.addToOutputQueue(arg);
         }
-        super.addToOutputQueue(arg);
     }
 
+    private SocketDataEventArg syncDataEventArgs(SocketDataEventArg arg) {
+        // TODO implement this function
+//        ImmutableList<OFPacket> modified = xidSynchronizer.syncListXids(arg.getId(),
+//                arg.getPackets());
+//
+//        return SocketDataEventArg.createWithPackets(arg, modified);
+        return arg;
+    }
+
+    /**
+     * @param arg Command for socket IO (CloseConnection/SendData)
+     */
     @Override
     public void addToCommandQueue(@NotNull SocketEventArguments arg) {
-        if (arg instanceof SocketDataEventArg
-                && this.selfType == SenderType.ReplicaRegion) {
-            xidSynchronizer.adjust((SocketDataEventArg) arg);
+        if (arg instanceof SocketDataEventArg && selfType == SenderType.ReplicaRegion) {
+            super.addToCommandQueue(arg);
+        } else {
+            super.addToCommandQueue(arg);
         }
-        super.addToCommandQueue(arg);
     }
 
     /**
@@ -132,10 +148,6 @@ public class ControllerIOHandler extends CommonIOHandler {
             this.logger.info(String.format("[%d] Set to secondary controller", this.port));
             this.selfType = SenderType.ReplicaRegion;
         }
-    }
-
-    public static ControllerIOHandler getActiveControllerHandler() {
-        return ControllerIOHandler.activeControllerHandler;
     }
 
     @NotNull
