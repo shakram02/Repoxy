@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class OFStreamParserTest {
 
-
     @Test
     public void parseStream() throws Exception {
         // Same as python ofgenerator output
@@ -21,8 +20,7 @@ public class OFStreamParserTest {
 
         ImmutableList<OFPacket> result = OFStreamParser.parseStream(helloBytes);
 
-        assert OFPacketHeader.ParseHeader(helloBytes).isPresent();
-        OFPacketHeader header = OFPacketHeader.ParseHeader(helloBytes).get();
+        OFPacketHeader header = OFPacketHeader.parseHeader(helloBytes);
         assert header.getMessageType().equals("Hello");
 
         Assert.assertTrue(result.size() > 0);
@@ -33,8 +31,7 @@ public class OFStreamParserTest {
         byte[] bytes = new byte[]{1, 19, 0, 8, 0, 0, 0, 1};
         ImmutableList<OFPacket> result = OFStreamParser.parseStream(bytes);
 
-        assert OFPacketHeader.ParseHeader(bytes).isPresent();
-        OFPacketHeader header = OFPacketHeader.ParseHeader(bytes).get();
+        OFPacketHeader header = OFPacketHeader.parseHeader(bytes);
         assert header.getMessageType().equals("Barrier Reply");
 
         Assert.assertTrue(result.size() > 0);
@@ -54,7 +51,6 @@ public class OFStreamParserTest {
                 .xid(1)
                 .build();
 
-//        ByteBuffer buffer = OFStreamParser.serializePacket(new OFPacket(helloHeader, new byte[]{}));
         ByteBuffer buffer = OFStreamParser.serializePacket(
                 of_packets.ImmutableOFPacket.builder()
                         .header(helloHeader)
