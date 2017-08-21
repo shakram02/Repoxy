@@ -1,8 +1,10 @@
 package network_io;
 
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import of_packets.OFPacket;
 import utils.events.*;
 import utils.events.ImmutableSocketConnectionIdArgs;
 import network_io.interfaces.SocketIOer;
@@ -171,13 +173,18 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
 
     private void onData(@NotNull ConnectionId id, @NotNull SocketChannel channel, int read) throws IOException {
         ByteArrayDataOutput data = readRemainingBytes(channel, read);
+        ImmutableList<OFPacket> packets = OFStreamParser.parseStream(data.toByteArray());
 
-        SocketDataEventArg arg = utils.events.ImmutableSocketDataEventArg.builder()
-                .id(id)
-                .senderType(this.selfType)
-                .addAllPackets(OFStreamParser.parseStream(data.toByteArray())).build();
+        for (OFPacket p : packets) {
+            SocketDataEventArg arg = utils.events.ImmutableSocketDataEventArg.builder()
+                    .id(id)
+                    .senderType(this.selfType)
+                    .packet(p)
+                    .build();
 
-        this.addToOutputQueue(arg);
+            this.addToOutputQueue(arg);
+        }
+
     }
 
     private void sendData(@NotNull SocketDataEventArg arg) {

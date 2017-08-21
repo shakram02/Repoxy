@@ -1,7 +1,5 @@
 package utils.events;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.primitives.Bytes;
 import of_packets.OFPacket;
 import of_packets.OFStreamParser;
 import org.immutables.value.Value;
@@ -9,7 +7,7 @@ import org.immutables.value.Value;
 @Value.Immutable
 public abstract class SocketDataEventArg implements SocketEventArguments {
 
-    public abstract ImmutableList<OFPacket> getPackets();
+    public abstract OFPacket getPacket();
 
     @Override
     public EventType getReplyType() {
@@ -17,24 +15,12 @@ public abstract class SocketDataEventArg implements SocketEventArguments {
     }
 
     public byte[] toByteArray() {
-        byte[] accumulator = {};
-
-        for (OFPacket p : this.getPackets()) {
-            accumulator = Bytes.concat(accumulator, OFStreamParser.serializePacket(p).array());
-        }
-
-        return accumulator;
+        return OFStreamParser.serializePacket(getPacket()).array();
     }
 
     @Override
     public String toString() {
         // Get the header of the first packet
-        StringBuilder desc = new StringBuilder();
-
-        for (OFPacket p : this.getPackets()) {
-            desc.append(p.getHeader());
-
-        }
-        return super.toString() + "Packets: [ " + desc.toString() + "]";
+        return super.toString() + "Packets: [ " + getPacket().toString() + "]";
     }
 }
