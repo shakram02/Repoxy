@@ -43,36 +43,6 @@ public class ControllerIOHandler extends CommonIOHandler {
         xidSynchronizer = new XidSynchronizer(new PacketStore());
     }
 
-    @Override
-    protected void addToOutputQueue(SocketEventArguments arg) {
-        if (arg instanceof SocketDataEventArg && this.selfType == SenderType.ReplicaRegion) {
-            super.addToCommandQueue(arg);
-        } else {
-            super.addToOutputQueue(arg);
-        }
-    }
-
-    private SocketDataEventArg syncDataEventArgs(SocketDataEventArg arg) {
-        // TODO implement this function
-//        ImmutableList<OFPacket> modified = xidSynchronizer.syncListXids(arg.getId(),
-//                arg.getPackets());
-//
-//        return SocketDataEventArg.createWithPackets(arg, modified);
-        return arg;
-    }
-
-    /**
-     * @param arg Command for socket IO (CloseConnection/SendData)
-     */
-    @Override
-    public void addToCommandQueue(@NotNull SocketEventArguments arg) {
-        if (arg instanceof SocketDataEventArg && selfType == SenderType.ReplicaRegion) {
-            super.addToCommandQueue(arg);
-        } else {
-            super.addToCommandQueue(arg);
-        }
-    }
-
     /**
      * Called by upper class's Cycle() method
      *

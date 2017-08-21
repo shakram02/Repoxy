@@ -2,8 +2,8 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
-      <profile default="true" name="Default">
-        <sourceOutputDir name="target/scala-2.11/src_managed/main" />
+      <profile default="true" name="Default" enabled="true">
+        <sourceOutputDir name="target/src_managed/annotations" />
         <sourceTestOutputDir name="target/src_managed/test" />
         <outputRelativeToContentRoot value="true" />
       </profile>

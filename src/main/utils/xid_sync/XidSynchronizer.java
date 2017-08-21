@@ -5,6 +5,7 @@ import of_packets.OFMsgType;
 import of_packets.OFPacket;
 import of_packets.OFPacketHeader;
 import org.jetbrains.annotations.NotNull;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import utils.ConnectionId;
 import utils.events.SocketDataEventArg;
 import utils.packet_store.PacketStore;
@@ -76,8 +77,10 @@ public class XidSynchronizer {
         }
 
         OFPacket query = retrievePacket(id, OFMsgType.getOppositeMessage(messageCode));
+        OFPacketHeader queryHeader = query.getHeader();
+        // Replace the xid in reply with the query's xid
+        throw new NotImplementedException();
 
-        return this.setPacketXid(reply, query.getHeader().getXId());
     }
 
     private Optional<OFPacket> handleQuery(ConnectionId id, OFPacket query) {
@@ -102,18 +105,4 @@ public class XidSynchronizer {
     private OFPacket retrievePacket(ConnectionId id, Byte messageCode) {
         return this.packetStore.getPacket(id, messageCode);
     }
-
-
-    /**
-     * Creates a copy of the packet with a new xid
-     *
-     * @param packet packet to change its xid
-     * @param xid    new xid
-     * @return returns a copy of the packet with the new xid
-     */
-    @NotNull
-    private OFPacket setPacketXid(OFPacket packet, int xid) {
-        return OFPacket.createNewWithXid(packet, xid);
-    }
-
 }

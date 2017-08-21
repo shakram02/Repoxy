@@ -2,6 +2,9 @@ package of_packets;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
+import jdk.nashorn.internal.ir.annotations.Immutable;
+import of_packets.ImmutableOFPacket;
+import org.immutables.value.Value;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -13,59 +16,48 @@ import java.util.stream.Collectors;
 /**
  * Represents an OF packet header
  */
-public class OFPacketHeader {
+@Value.Immutable
+public abstract class OFPacketHeader {
     public static final int HEADER_LEN = 8;
-    private static final HashMap<Integer, String> MSG_TYPE;
+    private static final HashMap<Byte, String> MSG_TYPE;
 
     static {
         MSG_TYPE = new HashMap<>();
-        MSG_TYPE.put(0, "Hello");
-        MSG_TYPE.put(1, "Error");
-        MSG_TYPE.put(2, "Echo Request");
-        MSG_TYPE.put(3, "Echo Reply");
-        MSG_TYPE.put(4, "Vendor");
-        MSG_TYPE.put(5, "Features Request");
-        MSG_TYPE.put(6, "Features Reply");
-        MSG_TYPE.put(7, "Get Config Request");
-        MSG_TYPE.put(8, "Get Config Reply");
-        MSG_TYPE.put(9, "Set Config");
-        MSG_TYPE.put(10, "Packet Input Notification");
-        MSG_TYPE.put(11, "Flow Removed Notification");
-        MSG_TYPE.put(12, "Port Status Notification");
-        MSG_TYPE.put(13, "Packet Output");
-        MSG_TYPE.put(14, "Flow Modification");
-        MSG_TYPE.put(15, "Port Modification");
-        MSG_TYPE.put(16, "Stats Request");
-        MSG_TYPE.put(17, "Stats Reply");
-        MSG_TYPE.put(18, "Barrier Request");
-        MSG_TYPE.put(19, "Barrier Reply");
+        MSG_TYPE.put((byte) 0, "Hello");
+        MSG_TYPE.put((byte) 1, "Error");
+        MSG_TYPE.put((byte) 2, "Echo Request");
+        MSG_TYPE.put((byte) 3, "Echo Reply");
+        MSG_TYPE.put((byte) 4, "Vendor");
+        MSG_TYPE.put((byte) 5, "Features Request");
+        MSG_TYPE.put((byte) 6, "Features Reply");
+        MSG_TYPE.put((byte) 7, "Get Config Request");
+        MSG_TYPE.put((byte) 8, "Get Config Reply");
+        MSG_TYPE.put((byte) 9, "Set Config");
+        MSG_TYPE.put((byte) 10, "Packet Input Notification");
+        MSG_TYPE.put((byte) 11, "Flow Removed Notification");
+        MSG_TYPE.put((byte) 12, "Port Status Notification");
+        MSG_TYPE.put((byte) 13, "Packet Output");
+        MSG_TYPE.put((byte) 14, "Flow Modification");
+        MSG_TYPE.put((byte) 15, "Port Modification");
+        MSG_TYPE.put((byte) 16, "Stats Request");
+        MSG_TYPE.put((byte) 17, "Stats Reply");
+        MSG_TYPE.put((byte) 18, "Barrier Request");
+        MSG_TYPE.put((byte) 19, "Barrier Reply");
     }
 
-    private byte version;
-    private int len;
-    private int xId;
-    private byte messageCode;
-    private boolean valid;
-    private String messageType;
+    public abstract byte getVersion();
 
-    public OFPacketHeader(byte version, byte messageCode, int len, int x_id) {
+    public abstract byte getMessageCode();
 
-        // FIXME some TCP packets may match the OFMSG type. we need to find
-        // a better checking mechanism as raw TCP packets are used for testing so far
+    public abstract int getLen();
 
-        this.version = version;
-        this.len = len;
-        this.xId = x_id;
-        this.messageCode = messageCode;
-        if (MSG_TYPE.containsKey((int) messageCode)) {
-            this.messageType = MSG_TYPE.get((int) messageCode);
-            this.valid = true;
-        } else {
-            this.valid = false;
-        }
-    }
+    public abstract int getXid();
 
-    private OFPacketHeader() {
+    public abstract OFPacketHeader withXid(int xid);
+
+    @NotNull
+    public String getMessageType() {
+        return MSG_TYPE.get(this.getMessageCode());
     }
 
     /**
@@ -90,61 +82,26 @@ public class OFPacketHeader {
         int len = buff.readUnsignedShort();
         int x_id = buff.readInt();
 
-        return Optional.of(new OFPacketHeader(version, msg_t, len, x_id));
+        OFPacketHeader header = of_packets.ImmutableOFPacketHeader.builder()
+                .version(version)
+                .messageCode(msg_t)
+                .len(len)
+                .xid(x_id)
+                .build();
+
+        return Optional.of(header);
     }
 
-    public byte getVersion() {
-        return version;
-    }
-
-    public byte getMessageCode() {
-        return messageCode;
-    }
 
     public boolean isEquivalentTo(OFPacketHeader other) {
-        return this.len == other.len && this.messageCode == other.messageCode;
+        return this.equals(other);
     }
 
     @Override
     public String toString() {
         return String.format(
                 "type:%s xId:%d len:%d%n",
-                this.messageType, this.xId, this.len);
-    }
-
-    public boolean isInvalid() {
-        return !this.valid;
-    }
-
-    public int getLen() {
-        return len;
-    }
-
-    public String getMessageType() {
-        return messageType;
-    }
-
-    public int getXId() {
-        return xId;
-    }
-
-    public static OFPacketHeader createNewWithXid(OFPacketHeader header, int xid) {
-        OFPacketHeader clone = header.clone();
-        clone.xId = xid;
-
-        return clone;
-    }
-
-    @Override
-    protected OFPacketHeader clone() {
-        OFPacketHeader cloned = new OFPacketHeader();
-        cloned.len = this.len;
-        cloned.version = this.version;
-        cloned.xId = this.xId;
-        cloned.valid = this.valid;
-        cloned.messageCode = this.messageCode;
-        cloned.messageType = this.messageType;
-        return cloned;
+                this.getMessageType(), this.getXid(), this.getLen());
     }
 }
 
