@@ -3,7 +3,7 @@ import utils.LocalhostIpSupplier;
 import utils.ProxyBuilder;
 import utils.logging.ColoredConsoleHandler;
 import watchers.ClientCounter;
-import watchers.OFPacketSynchronizer;
+import watchers.OFDelayChecker;
 
 import java.io.IOException;
 import java.util.Timer;
@@ -43,7 +43,7 @@ public class Main {
         logger.log(Level.INFO, "Listening to " + OF_PORT);
 
         ClientCounter counter = new ClientCounter();
-        OFPacketSynchronizer packetVerifier = new OFPacketSynchronizer(WIND_SIZE, mediator, TIMEOUT_MILLIS);
+        OFDelayChecker packetVerifier = new OFDelayChecker(WIND_SIZE, mediator, TIMEOUT_MILLIS);
 
 
         mediator.registerWatcher(counter);
