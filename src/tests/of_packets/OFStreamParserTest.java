@@ -1,8 +1,9 @@
 package of_packets;
 
 
-
 import com.google.common.primitives.Bytes;
+import of_packets.ImmutableOFPacket;
+import of_packets.ImmutableOFPacketHeader;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -45,9 +46,20 @@ public class OFStreamParserTest {
         // the serialized object
 
         byte[] bytes = new byte[]{1, 0, 0, 8, 0, 0, 0, 1};
-        OFPacketHeader helloHeader = new OFPacketHeader((byte) 1, (byte) 0, 8, 1);
 
-        ByteBuffer buffer = OFStreamParser.serializePacket(new OFPacket(helloHeader, new byte[]{}));
+        OFPacketHeader helloHeader = ImmutableOFPacketHeader.builder()
+                .version((byte) 1)
+                .messageCode((byte) 0)
+                .len(8)
+                .xid(1)
+                .build();
+
+//        ByteBuffer buffer = OFStreamParser.serializePacket(new OFPacket(helloHeader, new byte[]{}));
+        ByteBuffer buffer = OFStreamParser.serializePacket(
+                ImmutableOFPacket.builder()
+                        .header(helloHeader)
+                        .data().build());
+
         byte[] parsed = buffer.array();
 
 

@@ -51,7 +51,7 @@ public class OFStreamParser {
         buffer.put(header.getVersion());
         buffer.put(header.getMessageCode());
         buffer.putShort((short) header.getLen());
-        buffer.putInt(header.getXId());
+        buffer.putInt(header.getXid());
 
         if (packet.getData().length != 0) {
             buffer.put(packet.getData());
@@ -73,7 +73,7 @@ public class OFStreamParser {
         byte[] result = reader.getNextPartition();
         Optional<OFPacketHeader> header = OFPacketHeader.ParseHeader(result);
 
-        if (!header.isPresent() || header.get().isInvalid()) {
+        if (!header.isPresent()) {
             return Optional.empty();
         }
 
@@ -81,11 +81,16 @@ public class OFStreamParser {
 
         if (ofPacketLength == 0) {
             // Packet was only a header ex. OF_HELLO
-            return Optional.of(new OFPacket(header.get(), new byte[0]));
+            return Optional.of(of_packets.ImmutableOFPacket.builder()
+                    .data()
+                    .header(header.get())
+                    .build());
         }
 
         byte[] body = reader.getBulk(ofPacketLength);
-
-        return Optional.of(new OFPacket(header.get(), body));
+        return Optional.of(of_packets.ImmutableOFPacket.builder()
+                .data(body)
+                .header(header.get())
+                .build());
     }
 }

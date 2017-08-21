@@ -22,12 +22,6 @@ public class SocketDataEventArg extends ConnectionIdEventArg {
         this.packets = OFStreamParser.parseStream(packet.toByteArray()).getPackets();
     }
 
-    private SocketDataEventArg(@NotNull SenderType senderType, @NotNull ConnectionId id,
-                               @NotNull ImmutableList<OFPacket> packets) {
-        super(senderType, EventType.SendData, id);
-        this.packets = packets;
-    }
-
     public ImmutableList<OFPacket> getPackets() {
         return packets;
     }
@@ -55,17 +49,9 @@ public class SocketDataEventArg extends ConnectionIdEventArg {
         StringBuilder desc = new StringBuilder();
 
         for (OFPacket p : this.packets) {
-            desc.append(p.getHeader().getXId());
-            desc.append(" - ");
-            desc.append(p.getPacketType());
-            desc.append(" ");
+            desc.append(p.getHeader());
+
         }
         return super.toString() + "Packets: [ " + desc.toString() + "]";
     }
-
-    public static SocketDataEventArg createWithPackets(SocketDataEventArg old,
-                                                       ImmutableList<OFPacket> packets) {
-        return new SocketDataEventArg(old.senderType, old.getId(), packets);
-    }
-
 }
