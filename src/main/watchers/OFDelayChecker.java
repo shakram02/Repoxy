@@ -31,29 +31,28 @@ public class OFDelayChecker implements SocketEventObserver {
     @Override
     public void dispatchEvent(@NotNull final SocketEventArguments arg) {
 
-        if (!(arg instanceof SocketDataEventArg)) {
-            return;
-        }
+        // FIXME packet diffing is unusable if xid isn't synced
+        // as the other controller rejects the packets and causes unmatched packet count
+        // to go up.
 
-        SocketDataEventArg dataEventArg = (SocketDataEventArg) arg;
-        SenderType sender = dataEventArg.getSenderType();
-        List<OFPacket> packets = dataEventArg.getPackets();
-
-        if (sender == SenderType.SwitchesRegion) {
-            // Switch packets need not be compared
-            return;
-        }
-
-        int mismatchedPacketCount =
-                this.countMismatchedPackets(sender, packets, dataEventArg.getTimestamp());
-
-
-        if (mismatchedPacketCount >= (this.windowSize / 2)) {
-            // Alert!
-            logger.warning("Changing controller!!!");
-            differ.setLastValidTime(arg.getTimestamp());
-            mediatorNotifier.post(ImmutableControllerFailureArgs.builder().build());
-        }
+//        if (!(arg instanceof SocketDataEventArg) || arg.getSenderType() == SenderType.SwitchesRegion) {
+//            return;
+//        }
+//
+//        SocketDataEventArg dataEventArg = (SocketDataEventArg) arg;
+//        SenderType sender = dataEventArg.getSenderType();
+//        List<OFPacket> packets = dataEventArg.getPackets();
+//
+//        int mismatchedPacketCount =
+//                this.countMismatchedPackets(sender, packets, dataEventArg.getTimestamp());
+//
+//        this.logger.info("Unmatched:" + mismatchedPacketCount);
+//        if (mismatchedPacketCount >= (this.windowSize / 2)) {
+//            // Alert!
+//            logger.warning("Changing controller!!!");
+//            differ.setLastValidTime(arg.getTimestamp());
+//            mediatorNotifier.post(ImmutableControllerFailureArgs.builder().build());
+//        }
     }
 
     /**
