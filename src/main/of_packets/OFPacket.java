@@ -14,6 +14,11 @@ public abstract class OFPacket {
 
     public abstract OFPacket withHeader(OFPacketHeader header);
 
+    public OFPacket withXid(int xid) {
+        OFPacketHeader freshHeader = this.getHeader().withXid(xid);
+        return this.withHeader(freshHeader);
+    }
+
     public boolean isHeaderOnly() {
         return this.getData().length == 0;
     }

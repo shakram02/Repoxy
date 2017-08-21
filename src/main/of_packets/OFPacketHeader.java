@@ -47,6 +47,8 @@ public abstract class OFPacketHeader {
 
     public abstract int getXid();
 
+    public abstract OFPacketHeader withXid(int xid);
+
     @NotNull
     public String getMessageType() {
         return MSG_TYPE.get(this.getMessageCode());
