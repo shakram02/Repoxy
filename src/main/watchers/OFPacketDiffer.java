@@ -74,68 +74,41 @@ public class OFPacketDiffer {
              itSecondary.hasNext(); ) {
             StampedPacket secondaryPacket = itSecondary.next();
 
-            if (this.diffPackets(primaryPacket.packet, secondaryPacket.packet)) {
-                // Remove the matched packet
-                itSecondary.remove();
-
-                long timeDifference = primaryPacket.timestamp - secondaryPacket.timestamp;
-                boolean timedOut = Math.abs(timeDifference) > this.timeoutMills;
-
-                if (secondaryPacket.timestamp <= this.lastValidTime ||
-                        primaryPacket.timestamp <= this.lastValidTime) {
-                    // Packets that were left out after controller switching due to timeout
-                    // should be compared without the time out constrain to avoid packet accumulation
-                    // in the packet queue
-                    timedOut = false;
-                }
-
-                logger.info("Time difference: " + timeDifference + " " +
-                        (timedOut ? ConsoleColors.RED_BOLD_BRIGHT + "TIMEOUT" : "") +
-                        ConsoleColors.RESET +
-                        (timeDifference < 0 ?
-                                " Secondary late" :
-                                (timeDifference == 0 ?
-                                        "" : " Primary late")));
-                // Packet content match. Now check time out and return it
-                return timedOut;
+            if (!primaryPacket.packet.equals(secondaryPacket.packet)) {
+                continue;
             }
+
+            // Remove the matched packet
+            itSecondary.remove();
+
+            long timeDifference = primaryPacket.timestamp - secondaryPacket.timestamp;
+            boolean timedOut = Math.abs(timeDifference) > this.timeoutMills;
+
+            if (secondaryPacket.timestamp <= this.lastValidTime ||
+                    primaryPacket.timestamp <= this.lastValidTime) {
+                // Packets that were left out after controller switching due to timeout
+                // should be compared without the time out constrain to avoid packet accumulation
+                // in the packet queue
+                timedOut = false;
+            }
+
+            logger.info("Time difference: " + timeDifference + " " +
+                    (timedOut ? ConsoleColors.RED_BOLD_BRIGHT + "TIMEOUT" : "") +
+                    ConsoleColors.RESET +
+                    (timeDifference < 0 ?
+                            " Secondary late" :
+                            (timeDifference == 0 ?
+                                    "" : " Primary late")));
+            // Packet content and timeout are OK. Now check time out and return it
+            return timedOut;
         }
+
         return false;
     }
 
     public void clearPacketQueues() {
         this.secondaryPackets.clear();
         this.mainPackets.clear();
-    }
-
-    private boolean diffPackets(OFPacket first, OFPacket second) {
-//        return matchHeaders(first, second) && matchData(first, second);
-        return matchHeaders(first, second);
-    }
-
-    private boolean matchHeaders(OFPacket first, OFPacket second) {
-        // Same packets have same header and content (maybe header only)
-        boolean headerMatch = first.getHeader().isEquivalentTo(second.getHeader());
-        boolean headerOnly = first.isHeaderOnly() == second.isHeaderOnly();
-
-        return headerMatch && headerOnly;
-    }
-
-    private boolean matchData(OFPacket first, OFPacket second) {
-        if (first.getData().length != second.getData().length) {
-            return false;
-        }
-
-        byte[] firstBytes = first.getData();
-        byte[] secondBytes = second.getData();
-
-        for (int i = 0; i < firstBytes.length; i++) {
-            if (firstBytes[i] != secondBytes[i]) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     public void setLastValidTime(long lastValidTime) {

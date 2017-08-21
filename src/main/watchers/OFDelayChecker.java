@@ -56,20 +56,27 @@ public class OFDelayChecker implements SocketEventObserver {
         }
     }
 
-
+    /**
+     * Count the number of delayed packets
+     *
+     * @param sender    Current packet sender
+     * @param packets   List of packets
+     * @param timestamp Timestamp of the event
+     * @return Number of mismatched packets
+     */
     private int countMismatchedPackets(SenderType sender, List<OFPacket> packets, long timestamp) {
 
         // Add each packet to its corresponding window
-        packets.forEach(p -> {
+        for (OFPacket packet : packets) {
+
             if (sender == SenderType.ControllerRegion) {
-                this.differ.addToPrimaryWindow(p, timestamp);
+                this.differ.addToPrimaryWindow(packet, timestamp);
             } else if (sender == SenderType.ReplicaRegion) {
-                this.differ.addToSecondaryWindow(p, timestamp);
+                this.differ.addToSecondaryWindow(packet, timestamp);
             }
-        });
+
+        }
 
         return this.differ.countUnmatchedPackets();
     }
-
-
 }

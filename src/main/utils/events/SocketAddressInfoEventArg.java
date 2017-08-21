@@ -21,6 +21,6 @@ public abstract class SocketAddressInfoEventArg implements SocketEventArguments 
 
     @Override
     public EventType getReplyType() {
-        throw new IllegalStateException();
+        return EventType.ChangeController;
     }
 }
