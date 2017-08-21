@@ -113,8 +113,6 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
 
         SocketEventArguments arg = this.commandQueue.removeFirst();
 
-
-
         // Check if the controller is alive when IO is needed
         if (arg.getReplyType() == EventType.SendData &&
                 !this.isReceiverReachable(arg)) {
