@@ -14,8 +14,8 @@ import java.util.logging.Logger;
 
 public class Main {
     private static String LOCALHOST;
-    private static final String CONT_4 = "192.168.1.104";
-    private static final String CONT_5 = "192.168.1.105";
+    private static String CONT_4 = "127.0.0.1"; //"192.168.1.104";
+    private static String CONT_5 = "127.0.0.1"; //"192.168.1.105";
     public static int OF_PORT = 6833;
     public static int CONTROLLER_PORT = 6834;
     public static int REPLICATED_CONTROLLER_PORT = 6835;
@@ -27,8 +27,18 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         setupLogging();
+        boolean oneMachineRun = false;
 
-        LOCALHOST = LocalhostIpSupplier.getLocalHostLANAddress().getHostAddress();
+        //noinspection ConstantConditions
+        if (oneMachineRun) {
+            LOCALHOST = "127.0.0.1";
+            CONT_4 = "127.0.0.1";
+            CONT_5 = "127.0.0.1";
+        } else {
+            LOCALHOST = LocalhostIpSupplier.getLocalHostLANAddress().getHostAddress();
+            CONT_4 = "192.168.1.104";
+            CONT_5 = "192.168.1.105";
+        }
 
         System.out.println(String.format("Local IP: [%s] Ports: [%d] [%d] [%d]",
                 LOCALHOST, OF_PORT, CONTROLLER_PORT, REPLICATED_CONTROLLER_PORT));
