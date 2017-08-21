@@ -1,15 +1,15 @@
 package of_packets;
 
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Bytes;
-import of_packets.ImmutableOFPacket;
-import of_packets.ImmutableOFPacketHeader;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class OFStreamParserTest {
 
@@ -19,25 +19,25 @@ public class OFStreamParserTest {
         // Same as python ofgenerator output
         byte[] helloBytes = new byte[]{1, 0, 0, 8, 0, 0, 0, 1};
 
-        OFStreamParseResult result = OFStreamParser.parseStream(helloBytes);
+        ImmutableList<OFPacket> result = OFStreamParser.parseStream(helloBytes);
 
         assert OFPacketHeader.ParseHeader(helloBytes).isPresent();
         OFPacketHeader header = OFPacketHeader.ParseHeader(helloBytes).get();
         assert header.getMessageType().equals("Hello");
 
-        assert result.hasPackets();
+        Assert.assertTrue(result.size() > 0);
     }
 
     @Test
     public void parseBarrierReply() throws Exception {
         byte[] bytes = new byte[]{1, 19, 0, 8, 0, 0, 0, 1};
-        OFStreamParseResult result = OFStreamParser.parseStream(bytes);
+        ImmutableList<OFPacket> result = OFStreamParser.parseStream(bytes);
 
         assert OFPacketHeader.ParseHeader(bytes).isPresent();
         OFPacketHeader header = OFPacketHeader.ParseHeader(bytes).get();
         assert header.getMessageType().equals("Barrier Reply");
 
-        assert result.hasPackets();
+        Assert.assertTrue(result.size() > 0);
     }
 
     @Test
@@ -47,7 +47,7 @@ public class OFStreamParserTest {
 
         byte[] bytes = new byte[]{1, 0, 0, 8, 0, 0, 0, 1};
 
-        OFPacketHeader helloHeader = ImmutableOFPacketHeader.builder()
+        OFPacketHeader helloHeader = of_packets.ImmutableOFPacketHeader.builder()
                 .version((byte) 1)
                 .messageCode((byte) 0)
                 .len(8)
@@ -56,7 +56,7 @@ public class OFStreamParserTest {
 
 //        ByteBuffer buffer = OFStreamParser.serializePacket(new OFPacket(helloHeader, new byte[]{}));
         ByteBuffer buffer = OFStreamParser.serializePacket(
-                ImmutableOFPacket.builder()
+                of_packets.ImmutableOFPacket.builder()
                         .header(helloHeader)
                         .data().build());
 
@@ -75,7 +75,7 @@ public class OFStreamParserTest {
         byte[] packetBytes = Bytes.concat(headerBytes, dataBytes);
 
 
-        OFPacket packet = OFStreamParser.parseStream(packetBytes).getPackets().get(0);
+        OFPacket packet = OFStreamParser.parseStream(packetBytes).get(0);
         ByteBuffer buffer = OFStreamParser.serializePacket(packet);
 
         byte[] parsed = buffer.array();
@@ -90,7 +90,7 @@ public class OFStreamParserTest {
     @Test
     public void parseEmpty() {
         byte[] empty = new byte[]{};
-        OFStreamParseResult result = OFStreamParser.parseStream(empty);
-        assert !result.hasPackets() && !result.hasRemaining();
+        ImmutableList<OFPacket> result = OFStreamParser.parseStream(empty);
+        assert result.size() == 0;
     }
 }

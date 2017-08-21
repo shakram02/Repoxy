@@ -1,23 +1,26 @@
 package utils.events;
 
+import org.immutables.value.Value;
+import utils.ConnectionId;
 import utils.SenderType;
 
-public class SocketAddressInfoEventArg extends BasicSocketEventArg {
+@Value.Immutable
+public abstract class SocketAddressInfoEventArg implements SocketEventArguments {
+    public abstract String getIp();
+    public abstract int getPort();
 
-    private final String ip;
-    private final int port;
-
-    public SocketAddressInfoEventArg(String ip, int port) {
-        super(SenderType.Mediator, EventType.ChangeController);
-        this.ip = ip;
-        this.port = port;
+    @Override
+    public SenderType getSenderType() {
+        throw new IllegalStateException();
     }
 
-    public int getPort() {
-        return port;
+    @Override
+    public ConnectionId getId() {
+        throw new IllegalStateException();
     }
 
-    public String getIp() {
-        return ip;
+    @Override
+    public EventType getReplyType() {
+        throw new IllegalStateException();
     }
 }

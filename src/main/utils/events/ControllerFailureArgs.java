@@ -1,10 +1,21 @@
 package utils.events;
 
+import org.immutables.value.Value;
 import utils.SenderType;
 
-public class ControllerFailureArgs extends BasicSocketEventArg {
+@Value.Immutable
+public abstract class ControllerFailureArgs implements SocketEventArguments {
 
-    public ControllerFailureArgs() {
-        super(SenderType.Mediator, EventType.ChangeController);
+
+    @Override
+    @Value.Lazy
+    public SenderType getSenderType() {
+        return SenderType.Mediator;
+    }
+
+    @Override
+    @Value.Lazy
+    public EventType getReplyType() {
+        return EventType.ChangeController;
     }
 }

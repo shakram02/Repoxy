@@ -1,11 +1,12 @@
 package network_io;
 
-import org.jetbrains.annotations.NotNull;
-import utils.*;
-import utils.events.ConnectionIdEventArg;
 import utils.events.EventType;
+import utils.events.ImmutableSocketConnectionIdArgs;
 import utils.events.SocketAddressInfoEventArg;
 import utils.events.SocketEventArguments;
+import org.jetbrains.annotations.NotNull;
+import utils.ConnectionId;
+import utils.SenderType;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -32,7 +33,7 @@ public class ConnectionAcceptorIOHandler extends CommonIOHandler {
 
     @Override
     protected void handleSpecialEvent(@NotNull SocketEventArguments arg) {
-        throw new IllegalStateException("Switch acceptor doesn't have special events");
+        throw new IllegalStateException("Switch acceptor doesn't have special utils.events");
     }
 
     private void onConnection(@NotNull ServerSocketChannel server) throws IOException {
@@ -46,8 +47,13 @@ public class ConnectionAcceptorIOHandler extends CommonIOHandler {
 
         this.logger.info(key.channel().toString());
 
-        ConnectionIdEventArg eventArg = new ConnectionIdEventArg(this.selfType, EventType.Connection, id);
+        SocketEventArguments eventArg = ImmutableSocketConnectionIdArgs
+                .builder()
+                .senderType(this.selfType)
+                .replyType(EventType.Connection)
+                .id(id).build();
         this.addToOutputQueue(eventArg);
+
     }
 
     /**

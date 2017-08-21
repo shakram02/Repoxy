@@ -15,24 +15,21 @@ public class OFStreamParser {
     }
 
     @NotNull
-    public static OFStreamParseResult parseStream(byte[] bytes) {
+    public static ImmutableList<OFPacket> parseStream(byte[] bytes) {
         ImmutableList.Builder<OFPacket> parsedPackets = new ImmutableList.Builder<>();
 
         ByteArrayInputStream s = new ByteArrayInputStream(bytes);
-        byte[] remaining = {};
+//        byte[] remaining = {};
 
         try (PartitionReader reader = new PartitionReader(OFPacketHeader.HEADER_LEN, s)) {
             while (reader.hasPartition()) {
-                Optional<OFPacket> maybePacket = OFStreamParser.ReadOnePacket(reader);
-
-                if (!maybePacket.isPresent()) {
-                    return new OFStreamParseResult(bytes);
-                }
-                parsedPackets.add(maybePacket.get());
+                OFPacket maybePacket = OFStreamParser.readOnePacket(reader);
+                parsedPackets.add(maybePacket);
             }
 
             if (reader.hasAny()) {
-                remaining = reader.getNextPartition();
+//                remaining = reader.getNextPartition();
+                throw new IllegalStateException("Parsing failed");
             }
 
         } catch (IOException e) {
@@ -40,7 +37,7 @@ public class OFStreamParser {
             throw new RuntimeException(e);
         }
 
-        return new OFStreamParseResult(parsedPackets.build(), remaining);
+        return parsedPackets.build();
 
     }
 
@@ -68,29 +65,30 @@ public class OFStreamParser {
      * @return Parsed OFPacket
      * @throws IOException stream is closed
      */
-    private static Optional<OFPacket> ReadOnePacket(PartitionReader reader) throws IOException {
+    @NotNull
+    private static OFPacket readOnePacket(PartitionReader reader) throws IOException {
 
         byte[] result = reader.getNextPartition();
         Optional<OFPacketHeader> header = OFPacketHeader.ParseHeader(result);
 
         if (!header.isPresent()) {
-            return Optional.empty();
+            throw new IllegalStateException("Header not found");
         }
 
         int ofPacketLength = header.get().getLen() - OFPacketHeader.HEADER_LEN;
 
         if (ofPacketLength == 0) {
             // Packet was only a header ex. OF_HELLO
-            return Optional.of(of_packets.ImmutableOFPacket.builder()
+            return of_packets.ImmutableOFPacket.builder()
                     .data()
                     .header(header.get())
-                    .build());
+                    .build();
         }
 
         byte[] body = reader.getBulk(ofPacketLength);
-        return Optional.of(of_packets.ImmutableOFPacket.builder()
+        return of_packets.ImmutableOFPacket.builder()
                 .data(body)
                 .header(header.get())
-                .build());
+                .build();
     }
 }

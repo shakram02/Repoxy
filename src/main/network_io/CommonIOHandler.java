@@ -3,15 +3,14 @@ package network_io;
 import com.google.common.collect.HashBiMap;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import utils.events.*;
+import utils.events.ImmutableSocketConnectionIdArgs;
 import network_io.interfaces.SocketIOer;
+import of_packets.OFStreamParser;
 import org.jetbrains.annotations.NotNull;
 import utils.ConnectionId;
 import utils.PacketBuffer;
 import utils.SenderType;
-import utils.events.ConnectionIdEventArg;
-import utils.events.EventType;
-import utils.events.SocketDataEventArg;
-import utils.events.SocketEventArguments;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -27,10 +26,10 @@ import java.util.logging.Logger;
 
 
 /**
- * The basic socket interface takes commands and produces events
- * Commands and events are placed in queues to make the interface stable
+ * The basic socket interface takes commands and produces utils.events
+ * Commands and utils.events are placed in queues to make the interface stable
  * <p>
- * If the subscriber wants to be notified for events, it can register for them
+ * If the subscriber wants to be notified for utils.events, it can register for them
  */
 public abstract class CommonIOHandler implements SocketIOer, Closeable {
     private static final int BUFFER_SIZE = 4096;
@@ -99,7 +98,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
         EventType type = arg.getReplyType();
 
         if (type == EventType.Disconnection) {
-            this.closeConnection((ConnectionIdEventArg) arg);
+            this.closeConnection(arg);
         } else if (type == EventType.SendData) {
             this.sendData((SocketDataEventArg) arg);
         } else {
@@ -114,15 +113,11 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
 
         SocketEventArguments arg = this.commandQueue.removeFirst();
 
-        if (!(arg instanceof ConnectionIdEventArg)) {
-            return Optional.of(arg);
-        }
 
-        ConnectionIdEventArg idArg = (ConnectionIdEventArg) arg;
 
         // Check if the controller is alive when IO is needed
-        if (idArg.getReplyType() == EventType.SendData &&
-                !this.isReceiverReachable(idArg)) {
+        if (arg.getReplyType() == EventType.SendData &&
+                !this.isReceiverReachable(arg)) {
             // A receiver won't be reachable if it closed connection.
             // Upper layers will be notified for such disconnection but the
             // event queue isn't consistent at that instant.
@@ -130,11 +125,11 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
             return Optional.empty();
         }
 
-        return Optional.of(idArg);
+        return Optional.of(arg);
     }
 
     /**
-     * Each sub class will override this function to handle their special events
+     * Each sub class will override this function to handle their special utils.events
      *
      * @param key Selection key
      * @throws IOException Exception because of network elements
@@ -142,7 +137,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
     protected abstract void handleSpecialKey(@NotNull SelectionKey key) throws IOException;
 
     /**
-     * Specialized handling for events in Input queue if needed
+     * Specialized handling for utils.events in Input queue if needed
      *
      * @param arg Specialized event (ex. connectTo a controller)
      */
@@ -158,7 +153,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
         this.commandQueue.add(arg);
     }
 
-    private void closeConnection(@NotNull ConnectionIdEventArg arg) {
+    private void closeConnection(@NotNull SocketEventArguments arg) {
         SelectionKey key = this.keyMap.inverse().get(arg.getId());
         this.keyMap.remove(key);
 
@@ -179,7 +174,11 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
     private void onData(@NotNull ConnectionId id, @NotNull SocketChannel channel, int read) throws IOException {
         ByteArrayDataOutput data = readRemainingBytes(channel, read);
 
-        SocketDataEventArg arg = new SocketDataEventArg(this.selfType, id, data);
+        SocketDataEventArg arg = utils.events.ImmutableSocketDataEventArg.builder()
+                .id(id)
+                .senderType(this.selfType)
+                .addAllPackets(OFStreamParser.parseStream(data.toByteArray())).build();
+
         this.addToOutputQueue(arg);
     }
 
@@ -190,8 +189,12 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
     }
 
     private void onDisconnect(@NotNull ConnectionId id) {
-        ConnectionIdEventArg arg =
-                new ConnectionIdEventArg(this.selfType, EventType.Disconnection, id);
+        SocketEventArguments arg =
+                ImmutableSocketConnectionIdArgs.builder()
+                        .id(id)
+                        .senderType(this.selfType)
+                        .replyType(EventType.Disconnection)
+                        .build();
 
         this.closeConnection(arg);
         // Notify mediator here as close connection when called by the mediator
@@ -259,7 +262,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
      * @param arg Event argument containing the target id
      * @return true if the receiver exists in the keyMap and its key is valid
      */
-    private boolean isReceiverReachable(@NotNull ConnectionIdEventArg arg) {
+    private boolean isReceiverReachable(@NotNull SocketEventArguments arg) {
         SelectionKey key = this.keyMap.inverse().get(arg.getId());
         return key != null && key.isValid();
     }
