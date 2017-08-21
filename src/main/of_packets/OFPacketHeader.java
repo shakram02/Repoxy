@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 /**
  * Represents an OF packet header
  */
-public class OFPacketHeader implements Serializable {
+public class OFPacketHeader {
     public static final int HEADER_LEN = 8;
     private static final HashMap<Integer, String> MSG_TYPE;
 
@@ -126,6 +126,25 @@ public class OFPacketHeader implements Serializable {
 
     public int getXId() {
         return xId;
+    }
+
+    public static OFPacketHeader createNewWithXid(OFPacketHeader header, int xid) {
+        OFPacketHeader clone = header.clone();
+        clone.xId = xid;
+
+        return clone;
+    }
+
+    @Override
+    protected OFPacketHeader clone() {
+        OFPacketHeader cloned = new OFPacketHeader();
+        cloned.len = this.len;
+        cloned.version = this.version;
+        cloned.xId = this.xId;
+        cloned.valid = this.valid;
+        cloned.messageCode = this.messageCode;
+        cloned.messageType = this.messageType;
+        return cloned;
     }
 }
 

@@ -37,4 +37,15 @@ public class OFPacket {
         // TODO extend this
         return this.header.toString();
     }
+
+    private OFPacket() {
+    }
+
+    public static OFPacket createNewWithXid(OFPacket packet, int xid) {
+        OFPacket clone = new OFPacket();
+        clone.header = OFPacketHeader.createNewWithXid(packet.header, xid);
+        clone.data = packet.data.clone();
+
+        return clone;
+    }
 }
