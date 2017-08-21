@@ -1,13 +1,24 @@
 package utils;
 
+import of_packets.OFMsgType;
 import of_packets.OFPacket;
 import of_packets.OFStreamParser;
+import utils.events.SocketDataEventArg;
 import utils.logging.ConsoleColors;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class PacketDebugger {
+    public void debugPackets(SenderType sender, SocketDataEventArg arg) {
+        String debugMessage = stringifyPackets(sender, arg.getPackets());
+        if (debugMessage.length() == 0) {
+            return;
+        }
+
+        System.out.println(debugMessage);
+    }
+
     public String stringifyPackets(SenderType sender, List<OFPacket> packets) {
         StringBuilder infoBuilder = new StringBuilder();
         String color = "";
@@ -26,11 +37,13 @@ public class PacketDebugger {
         infoBuilder.append("From:");
         infoBuilder.append(sender);
         infoBuilder.append("\n");
-
-        packets.forEach(p -> {
-            if (p.getHeader().getXId() == 0) {
-                return;
+        int count = 0;
+        for (OFPacket p : packets) {
+            if (p.getHeader().getMessageCode() == OFMsgType.OFPT_ECHO_REPLY ||
+                    p.getHeader().getMessageCode() == OFMsgType.OFPT_ECHO_REQUEST) {
+                continue;
             }
+            count++;
             infoBuilder.append("\t");
             infoBuilder.append(p.getHeader().getXId());
             infoBuilder.append(" ");
@@ -38,9 +51,11 @@ public class PacketDebugger {
             infoBuilder.append("\n\t\t");
             infoBuilder.append(Arrays.toString(OFStreamParser.serializePacket(p).array()));
             infoBuilder.append("\n");
-        });
+        }
         infoBuilder.append(ConsoleColors.RESET);
-
+        if (count == 0) {
+            return "";
+        }
         return infoBuilder.toString();
     }
 }
