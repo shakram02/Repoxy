@@ -7,7 +7,7 @@ import utils.io.PartitionReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Optional;
+import java.util.Arrays;
 
 public class OFStreamParser {
 
@@ -19,7 +19,6 @@ public class OFStreamParser {
         ImmutableList.Builder<OFPacket> parsedPackets = new ImmutableList.Builder<>();
 
         ByteArrayInputStream s = new ByteArrayInputStream(bytes);
-//        byte[] remaining = {};
 
         try (PartitionReader reader = new PartitionReader(OFPacketHeader.HEADER_LEN, s)) {
             while (reader.hasPartition()) {
@@ -28,8 +27,7 @@ public class OFStreamParser {
             }
 
             if (reader.hasAny()) {
-//                remaining = reader.getNextPartition();
-                throw new IllegalStateException("Parsing failed");
+                throw new IllegalStateException("Parsing failed:" + Arrays.toString(bytes));
             }
 
         } catch (IOException e) {
@@ -38,7 +36,6 @@ public class OFStreamParser {
         }
 
         return parsedPackets.build();
-
     }
 
     public static ByteBuffer serializePacket(OFPacket packet) {
@@ -54,7 +51,6 @@ public class OFStreamParser {
             buffer.put(packet.getData());
         }
 
-
         return buffer;
     }
 
@@ -69,26 +65,22 @@ public class OFStreamParser {
     private static OFPacket readOnePacket(PartitionReader reader) throws IOException {
 
         byte[] result = reader.getNextPartition();
-        Optional<OFPacketHeader> header = OFPacketHeader.ParseHeader(result);
+        OFPacketHeader header = OFPacketHeader.parseHeader(result);
 
-        if (!header.isPresent()) {
-            throw new IllegalStateException("Header not found");
-        }
-
-        int ofPacketLength = header.get().getLen() - OFPacketHeader.HEADER_LEN;
+        int ofPacketLength = header.getLen() - OFPacketHeader.HEADER_LEN;
 
         if (ofPacketLength == 0) {
             // Packet was only a header ex. OF_HELLO
             return of_packets.ImmutableOFPacket.builder()
                     .data()
-                    .header(header.get())
+                    .header(header)
                     .build();
         }
 
         byte[] body = reader.getBulk(ofPacketLength);
         return of_packets.ImmutableOFPacket.builder()
                 .data(body)
-                .header(header.get())
+                .header(header)
                 .build();
     }
 }

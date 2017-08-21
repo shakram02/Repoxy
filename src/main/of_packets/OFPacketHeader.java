@@ -2,16 +2,10 @@ package of_packets;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
-import jdk.nashorn.internal.ir.annotations.Immutable;
-import of_packets.ImmutableOFPacket;
 import org.immutables.value.Value;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
 import java.util.HashMap;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Represents an OF packet header
@@ -53,8 +47,6 @@ public abstract class OFPacketHeader {
 
     public abstract int getXid();
 
-    public abstract OFPacketHeader withXid(int xid);
-
     @NotNull
     public String getMessageType() {
         return MSG_TYPE.get(this.getMessageCode());
@@ -70,12 +62,7 @@ public abstract class OFPacketHeader {
      */
 
     @NotNull
-    public static Optional<OFPacketHeader> ParseHeader(byte[] bytes) {
-        // FIXME remove this unnecessary code.
-        // parsing errors are programmers mistakes and shouldn't be checked
-        if (bytes.length < OFPacketHeader.HEADER_LEN) {
-            return Optional.empty();
-        }
+    public static OFPacketHeader parseHeader(byte[] bytes) {
 
         ByteArrayDataInput buff = ByteStreams.newDataInput(bytes);
 
@@ -84,20 +71,14 @@ public abstract class OFPacketHeader {
         int len = buff.readUnsignedShort();
         int x_id = buff.readInt();
 
-        OFPacketHeader header = of_packets.ImmutableOFPacketHeader.builder()
+        return of_packets.ImmutableOFPacketHeader.builder()
                 .version(version)
                 .messageCode(msg_t)
                 .len(len)
                 .xid(x_id)
                 .build();
-
-        return Optional.of(header);
     }
 
-
-    public boolean isEquivalentTo(OFPacketHeader other) {
-        return this.equals(other);
-    }
 
     @Override
     public String toString() {
