@@ -26,34 +26,13 @@ public class XidSynchronizer {
         this.packetStore = packetStore;
     }
 
-    /**
-     * Adjust the message, it might be a request/reply
-     * some requests are initiated by both network sides
-     * that's why we just call it syncListXids as we don't yet know
-     */
-    public ImmutableList<OFPacket> syncListXids(@NotNull final ConnectionId id, @NotNull final ImmutableList<OFPacket> packets) {
-        final ImmutableList.Builder<OFPacket> listBuilder = ImmutableList.builder();
-
-        for (OFPacket packet : packets) {
-            Optional<OFPacket> syncResult = syncPacketXid(id, packet);
-
-            if (syncResult.isPresent()) {
-                listBuilder.add(syncResult.get());
-            } else {
-                listBuilder.add(packet);
-            }
-        }
-
-        return listBuilder.build();
-    }
-
-    /**
+   /**
      * Adjust OFXid of request / reply packets
      *
      * @param packet OpenFlow packet
      */
     @NotNull
-    private Optional<OFPacket> syncPacketXid(ConnectionId id, OFPacket packet) {
+    public Optional<OFPacket> syncPacketXid(ConnectionId id, OFPacket packet) {
         OFPacketHeader header = packet.getHeader();
         Byte msgCode = header.getMessageCode();
 
