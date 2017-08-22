@@ -4,6 +4,8 @@ import of_packets.OFPacket;
 import of_packets.OFStreamParser;
 import org.immutables.value.Value;
 
+import java.nio.ByteBuffer;
+
 @Value.Immutable
 public abstract class SocketDataEventArg implements SocketEventArguments {
 
@@ -14,8 +16,8 @@ public abstract class SocketDataEventArg implements SocketEventArguments {
         return EventType.SendData;
     }
 
-    public byte[] toByteArray() {
-        return OFStreamParser.serializePacket(getPacket()).array();
+    public ByteBuffer toByteBuffer() {
+        return OFStreamParser.serializePacket(getPacket());
     }
 
     @Override

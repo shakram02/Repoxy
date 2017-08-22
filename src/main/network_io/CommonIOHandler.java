@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import of_packets.OFPacket;
+import utils.PacketDebugger;
 import utils.events.*;
 import utils.events.ImmutableSocketConnectionIdArgs;
 import network_io.interfaces.SocketIOer;
@@ -43,7 +44,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
     // as child classes may want to override what happens when adding an event
     private final ArrayDeque<SocketEventArguments> eventQueue;
     private final ArrayDeque<SocketEventArguments> commandQueue;
-
+    private final PacketDebugger debugger;
     protected SenderType selfType;
 
     // Packet buffer is kept as the selector notifies me when the
@@ -68,6 +69,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
         this.commandQueue = new ArrayDeque<>();
         this.eventQueue = new ArrayDeque<>();
         this.packetBuffer = new PacketBuffer();
+        this.debugger = new PacketDebugger();
     }
 
 
@@ -175,7 +177,10 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
         ByteArrayDataOutput data = readRemainingBytes(channel, read);
         ImmutableList<OFPacket> packets = OFStreamParser.parseStream(data.toByteArray());
 
+        debugger.batchDebugStart();
         for (OFPacket p : packets) {
+            debugger.addToBatchDebug(this.selfType, p);
+
             SocketDataEventArg arg = utils.events.ImmutableSocketDataEventArg.builder()
                     .id(id)
                     .senderType(this.selfType)
@@ -185,10 +190,11 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
             this.addToOutputQueue(arg);
         }
 
+        this.logger.info(debugger.batchDebugEnd());
     }
 
     private void sendData(@NotNull SocketDataEventArg arg) {
-        this.packetBuffer.addPacket(arg.getId(), arg.toByteArray());
+        this.packetBuffer.addPacket(arg.getId(), arg);
         SelectionKey key = this.keyMap.inverse().get(arg.getId());
         this.addOutput(key);
     }
@@ -297,7 +303,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
     private void writePackets(ConnectionId id, SocketChannel channel)
             throws IOException {
         while (this.packetBuffer.hasPendingPackets(id)) {
-            channel.write(this.packetBuffer.getNextPacket(id));
+            channel.write(this.packetBuffer.getNextPacket(id).toByteBuffer());
         }
     }
 
