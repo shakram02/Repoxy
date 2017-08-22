@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import utils.events.SocketDataEventArg;
 
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 import java.util.Optional;
 
 /**
@@ -24,8 +25,8 @@ public class PacketBuffer extends QueueMap<ConnectionId, SocketDataEventArg> {
         return super.hasItems(id);
     }
 
-    public Optional<SocketDataEventArg> peekPending(ConnectionId id) {
-        return super.peek(id);
+    public Iterator<SocketDataEventArg> packetIterator(ConnectionId id) {
+        return super.iterator(id);
     }
 
     @NotNull
