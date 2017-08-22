@@ -2,6 +2,7 @@ package utils;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -25,6 +26,10 @@ public class QueueMap<K, V> {
             return;
         }
         this.map.remove(key);
+    }
+
+    protected final Optional<V> peek(K key) {
+        return Optional.ofNullable(this.map.get(key).peek());
     }
 
     protected final boolean hasItems(K key) {
