@@ -1,4 +1,4 @@
-package utils.xid_sync;
+package of_packets;
 
 import com.google.common.collect.ImmutableList;
 import of_packets.OFMsgType;
@@ -26,34 +26,13 @@ public class XidSynchronizer {
         this.packetStore = packetStore;
     }
 
-    /**
-     * Adjust the message, it might be a request/reply
-     * some requests are initiated by both network sides
-     * that's why we just call it syncListXids as we don't yet know
-     */
-    public ImmutableList<OFPacket> syncListXids(@NotNull final ConnectionId id, @NotNull final ImmutableList<OFPacket> packets) {
-        final ImmutableList.Builder<OFPacket> listBuilder = ImmutableList.builder();
-
-        for (OFPacket packet : packets) {
-            Optional<OFPacket> syncResult = syncPacketXid(id, packet);
-
-            if (syncResult.isPresent()) {
-                listBuilder.add(syncResult.get());
-            } else {
-                listBuilder.add(packet);
-            }
-        }
-
-        return listBuilder.build();
-    }
-
-    /**
+   /**
      * Adjust OFXid of request / reply packets
      *
      * @param packet OpenFlow packet
      */
     @NotNull
-    private Optional<OFPacket> syncPacketXid(ConnectionId id, OFPacket packet) {
+    public Optional<OFPacket> syncPacketXid(ConnectionId id, OFPacket packet) {
         OFPacketHeader header = packet.getHeader();
         Byte msgCode = header.getMessageCode();
 
@@ -62,35 +41,34 @@ public class XidSynchronizer {
         }
 
         if (OFMsgType.isQuery(msgCode)) {
-            storePacket(id, packet);
+            storeQuery(id, packet);
         }
 
         return Optional.empty();
     }
 
     private OFPacket modifyReply(ConnectionId id, OFPacket reply) {
-        Byte messageCode = reply.getHeader().getMessageCode();
+        Byte messageCode = reply.getMessageCode();
 
         if (!hasCounterpart(id, messageCode)) {
             throw new IllegalStateException("No query is present for this reply");
         }
 
         OFPacket query = retrievePacket(id, OFMsgType.getOppositeMessage(messageCode));
-        OFPacketHeader queryHeader = query.getHeader();
-        // Replace the xid in reply with the query's xid
-        throw new NotImplementedException();
+        int queryXid = query.getXid();
 
+        return reply.withXid(queryXid);
     }
 
-    private Optional<OFPacket> handleQuery(ConnectionId id, OFPacket query) {
-        Byte messageCode = query.getHeader().getMessageCode();
+    private void storeQuery(ConnectionId id, OFPacket query) {
+        Byte messageCode = query.getMessageCode();
 
+        // TODO remove this function as soon as Packet Synchronizer is ready
         if (hasCounterpart(id, messageCode)) {
             throw new IllegalStateException("Reply is present before its query");
         }
 
         storePacket(id, query);
-        return Optional.empty();
     }
 
     private boolean hasCounterpart(ConnectionId id, Byte messageCode) {

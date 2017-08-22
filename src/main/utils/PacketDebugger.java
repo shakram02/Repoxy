@@ -6,12 +6,9 @@ import of_packets.OFStreamParser;
 import utils.events.SocketDataEventArg;
 import utils.logging.ConsoleColors;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class PacketDebugger {
     public void debugPackets(SocketDataEventArg arg) {
-        String debugMessage = stringifyPackets(arg.getSenderType(), arg.getPackets());
+        String debugMessage = stringifyPackets(arg.getSenderType(), arg.getPacket());
         if (debugMessage.length() == 0) {
             return;
         }
@@ -19,7 +16,7 @@ public class PacketDebugger {
         System.out.println(debugMessage);
     }
 
-    public String stringifyPackets(SenderType sender, List<OFPacket> packets) {
+    public String stringifyPackets(SenderType sender, OFPacket packet) {
         StringBuilder infoBuilder = new StringBuilder();
         String color = "";
         switch (sender) {
@@ -37,23 +34,20 @@ public class PacketDebugger {
         infoBuilder.append("From:");
         infoBuilder.append(sender);
         infoBuilder.append("\n");
-        int count = 0;
-        for (OFPacket p : packets) {
-            if (p.getHeader().getMessageCode() == OFMsgType.OFPT_ECHO_REPLY ||
-                    p.getHeader().getMessageCode() == OFMsgType.OFPT_ECHO_REQUEST) {
-                continue;
-            }
-            count++;
-            infoBuilder.append("\t");
-            infoBuilder.append(p.getHeader());
-            infoBuilder.append("\n\t\t");
-            infoBuilder.append(Arrays.toString(OFStreamParser.serializePacket(p).array()));
-            infoBuilder.append("\n");
-        }
-        infoBuilder.append(ConsoleColors.RESET);
-        if (count == 0) {
+
+
+        if (packet.getHeader().getMessageCode() == OFMsgType.OFPT_ECHO_REPLY ||
+                packet.getHeader().getMessageCode() == OFMsgType.OFPT_ECHO_REQUEST) {
             return "";
         }
+
+        infoBuilder.append("\t");
+        infoBuilder.append(packet.getHeader());
+        infoBuilder.append("\n\t\t");
+        infoBuilder.append(OFStreamParser.serializePacket(packet));
+        infoBuilder.append("\n");
+
+        infoBuilder.append(ConsoleColors.RESET);
         return infoBuilder.toString();
     }
 }

@@ -1,13 +1,11 @@
 package utils;
 
 import of_packets.OFPacket;
+import org.immutables.value.Value;
 
-public class StampedPacket {
-    public final OFPacket packet;
-    public final long timestamp;
+@Value.Immutable
+public abstract class StampedPacket {
+    public abstract OFPacket getPacket();
 
-    public StampedPacket(OFPacket packet, long timestamp) {
-        this.packet = packet;
-        this.timestamp = timestamp;
-    }
+    public abstract long getTimestamp();
 }

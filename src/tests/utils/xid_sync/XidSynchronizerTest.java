@@ -1,5 +1,6 @@
 package utils.xid_sync;
 
+import of_packets.XidSynchronizer;
 import utils.events.ImmutableSocketDataEventArg;
 import of_packets.OFStreamParser;
 import org.junit.jupiter.api.Test;
@@ -30,11 +31,11 @@ class XidSynchronizerTest {
         SocketDataEventArg replicaPackets = ImmutableSocketDataEventArg.builder()
                 .senderType(SenderType.ReplicaRegion)
                 .id(conId)
-                .packets(OFStreamParser.parseStream(featuresRequest))
+                .packet(OFStreamParser.parseStream(featuresRequest).get(0))
                 .build();
 
 
-        synchronizer.syncListXids(conId, replicaPackets.getPackets());
+        synchronizer.syncPacketXid(conId, replicaPackets.getPacket());
 
         /*
             From:ControllerRegion
@@ -59,20 +60,20 @@ class XidSynchronizerTest {
         SocketDataEventArg replyFirst = ImmutableSocketDataEventArg.builder()
                 .senderType(SenderType.SwitchesRegion)
                 .id(conId)
-                .packets(OFStreamParser.parseStream(featuresReplyFirst))
+                .packet(OFStreamParser.parseStream(featuresReplyFirst).get(0))
                 .build();
 
-        synchronizer.syncListXids(conId, replyFirst.getPackets());
+        synchronizer.syncPacketXid(conId, replyFirst.getPacket());
 
         byte[] featuresReplySecond = new byte[]{1, 6, 0, -32, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, -2, 0, 0, 0, 0, 0, 0, -57, 0, 0, 15, -1, 0, 3, 78, 103, 78, -80, 57, -76, 115, 50, 45, 101, 116, 104, 51, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -110, -55, -53, 94, -62, -51, 115, 50, 45, 101, 116, 104, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, -90, -23, 104, -6, 121, 122, 115, 50, 45, 101, 116, 104, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -2, -82, -14, -76, 80, -48, 73, 115, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         SocketDataEventArg replySecond =
                 ImmutableSocketDataEventArg.builder()
                         .senderType(SenderType.SwitchesRegion)
                         .id(conId)
-                        .packets(OFStreamParser.parseStream(featuresReplySecond))
+                        .packet(OFStreamParser.parseStream(featuresReplySecond).get(0))
                         .build();
 
 
-        synchronizer.syncListXids(conId, replySecond.getPackets());
+        synchronizer.syncPacketXid(conId, replySecond.getPacket());
     }
 }

@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import utils.*;
 import utils.events.*;
 import utils.packet_store.PacketStore;
-import utils.xid_sync.XidSynchronizer;
+import of_packets.XidSynchronizer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
