@@ -6,9 +6,6 @@ import of_packets.OFStreamParser;
 import utils.events.SocketDataEventArg;
 import utils.logging.ConsoleColors;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class PacketDebugger {
     public void debugPackets(SocketDataEventArg arg) {
         String debugMessage = stringifyPackets(arg.getSenderType(), arg.getPacket());

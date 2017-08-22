@@ -1,11 +1,9 @@
 package watchers;
 
 import com.google.common.eventbus.EventBus;
-import utils.events.ImmutableControllerFailureArgs;
 import of_packets.OFPacket;
 import org.jetbrains.annotations.NotNull;
 import utils.SenderType;
-import utils.events.SocketDataEventArg;
 import utils.events.SocketEventArguments;
 import utils.events.SocketEventObserver;
 

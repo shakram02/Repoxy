@@ -7,7 +7,6 @@ import utils.LimitedSizeQueue;
 import utils.StampedPacket;
 import utils.logging.ConsoleColors;
 
-import java.io.Console;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
