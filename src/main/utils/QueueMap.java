@@ -29,7 +29,11 @@ public class QueueMap<K, V> implements Map<K, V> {
     }
 
     protected final Iterator<V> iterator(K key) {
-        return this.map.get(key).iterator();
+        if (map.containsKey(key)) {
+            return this.map.get(key).iterator();
+        }
+
+        return Collections.emptyIterator();
     }
 
     protected final boolean hasItems(K key) {
