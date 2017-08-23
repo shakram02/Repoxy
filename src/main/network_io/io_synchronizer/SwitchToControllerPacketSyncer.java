@@ -2,7 +2,6 @@ package network_io.io_synchronizer;
 
 import of_packets.OFMsgType;
 import of_packets.OFPacket;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import utils.ConnectionId;
 import utils.PacketBuffer;
 import utils.SenderType;
@@ -40,28 +39,38 @@ public class SwitchToControllerPacketSyncer {
         this.toController = new LinkedList<>();
     }
 
-    public void insertUnsynced(SocketDataEventArg dataEventArg) {
+    public void releaseMatchingReply(SocketDataEventArg dataEventArg) {
         final byte messageCode = dataEventArg.getPacket().getMessageCode();
-        final boolean isReply = OFMsgType.isReply(messageCode);
         final boolean isQuery = OFMsgType.isQuery(messageCode);
 
-        if (isControllerSender(dataEventArg) && isQuery) {
-            Optional<SocketDataEventArg> matchingPacket = this.removeMatchingPacket(dataEventArg);
-            matchingPacket.ifPresent(this.toController::add);
+        if (!isControllerSender(dataEventArg)) {
+            throw new IllegalArgumentException("Expected a message from controller:" + dataEventArg.toString());
         }
 
-        if (dataEventArg.getSenderType() == SenderType.SwitchesRegion) {
-
-            // An async packet (not query/reply) or a query from switches. that doesn't need synchronization
-            if (!isReply) {
-                this.toController.add(dataEventArg);
-                return;
-            }
-
-            // A reply coming from switches is stored until its query is available
-            this.fragmented.addPacket(dataEventArg.getId(), dataEventArg);
+        if (!isQuery) {
+            return;
         }
 
+        Optional<SocketDataEventArg> matchingPacket = this.removeMatchingPacket(dataEventArg);
+        matchingPacket.ifPresent(this.toController::add);
+    }
+
+    public void insertUnSynced(SocketDataEventArg dataEventArg) {
+        final byte messageCode = dataEventArg.getPacket().getMessageCode();
+        final boolean isReply = OFMsgType.isReply(messageCode);
+
+        if (dataEventArg.getSenderType() != SenderType.SwitchesRegion) {
+            throw new IllegalArgumentException("Expected a message from switches:" + dataEventArg.toString());
+        }
+
+        // An async packet (not query/reply) or a query from switches. that doesn't need synchronization
+        if (!isReply) {
+            this.toController.add(dataEventArg);
+            return;
+        }
+
+        // A reply coming from switches is stored until its query is available
+        this.fragmented.addPacket(dataEventArg.getId(), dataEventArg);
     }
 
 
@@ -110,7 +119,7 @@ public class SwitchToControllerPacketSyncer {
      * @return
      */
     private boolean matches(OFPacket packet, OFPacket other) {
-        throw new NotImplementedException();
+        return packet.getHeader().equals(other.getHeader());
     }
 
     private boolean isControllerSender(SocketDataEventArg arg) {
