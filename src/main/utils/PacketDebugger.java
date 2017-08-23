@@ -6,6 +6,8 @@ import of_packets.OFStreamParser;
 import utils.events.SocketDataEventArg;
 import utils.logging.ConsoleColors;
 
+import java.util.Arrays;
+
 public class PacketDebugger {
     public void debugDataEventArg(SocketDataEventArg arg) {
         String debugMessage = stringifyPacket(arg.getSenderType(), arg.getPacket());
@@ -35,7 +37,6 @@ public class PacketDebugger {
         infoBuilder.append(sender);
         infoBuilder.append("\n");
 
-
         if (packet.getHeader().getMessageCode() == OFMsgType.OFPT_ECHO_REPLY ||
                 packet.getHeader().getMessageCode() == OFMsgType.OFPT_ECHO_REQUEST) {
             return "";
@@ -43,23 +44,18 @@ public class PacketDebugger {
 
         infoBuilder.append("\t");
         infoBuilder.append(packet.getHeader());
-        infoBuilder.append("\n\t\t");
-        infoBuilder.append(OFStreamParser.serializePacket(packet));
+        infoBuilder.append("\t\t");
+        infoBuilder.append(Arrays.toString(OFStreamParser.serializePacket(packet).array()));
         infoBuilder.append("\n");
 
         infoBuilder.append(ConsoleColors.RESET);
         return infoBuilder.toString();
     }
 
-    private boolean isBatchMode;
     private StringBuilder batchStringBuilder = new StringBuilder();
 
     public void batchDebugStart() {
-        if (isBatchMode) {
-            // clear queue
-            batchStringBuilder.setLength(0);
-        }
-        isBatchMode = true;
+        batchStringBuilder.setLength(0);
     }
 
     public void addToBatchDebug(SenderType sender, OFPacket packet) {
@@ -67,7 +63,6 @@ public class PacketDebugger {
     }
 
     public String batchDebugEnd() {
-        isBatchMode = false;
         return batchStringBuilder.toString();
     }
 }
