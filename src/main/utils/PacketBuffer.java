@@ -3,15 +3,12 @@ package utils;
 import org.jetbrains.annotations.NotNull;
 import utils.events.SocketDataEventArg;
 
-import java.nio.ByteBuffer;
 import java.util.Iterator;
-import java.util.Optional;
 
 /**
  * Buffer for packets
  */
 public class PacketBuffer extends QueueMap<ConnectionId, SocketDataEventArg> {
-
 
     public void addPacket(ConnectionId id, SocketDataEventArg packet) {
         super.addObject(id, packet);
