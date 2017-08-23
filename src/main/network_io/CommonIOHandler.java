@@ -190,7 +190,11 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
             this.addToOutputQueue(arg);
         }
 
-        this.logger.info(debugger.batchDebugEnd());
+        String debugString = debugger.batchDebugEnd();
+        if (debugString.isEmpty()) {
+            return;
+        }
+        this.logger.info(debugString);
     }
 
     private void sendData(@NotNull SocketDataEventArg arg) {

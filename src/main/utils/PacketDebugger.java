@@ -59,7 +59,13 @@ public class PacketDebugger {
     }
 
     public void addToBatchDebug(SenderType sender, OFPacket packet) {
-        batchStringBuilder.append(this.stringifyPacket(sender, packet));
+        String stringed = this.stringifyPacket(sender, packet);
+
+        if (stringed.length() == 0) {
+            return;
+        }
+
+        batchStringBuilder.append(stringed);
     }
 
     public String batchDebugEnd() {
