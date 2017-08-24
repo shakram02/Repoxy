@@ -12,29 +12,17 @@ public abstract class ConnectionId {
     private static long MAX_ID = 0;
     private long id;
 
-    @Value.Lazy
-    public long getId() {
-        return MAX_ID++;
-    }
+    @Value.Check
+    protected void setId() {
+        // FIXME This is a HACK to set the correct ID
+        this.id = MAX_ID++;
 
-
-    public static ConnectionId CreateNext() {
-        ConnectionId ret = utils.ImmutableConnectionId.builder().build();
-        ConnectionId.UpdateMaxId();
-        return ret;
     }
 
     public static ConnectionId CreateForTesting(int id) {
         ConnectionId falseId = utils.ImmutableConnectionId.builder().build();
         falseId.id = id;
         return falseId;
-    }
-
-    private static void UpdateMaxId() {
-        MAX_ID++;
-        if (MAX_ID == Integer.MAX_VALUE) {
-            throw new RuntimeException("Out of IDs");
-        }
     }
 
     @Override

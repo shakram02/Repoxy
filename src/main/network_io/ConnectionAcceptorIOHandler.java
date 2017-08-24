@@ -1,5 +1,6 @@
 package network_io;
 
+import utils.ImmutableConnectionId;
 import utils.events.EventType;
 import utils.events.ImmutableSocketConnectionIdArgs;
 import utils.events.SocketAddressInfoEventArg;
@@ -42,7 +43,7 @@ public class ConnectionAcceptorIOHandler extends CommonIOHandler {
         SelectionKey key = channel.register(selector, SelectionKey.OP_READ);
 
         // This shouldn't be created if the caller is the mediator
-        ConnectionId id = ConnectionId.CreateNext();
+        ConnectionId id = ImmutableConnectionId.builder().build();
         this.keyMap.put(key, id);
 
         this.logger.info(key.channel().toString());
@@ -70,7 +71,7 @@ public class ConnectionAcceptorIOHandler extends CommonIOHandler {
         server.configureBlocking(false);
         SelectionKey key = server.register(this.selector, SelectionKey.OP_ACCEPT);
 
-        ConnectionId id = ConnectionId.CreateNext();
+        ConnectionId id = ImmutableConnectionId.builder().build();
         this.keyMap.put(key, id);
 
         server.socket().bind(new InetSocketAddress(address, port));
