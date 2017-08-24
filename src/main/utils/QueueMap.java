@@ -18,6 +18,7 @@ public class QueueMap<K, V> implements Map<K, V> {
         if (!this.map.containsKey(key)) {
             this.map.put(key, new ConcurrentLinkedQueue<>());
         }
+
         this.map.get(key).add(value);
     }
 
@@ -25,23 +26,29 @@ public class QueueMap<K, V> implements Map<K, V> {
         if (!this.map.containsKey(key)) {
             return;
         }
+
         this.map.remove(key);
     }
 
     protected final Iterator<V> iterator(K key) {
-        if (map.containsKey(key)) {
-            return this.map.get(key).iterator();
+        if (!map.containsKey(key)) {
+            return Collections.emptyIterator();
         }
 
-        return Collections.emptyIterator();
+        return this.map.get(key).iterator();
     }
 
     protected final boolean hasItems(K key) {
-        return !this.map.get(key).isEmpty();
+        return this.map.containsKey(key) && !this.map.get(key).isEmpty();
+
     }
 
     @NotNull
     protected final V getNext(K key) {
+        if (!this.map.containsKey(key)) {
+            throw new IllegalArgumentException("Key doesn't exist:" + key.toString());
+        }
+
         return this.map.get(key).poll();
     }
 
