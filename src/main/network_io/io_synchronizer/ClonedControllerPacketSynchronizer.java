@@ -44,6 +44,10 @@ public class ClonedControllerPacketSynchronizer {
         final boolean isQuery = OFMsgType.isQuery(messageCode);
         final boolean isSentBySwitch = dataEventArg.getSenderType() == SenderType.SwitchesRegion;
 
+        if (!isQuery && !isReply) {
+            return;
+        }
+
         // Condition can be simplified, but left for readability
         if (isSentBySwitch && (isQuery || !isReply)) {
             // Switch queries don't need to wait for reply
