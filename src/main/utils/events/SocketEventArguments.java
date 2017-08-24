@@ -4,15 +4,20 @@ import org.immutables.value.Value;
 import utils.ConnectionId;
 import utils.SenderType;
 
-public interface SocketEventArguments {
-    ConnectionId getId();
+public abstract class SocketEventArguments {
+    public abstract ConnectionId getId();
 
-    SenderType getSenderType();
+    public abstract SenderType getSenderType();
 
     @Value.Lazy
-    default long getTimestamp() {
+    public long getTimestamp() {
         return System.currentTimeMillis();
     }
 
-    EventType getReplyType();
+    public abstract EventType getReplyType();
+
+    @Override
+    public String toString() {
+        return String.format("ConnId:[%s] , Sender:[%s] , Type:[%s]\n", getId(), getSenderType(), getReplyType());
+    }
 }

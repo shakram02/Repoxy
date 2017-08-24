@@ -7,7 +7,7 @@ import org.immutables.value.Value;
 import java.nio.ByteBuffer;
 
 @Value.Immutable
-public abstract class SocketDataEventArg implements SocketEventArguments {
+public abstract class SocketDataEventArg extends SocketEventArguments {
 
     public abstract OFPacket getPacket();
 
