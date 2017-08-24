@@ -1,10 +1,10 @@
 package network_io;
 
 import org.jetbrains.annotations.NotNull;
-import utils.*;
-import utils.events.*;
-import utils.packet_store.PacketStore;
-import of_packets.XidSynchronizer;
+import utils.ConnectionId;
+import utils.SenderType;
+import utils.events.SocketAddressInfoEventArg;
+import utils.events.SocketEventArguments;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -22,7 +22,6 @@ public class ControllerIOHandler extends CommonIOHandler {
     private final String address;
     private final int port;
     private final Logger logger;
-    private final XidSynchronizer xidSynchronizer;
 
     public ControllerIOHandler(@NotNull String address, int port) {
         // Start as replica, then the status will be updated
@@ -38,7 +37,6 @@ public class ControllerIOHandler extends CommonIOHandler {
             this.selfType = SenderType.ControllerRegion;
         }
         this.logger.info(String.format("Connection created: %s , %s", this.selfType, port));
-        xidSynchronizer = new XidSynchronizer(new PacketStore());
     }
 
     /**
@@ -103,7 +101,6 @@ public class ControllerIOHandler extends CommonIOHandler {
         } else {
             this.createConnection(arg);
         }
-
     }
 
     private void setActiveControllerHandler(SocketAddressInfoEventArg controllerChangeArg) {
