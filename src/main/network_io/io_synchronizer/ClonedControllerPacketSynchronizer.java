@@ -93,12 +93,10 @@ public class ClonedControllerPacketSynchronizer {
         while (iterator.hasNext()) {
             SocketDataEventArg iteratorEventArg = iterator.next();
 
-            if (!replyRequestMatch(queryEventArg, iteratorEventArg)) {
-                continue;
+            if (queryEventArg.isCounterpartOf(iteratorEventArg)) {
+                iterator.remove();  // Remove from fragmented buffer
+                return Optional.of(iteratorEventArg);
             }
-
-            iterator.remove();  // Remove from fragmented buffer
-            return Optional.of(iteratorEventArg);
         }
 
         return Optional.empty();
