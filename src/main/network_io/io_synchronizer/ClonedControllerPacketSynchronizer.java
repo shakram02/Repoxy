@@ -3,32 +3,21 @@ package network_io.io_synchronizer;
 import of_packets.OFMsgType;
 import utils.ConnectionId;
 import utils.PacketBuffer;
-import utils.SenderType;
 import utils.events.SocketDataEventArg;
 
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Optional;
 
-// FIXME take care of the SetConfig flow: request(C2S) >> reply(S2C) >> setConfig(C2S)
-
 /**
- * Input: Controller messages, Switch messages
- * Assumptions:
- * Main controller is always ahead (so the switches might send replies before queries from replicated controller)
+ * Acts as the IO queue for the replicated controller
+ * All packets going to and coming out of the controller must be inserted to this objects.
  * <p>
- * Output: Messages going to controller
- * <p>
- * Function: Delay Switch "reply messages" until the controller
- * sends the corresponding request.
- * <p>
- * When a packet arrives:
- * If it doesn't have a reply it's stored in the
- * fragmented packet buffer.
- * If the newly arriving packet has a reply stored
- * in the fragmented buffer, The reply is put in the ordered output.
+ * Synchronized packets can be obtained by {@link #getSynced()}
+ *
+ * Packets are synced with disregard to the sender, to make a concise interface and code possible.
  */
-public class ClonedControllerPacketSynchronizer {
+public class ClonedControllerPacketSynchronizer implements Synchronizer {
 
     private final PacketBuffer replies;
     private final LinkedList<SocketDataEventArg> syncedPacketsToController;
@@ -38,34 +27,22 @@ public class ClonedControllerPacketSynchronizer {
         this.syncedPacketsToController = new LinkedList<>();
     }
 
-    public void insertUnSynced(SocketDataEventArg dataEventArg) {
+    public void addUnSynchronized(SocketDataEventArg dataEventArg) {
         final byte messageCode = dataEventArg.getPacket().getMessageCode();
         final boolean isReply = OFMsgType.isReply(messageCode);
         final boolean isQuery = OFMsgType.isQuery(messageCode);
-        final boolean isSentBySwitch = dataEventArg.getSenderType() == SenderType.SwitchesRegion;
 
         if (!isQuery && !isReply) {
             return;
         }
 
-        // Condition can be simplified, but left for readability
-        if (isSentBySwitch && (isQuery || !isReply)) {
-            // Switch queries don't need to wait for reply
-            // Switch async messages don't need to wait for reply
+        // All queries are always forwarded, eventually the reply entring will remove the copy
+        // in the fragmented items
+        if (isQuery) {
             this.syncedPacketsToController.add(dataEventArg);
-            return;
         }
 
-//        // !isSentBySwitch is always true here, but left for readability
-//        //noinspection ConstantConditions
-//        if (isQuery && !isSentBySwitch) {
-//            // Store queries coming from controller in order to release their replies
-//            // once the replies arrive
-//            this.queries.addPacket(dataEventArg.getId(), dataEventArg);
-//            return;
-//        }
-
-        if (this.addToOutputIfMatch(dataEventArg)) {
+        if (this.addToOutputIfApplicable(dataEventArg)) {
             // Incremental packet sync
             // The reply was matched with a query and added to the output list
             return;
@@ -80,7 +57,7 @@ public class ClonedControllerPacketSynchronizer {
         return Optional.ofNullable(this.syncedPacketsToController.poll());
     }
 
-    private boolean addToOutputIfMatch(SocketDataEventArg arg) {
+    private boolean addToOutputIfApplicable(SocketDataEventArg arg) {
         Optional<SocketDataEventArg> match = this.removeMatchingPacket(arg);
         if (match.isPresent()) {
             this.syncedPacketsToController.add(match.get());
@@ -90,36 +67,27 @@ public class ClonedControllerPacketSynchronizer {
         return false;
     }
 
-    private Optional<SocketDataEventArg> removeMatchingPacket(SocketDataEventArg queryEventArg) {
-        final ConnectionId id = queryEventArg.getId();
+    private Optional<SocketDataEventArg> removeMatchingPacket(SocketDataEventArg dataEventArg) {
+        final ConnectionId id = dataEventArg.getId();
         final Iterator<SocketDataEventArg> iterator = this.replies.packetIterator(id);
 
         while (iterator.hasNext()) {
             SocketDataEventArg iteratorEventArg = iterator.next();
 
-            if (queryEventArg.isCounterpartOf(iteratorEventArg)) {
+            if (dataEventArg.isCounterpartOf(iteratorEventArg)) {
                 iterator.remove();  // Remove from fragmented buffer
-                return Optional.of(iteratorEventArg);
+
+                // If the counterpart is a query, return the reply packet
+                // (the query has already been added to output)
+                // So, Whenever we compare between a query and a reply, the reply gets returned
+                if (OFMsgType.isQuery(iteratorEventArg.getPacket().getMessageCode())) {
+                    return Optional.of(dataEventArg);
+                } else {
+                    return Optional.of(iteratorEventArg);
+                }
             }
         }
 
         return Optional.empty();
-    }
-
-    /**
-     * Matched OpenFlow request/reply packets
-     *
-     * @param dataEventArg
-     * @param otherDataArg
-     * @return
-     */
-    private boolean replyRequestMatch(SocketDataEventArg dataEventArg, SocketDataEventArg otherDataArg) {
-        byte messageCode = dataEventArg.getPacket().getMessageCode();
-        byte otherMessageCode = otherDataArg.getPacket().getMessageCode();
-
-        boolean sameConnectionId = dataEventArg.getId().equals(otherDataArg.getId());
-        boolean isOfOpposite = OFMsgType.getOppositeMessage(messageCode) == otherMessageCode;
-
-        return sameConnectionId && isOfOpposite;
     }
 }
