@@ -1,16 +1,11 @@
 package helpers;
 
-import com.google.common.collect.ImmutableList;
 import of_packets.OFPacket;
 import of_packets.OFStreamParser;
 import utils.ConnectionId;
 import utils.SenderType;
 import utils.events.ImmutableSocketDataEventArg;
 import utils.events.SocketDataEventArg;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 public class TestPacketArgMaker {
 
