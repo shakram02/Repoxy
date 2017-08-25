@@ -32,7 +32,7 @@ public class XidSynchronizer {
      *
      * @param arg Event argument containing packet
      */
-    public void storeIfQuery(SocketDataEventArg arg) {
+    public void saveCopyIfQuery(SocketDataEventArg arg) {
         if (!OFMsgType.isQuery(arg.getPacket().getMessageCode())) {
             return;
         }
@@ -55,27 +55,27 @@ public class XidSynchronizer {
             return Optional.empty();
         }
 
-        OFPacket packet = modifyReply(arg);
-
-        return Optional.of(((ImmutableSocketDataEventArg) arg).withPacket(packet));
+        Optional<OFPacket> packet = modifyReply(arg);
+        return packet.map(((ImmutableSocketDataEventArg) arg)::withPacket);
     }
 
-    private OFPacket modifyReply(final SocketDataEventArg replyArg) {
+    private Optional<OFPacket> modifyReply(final SocketDataEventArg replyArg) {
         OFPacket reply = replyArg.getPacket();
 
         if (reply.getXid() == 0) {
-            return replyArg.getPacket();
+            return Optional.of(replyArg.getPacket());
         }
 
         if (!hasCounterpart(replyArg)) {
-            throw new IllegalStateException("No query is present for this reply:" + reply);
+            // Packet's request might still be pending
+            return Optional.empty();
         }
 
         OFPacket query = getOppositeOf(replyArg);
         int queryXid = query.getXid();
         System.out.println("Change XId from:" + reply.getXid() + " of:" + query.getHeader());
 
-        return reply.withXid(queryXid);
+        return Optional.of(reply.withXid(queryXid));
     }
 
     private boolean hasCounterpart(final SocketDataEventArg arg) {
@@ -97,13 +97,13 @@ public class XidSynchronizer {
 
     private OFPacket getOppositeOf(final SocketDataEventArg arg) {
 
-        byte oppositeMessageCode = OFMsgType.getOppositeMessage(arg.getPacket().getMessageCode());
         Iterator<SocketDataEventArg> iterator = this.packetBuffer.packetIterator(arg.getId());
 
         while (iterator.hasNext()) {
-            OFPacket packet = iterator.next().getPacket();
+            SocketDataEventArg dataEventArg = iterator.next();
+            OFPacket packet = dataEventArg.getPacket();
 
-            if (packet.getMessageCode() == oppositeMessageCode) {
+            if (dataEventArg.isCounterpartOf(arg)) {
                 return packet;
             }
         }
