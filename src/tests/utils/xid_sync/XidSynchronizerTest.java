@@ -1,79 +1,67 @@
 package utils.xid_sync;
 
-import of_packets.XidSynchronizer;
-import utils.events.ImmutableSocketDataEventArg;
-import of_packets.OFStreamParser;
+import helpers.TestPacketArgMaker;
+import helpers.TestPackets;
+import network_io.io_synchronizer.XidSynchronizer;
+import of_packets.OFPacket;
+import org.junit.Assert;
 import org.junit.jupiter.api.Test;
-import utils.ConnectionId;
 import utils.SenderType;
 import utils.events.SocketDataEventArg;
-import utils.packet_store.PacketStore;
+
+import java.util.Optional;
 
 class XidSynchronizerTest {
     @Test
-    void syncXid() {
-        XidSynchronizer synchronizer = new XidSynchronizer(new PacketStore());
+    void syncOneXid() {
+        XidSynchronizer synchronizer = new XidSynchronizer();
+        int requestXid = 11;
+        SocketDataEventArg dataEventArgs = TestPacketArgMaker.createFromPacket(1,
+                TestPackets.FeaturesRequestXid11, SenderType.ReplicaRegion);
 
-        /*
-            From:ReplicaRegion
-	            27 Features Request
-		            [1, 5, 0, 8, 0, 0, 0, 27]
-	            28 Features Request
-       		        [1, 5, 0, 8, 0, 0, 0, 28]
+        synchronizer.saveCopyIfQuery(dataEventArgs);
 
-       		Packet:type:Features Request xId:27 len:8 Insert:27
-            Packet:type:Features Request xId:28 len:8 Insert:28
-         */
+        Optional<SocketDataEventArg> xidSyncResult = synchronizer.syncIfReply(TestPacketArgMaker
+                .createFromPacket(1,
+                        TestPackets.FeaturesReplyXid10, SenderType.ReplicaRegion));
 
-        byte[] featuresRequest = new byte[]{1, 5, 0, 8, 0, 0, 0, 27, 1, 5, 0, 8, 0, 0, 0, 28};
+        Assert.assertTrue(xidSyncResult.isPresent());
 
-        ConnectionId conId = ConnectionId.CreateForTesting(1);
-        SocketDataEventArg replicaPackets = ImmutableSocketDataEventArg.builder()
-                .senderType(SenderType.ReplicaRegion)
-                .id(conId)
-                .packet(OFStreamParser.parseStream(featuresRequest).get(0))
-                .build();
+        SocketDataEventArg syncedArg = xidSyncResult.get();
 
+        Assert.assertTrue(syncedArg.getPacket().getXid() == requestXid);
+    }
 
-        synchronizer.syncPacketXid(conId, replicaPackets.getPacket());
+    @Test
+    void syncOneXidFalseConnectionID() {
+        final XidSynchronizer synchronizer = new XidSynchronizer();
+        int connectionId = 1;
+        int falseConnectionId = 2;
 
-        /*
-            From:ControllerRegion
-	            14 Features Request
-		            [1, 5, 0, 8, 0, 0, 0, 14]
+        SocketDataEventArg dataEventArgs = TestPacketArgMaker.createFromPacket(connectionId,
+                TestPackets.FeaturesRequestXid11, SenderType.ReplicaRegion);
 
-            From:ControllerRegion
-                15 Features Request
-		            [1, 5, 0, 8, 0, 0, 0, 15]
-         */
-//        SocketDataEventArg controllerPackets = new SocketDataEventArg(SenderType.ControllerRegion,
-//                ConnectionId.CreateForTesting(1), createFromArray(featuresRequest));
-//        synchronizer.syncListXids(controllerPackets);
+        synchronizer.saveCopyIfQuery(dataEventArgs);
+        SocketDataEventArg arg = TestPacketArgMaker.createFromPacket(falseConnectionId,
+                TestPackets.FeaturesReplyXid10, SenderType.ReplicaRegion);
 
-        /*
-            From:SwitchesRegion
-	14 Features Reply
-		[1, 6, 0, -32, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, -2, 0, 0, 0, 0, 0, 0, -57, 0, 0, 15, -1, 0, 3, 14, 15, -22, 111, 62, -101, 115, 49, 45, 101, 116, 104, 51, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -34, -2, -68, -76, 52, -38, 115, 49, 45, 101, 116, 104, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 62, -102, 46, -78, 123, -20, 115, 49, 45, 101, 116, 104, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -2, 126, -2, 20, -111, 13, 71, 115, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-         */
+        Assert.assertFalse(synchronizer.syncIfReply(arg).isPresent());
+    }
 
-        byte[] featuresReplyFirst = new byte[]{1, 6, 0, -32, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, -2, 0, 0, 0, 0, 0, 0, -57, 0, 0, 15, -1, 0, 3, 14, 15, -22, 111, 62, -101, 115, 49, 45, 101, 116, 104, 51, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -34, -2, -68, -76, 52, -38, 115, 49, 45, 101, 116, 104, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 62, -102, 46, -78, 123, -20, 115, 49, 45, 101, 116, 104, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -2, 126, -2, 20, -111, 13, 71, 115, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        SocketDataEventArg replyFirst = ImmutableSocketDataEventArg.builder()
-                .senderType(SenderType.SwitchesRegion)
-                .id(conId)
-                .packet(OFStreamParser.parseStream(featuresReplyFirst).get(0))
-                .build();
+    @Test
+    void syncSwitchQuery() {
+        final XidSynchronizer synchronizer = new XidSynchronizer();
 
-        synchronizer.syncPacketXid(conId, replyFirst.getPacket());
+        synchronizer.saveCopyIfQuery(TestPacketArgMaker.createFromPacket(1,
+                TestPackets.FeaturesRequestXid11, SenderType.SwitchesRegion));
 
-        byte[] featuresReplySecond = new byte[]{1, 6, 0, -32, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, -2, 0, 0, 0, 0, 0, 0, -57, 0, 0, 15, -1, 0, 3, 78, 103, 78, -80, 57, -76, 115, 50, 45, 101, 116, 104, 51, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -110, -55, -53, 94, -62, -51, 115, 50, 45, 101, 116, 104, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, -90, -23, 104, -6, 121, 122, 115, 50, 45, 101, 116, 104, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -2, -82, -14, -76, 80, -48, 73, 115, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        SocketDataEventArg replySecond =
-                ImmutableSocketDataEventArg.builder()
-                        .senderType(SenderType.SwitchesRegion)
-                        .id(conId)
-                        .packet(OFStreamParser.parseStream(featuresReplySecond).get(0))
-                        .build();
+        Optional<SocketDataEventArg> syncResult = synchronizer.syncIfReply(
+                TestPacketArgMaker.createFromPacket(1,
+                        TestPackets.FeaturesReplyXid10, SenderType.ReplicaRegion));
 
+        Assert.assertTrue(syncResult.isPresent());
+        OFPacket packet = syncResult.get().getPacket();
 
-        synchronizer.syncPacketXid(conId, replySecond.getPacket());
+        Assert.assertTrue(packet.getXid() == 11);
     }
 }
