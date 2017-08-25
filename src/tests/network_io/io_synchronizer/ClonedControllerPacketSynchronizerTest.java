@@ -7,15 +7,16 @@ import of_packets.OFMsgType;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import utils.SenderType;
+import utils.events.SocketDataEventArg;
 
 import static helpers.AssertionHelper.absence;
 import static of_packets.OFMsgType.OFPT_BARRIER_REPLY;
 import static of_packets.OFMsgType.OFPT_BARRIER_REQUEST;
 
-class CloneIoBufferSynchronizerTest {
+class ClonedControllerPacketSynchronizerTest {
     @Test
     void testSyncSimple() {
-        CloneIoBufferSynchronizer synchronizer = new CloneIoBufferSynchronizer();
+        ClonedControllerPacketSynchronizer synchronizer = new ClonedControllerPacketSynchronizer();
 
         // Add the query
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(1,
@@ -36,7 +37,7 @@ class CloneIoBufferSynchronizerTest {
 
     @Test
     void testSyncReversedSimple() {
-        CloneIoBufferSynchronizer synchronizer = new CloneIoBufferSynchronizer();
+        ClonedControllerPacketSynchronizer synchronizer = new ClonedControllerPacketSynchronizer();
 
         // Add the reply
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(1,
@@ -58,7 +59,7 @@ class CloneIoBufferSynchronizerTest {
 
     @Test
     void testSyncTwoRequestOneReply() {
-        CloneIoBufferSynchronizer synchronizer = new CloneIoBufferSynchronizer();
+        ClonedControllerPacketSynchronizer synchronizer = new ClonedControllerPacketSynchronizer();
 
         // Add the query
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(1,
@@ -87,7 +88,7 @@ class CloneIoBufferSynchronizerTest {
 
     @Test
     void testSwitchRequest() {
-        CloneIoBufferSynchronizer synchronizer = new CloneIoBufferSynchronizer();
+        ClonedControllerPacketSynchronizer synchronizer = new ClonedControllerPacketSynchronizer();
 
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(1,
                 TestPackets.BarrierRequestXid54, SenderType.SwitchesRegion));
@@ -101,7 +102,7 @@ class CloneIoBufferSynchronizerTest {
 
     @Test
     void testSwitchRequestReversed() {
-        CloneIoBufferSynchronizer synchronizer = new CloneIoBufferSynchronizer();
+        ClonedControllerPacketSynchronizer synchronizer = new ClonedControllerPacketSynchronizer();
 
 
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(1,
@@ -116,7 +117,7 @@ class CloneIoBufferSynchronizerTest {
 
     @Test
     void testDifferentConnectionIDs() {
-        CloneIoBufferSynchronizer synchronizer = new CloneIoBufferSynchronizer();
+        ClonedControllerPacketSynchronizer synchronizer = new ClonedControllerPacketSynchronizer();
 
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(1,
                 TestPackets.BarrierRequestXid54, SenderType.ReplicaRegion));
@@ -140,7 +141,7 @@ class CloneIoBufferSynchronizerTest {
 
     @Test
     void testSyncTwoRequestTwoReplies() {
-        CloneIoBufferSynchronizer synchronizer = new CloneIoBufferSynchronizer();
+        ClonedControllerPacketSynchronizer synchronizer = new ClonedControllerPacketSynchronizer();
 
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(2,
                 TestPackets.BarrierReplyXid54, SenderType.SwitchesRegion));
@@ -170,7 +171,7 @@ class CloneIoBufferSynchronizerTest {
 
     @Test
     void testSyncReplyWithNoQuery() {
-        CloneIoBufferSynchronizer synchronizer = new CloneIoBufferSynchronizer();
+        ClonedControllerPacketSynchronizer synchronizer = new ClonedControllerPacketSynchronizer();
 
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(2,
                 TestPackets.BarrierReplyXid54, SenderType.SwitchesRegion));
