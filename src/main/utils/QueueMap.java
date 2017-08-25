@@ -1,14 +1,16 @@
 package utils;
 
+import org.immutables.value.Value;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.dnd.InvalidDnDOperationException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 // TODO make the type hold a List<X> instead of specifying concurrent linked queue
 public class QueueMap<K, V> implements Map<K, V> {
-    private ConcurrentHashMap<K, ConcurrentLinkedQueue<V>> map;
+    private ConcurrentHashMap<K, LinkedList<V>> map;
 
     protected QueueMap() {
         this.map = new ConcurrentHashMap<>();
@@ -16,7 +18,7 @@ public class QueueMap<K, V> implements Map<K, V> {
 
     protected final void addObject(K key, V value) {
         if (!this.map.containsKey(key)) {
-            this.map.put(key, new ConcurrentLinkedQueue<>());
+            this.map.put(key, new LinkedList<>());
         }
 
         this.map.get(key).add(value);
@@ -49,7 +51,7 @@ public class QueueMap<K, V> implements Map<K, V> {
             throw new IllegalArgumentException("Key doesn't exist:" + key.toString());
         }
 
-        return this.map.get(key).poll();
+        return this.get(key);
     }
 
     @Override
@@ -77,7 +79,7 @@ public class QueueMap<K, V> implements Map<K, V> {
             return false;
         }
 
-        for (ConcurrentLinkedQueue<V> q : this.map.values()) {
+        for (LinkedList<V> q : this.map.values()) {
             if (q.contains(value)) {
                 return true;
             }
@@ -89,8 +91,8 @@ public class QueueMap<K, V> implements Map<K, V> {
     @Override
     public V get(Object o) {
 
-        ConcurrentLinkedQueue<V> queue = this.map.get(o);
-        if (queue.isEmpty()) {
+        LinkedList<V> queue = this.map.get(o);
+        if (queue.isEmpty() || !this.map.containsKey(o)) {
             return null;
         }
 
@@ -116,7 +118,7 @@ public class QueueMap<K, V> implements Map<K, V> {
 
     @Override
     public V remove(Object o) {
-        ConcurrentLinkedQueue<V> queue = this.map.remove(o);
+        LinkedList<V> queue = this.map.remove(o);
         return queue.poll();
     }
 
@@ -150,6 +152,40 @@ public class QueueMap<K, V> implements Map<K, V> {
     @NotNull
     @Override
     public Set<Entry<K, V>> entrySet() {
-        throw new UnsupportedOperationException();
+        Set<Entry<K, V>> result = new HashSet<>(this.map.size());
+
+        for (Map.Entry<K, LinkedList<V>> item : this.map.entrySet()) {
+            for (V value : item.getValue()) {
+                Entry e = utils.ImmutableQueueMapEntry
+                        .builder()
+                        .key(item.getKey())
+                        .value(value)
+                        .build();
+                result.add((utils.ImmutableQueueMapEntry<K, V>) e);
+            }
+        }
+
+        return result;
+    }
+
+    @Value.Immutable
+    public static abstract class QueueMapEntry<K, V> implements Entry<K, V> {
+        @Override
+        @Value.Parameter
+        public abstract K getKey();
+
+        @Override
+        @Value.Parameter
+        public abstract V getValue();
+
+        @Override
+        public V setValue(V v) {
+            throw new InvalidDnDOperationException();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(getKey(), getValue());
+        }
     }
 }
