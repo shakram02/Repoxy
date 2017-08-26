@@ -85,7 +85,7 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
                     this.logger.info("Elevating secondary controller, main one disconnected!!!");
                     this.elevateSecondaryController();
                 } else {
-                    this.switchSockets.addToCommandQueue(arg);
+                    this.switchSockets.addInput(arg);
                 }
 
 
@@ -172,7 +172,7 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
 
     private void notifyControllers(SocketEventArguments arg) {
         for (ControllerIOHandler controller : this.controllerHandlers) {
-            controller.addToCommandQueue(arg);
+            controller.addInput(arg);
         }
     }
 

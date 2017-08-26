@@ -51,6 +51,8 @@ public class OFStreamParser {
             buffer.put(packet.getData());
         }
 
+        buffer.flip();  // Make the buffer ready for consumption
+
         return buffer;
     }
 

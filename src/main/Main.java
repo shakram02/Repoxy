@@ -27,7 +27,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         setupLogging();
-        boolean oneMachineRun = true;
+        boolean oneMachineRun = false;
 
         //noinspection ConstantConditions
         if (oneMachineRun) {
@@ -35,7 +35,7 @@ public class Main {
             CONT_4 = "127.0.0.1";
             CONT_5 = "127.0.0.1";
         } else {
-            LOCALHOST = LocalhostIpSupplier.getLocalHostLANAddress().getHostAddress();
+            LOCALHOST = LocalhostIpSupplier.getLocalHostLANAddress("w").getHostAddress();
             CONT_4 = "192.168.1.104";
             CONT_5 = "192.168.1.105";
         }

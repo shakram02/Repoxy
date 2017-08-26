@@ -5,7 +5,7 @@ import utils.ConnectionId;
 import utils.SenderType;
 
 @Value.Immutable
-public abstract class ControllerFailureArgs implements SocketEventArguments {
+public abstract class ControllerFailureArgs extends SocketEventArguments {
 
     @Override
     public ConnectionId getId() {

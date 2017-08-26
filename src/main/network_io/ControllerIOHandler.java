@@ -1,15 +1,19 @@
 package network_io;
 
+import network_io.io_synchronizer.SynchronizationFacade;
 import org.jetbrains.annotations.NotNull;
-import utils.*;
-import utils.events.*;
-import utils.packet_store.PacketStore;
-import of_packets.XidSynchronizer;
+import utils.ConnectionId;
+import utils.SenderType;
+import utils.events.ImmutableSocketDataEventArg;
+import utils.events.SocketAddressInfoEventArg;
+import utils.events.SocketDataEventArg;
+import utils.events.SocketEventArguments;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
@@ -17,12 +21,11 @@ import java.util.logging.Logger;
  */
 public class ControllerIOHandler extends CommonIOHandler {
     private static ControllerIOHandler activeControllerHandler;
-
+    SynchronizationFacade synchronizer;
     @NotNull
     private final String address;
     private final int port;
     private final Logger logger;
-    private final XidSynchronizer xidSynchronizer;
 
     public ControllerIOHandler(@NotNull String address, int port) {
         // Start as replica, then the status will be updated
@@ -31,14 +34,33 @@ public class ControllerIOHandler extends CommonIOHandler {
         this.address = address;
         this.port = port;
         this.logger = Logger.getLogger(String.format("%s/%d", this.address, this.port));
+        this.synchronizer = new SynchronizationFacade(super::addOutput, super::addInput);
 
         // If no active controllers are set. make this one the active controller
         if (ControllerIOHandler.activeControllerHandler == null) {
             ControllerIOHandler.activeControllerHandler = this;
             this.selfType = SenderType.ControllerRegion;
         }
-        this.logger.info(String.format("Connection created: %s , %s", this.selfType, port));
-        xidSynchronizer = new XidSynchronizer(new PacketStore());
+    }
+
+    @Override
+    protected void addOutput(SocketEventArguments arg) {
+        if (arg instanceof SocketDataEventArg) {
+            SocketDataEventArg dataEventArg = (SocketDataEventArg) arg;
+            this.synchronizer.manageOutput(dataEventArg);
+        } else {
+            super.addOutput(arg);
+        }
+    }
+
+    @Override
+    public void addInput(@NotNull SocketEventArguments arg) {
+        if (arg instanceof SocketDataEventArg) {
+            SocketDataEventArg dataEventArg = (SocketDataEventArg) arg;
+            this.synchronizer.manageInput(dataEventArg);
+        } else {
+            super.addInput(arg);
+        }
     }
 
     /**
@@ -103,7 +125,6 @@ public class ControllerIOHandler extends CommonIOHandler {
         } else {
             this.createConnection(arg);
         }
-
     }
 
     private void setActiveControllerHandler(SocketAddressInfoEventArg controllerChangeArg) {

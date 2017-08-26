@@ -5,7 +5,7 @@ import utils.ConnectionId;
 import utils.SenderType;
 
 @Value.Immutable
-public abstract class SocketAddressInfoEventArg implements SocketEventArguments {
+public abstract class SocketAddressInfoEventArg extends SocketEventArguments {
     public abstract String getIp();
     public abstract int getPort();
 

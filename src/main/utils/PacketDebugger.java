@@ -6,9 +6,11 @@ import of_packets.OFStreamParser;
 import utils.events.SocketDataEventArg;
 import utils.logging.ConsoleColors;
 
+import java.util.Arrays;
+
 public class PacketDebugger {
-    public void debugPackets(SocketDataEventArg arg) {
-        String debugMessage = stringifyPackets(arg.getSenderType(), arg.getPacket());
+    public void debugDataEventArg(SocketDataEventArg arg) {
+        String debugMessage = stringifyPacket(arg.getSenderType(), arg.getPacket());
         if (debugMessage.length() == 0) {
             return;
         }
@@ -16,7 +18,7 @@ public class PacketDebugger {
         System.out.println(debugMessage);
     }
 
-    public String stringifyPackets(SenderType sender, OFPacket packet) {
+    public String stringifyPacket(SenderType sender, OFPacket packet) {
         StringBuilder infoBuilder = new StringBuilder();
         String color = "";
         switch (sender) {
@@ -35,7 +37,6 @@ public class PacketDebugger {
         infoBuilder.append(sender);
         infoBuilder.append("\n");
 
-
         if (packet.getHeader().getMessageCode() == OFMsgType.OFPT_ECHO_REPLY ||
                 packet.getHeader().getMessageCode() == OFMsgType.OFPT_ECHO_REQUEST) {
             return "";
@@ -43,11 +44,31 @@ public class PacketDebugger {
 
         infoBuilder.append("\t");
         infoBuilder.append(packet.getHeader());
-        infoBuilder.append("\n\t\t");
-        infoBuilder.append(OFStreamParser.serializePacket(packet));
+        infoBuilder.append("\t\t");
+        infoBuilder.append(Arrays.toString(OFStreamParser.serializePacket(packet).array()));
         infoBuilder.append("\n");
 
         infoBuilder.append(ConsoleColors.RESET);
         return infoBuilder.toString();
+    }
+
+    private StringBuilder batchStringBuilder = new StringBuilder();
+
+    public void batchDebugStart() {
+        batchStringBuilder.setLength(0);
+    }
+
+    public void addToBatchDebug(SenderType sender, OFPacket packet) {
+        String stringed = this.stringifyPacket(sender, packet);
+
+        if (stringed.length() == 0) {
+            return;
+        }
+
+        batchStringBuilder.append(stringed);
+    }
+
+    public String batchDebugEnd() {
+        return batchStringBuilder.toString();
     }
 }

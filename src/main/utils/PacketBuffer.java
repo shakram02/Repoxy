@@ -1,16 +1,16 @@
 package utils;
 
 import org.jetbrains.annotations.NotNull;
+import utils.events.SocketDataEventArg;
 
-import java.nio.ByteBuffer;
+import java.util.Iterator;
 
 /**
  * Buffer for packets
  */
-public class PacketBuffer extends QueueMap<ConnectionId, byte[]> {
+public class PacketBuffer extends QueueMap<ConnectionId, SocketDataEventArg> {
 
-
-    public void addPacket(ConnectionId id, byte[] packet) {
+    public void addPacket(ConnectionId id, SocketDataEventArg packet) {
         super.addObject(id, packet);
     }
 
@@ -22,10 +22,12 @@ public class PacketBuffer extends QueueMap<ConnectionId, byte[]> {
         return super.hasItems(id);
     }
 
-    @NotNull
-    public ByteBuffer getNextPacket(ConnectionId id) {
+    public Iterator<SocketDataEventArg> packetIterator(ConnectionId id) {
+        return super.iterator(id);
+    }
 
-        byte[] nextPacket = super.getNext(id);
-        return ByteBuffer.wrap(nextPacket);
+    @NotNull
+    public SocketDataEventArg getNextPacket(ConnectionId id) {
+        return super.getNext(id);
     }
 }
