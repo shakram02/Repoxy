@@ -20,7 +20,7 @@ public interface SocketIOer extends Closeable {
      *
      * @param arg Command for socket IO (CloseConnection/SendData)
      */
-    void addToCommandQueue(@NotNull SocketEventArguments arg);
+    void addInput(@NotNull SocketEventArguments arg);
 
     /**
      * Retrieves the next event from the IO Event queue

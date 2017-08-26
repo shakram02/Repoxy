@@ -1,5 +1,6 @@
 package network_io;
 
+import network_io.io_synchronizer.SynchronizationFacade;
 import org.jetbrains.annotations.NotNull;
 import utils.ConnectionId;
 import utils.SenderType;
@@ -17,7 +18,7 @@ import java.util.logging.Logger;
  */
 public class ControllerIOHandler extends CommonIOHandler {
     private static ControllerIOHandler activeControllerHandler;
-
+    SynchronizationFacade synchronizer;
     @NotNull
     private final String address;
     private final int port;
@@ -30,13 +31,13 @@ public class ControllerIOHandler extends CommonIOHandler {
         this.address = address;
         this.port = port;
         this.logger = Logger.getLogger(String.format("%s/%d", this.address, this.port));
+        this.synchronizer = new SynchronizationFacade();
 
         // If no active controllers are set. make this one the active controller
         if (ControllerIOHandler.activeControllerHandler == null) {
             ControllerIOHandler.activeControllerHandler = this;
             this.selfType = SenderType.ControllerRegion;
         }
-        this.logger.info(String.format("Connection created: %s , %s", this.selfType, port));
     }
 
     /**

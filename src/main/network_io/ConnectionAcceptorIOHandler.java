@@ -53,7 +53,7 @@ public class ConnectionAcceptorIOHandler extends CommonIOHandler {
                 .senderType(this.selfType)
                 .replyType(EventType.Connection)
                 .id(id).build();
-        this.addToOutputQueue(eventArg);
+        this.addOutput(eventArg);
 
     }
 

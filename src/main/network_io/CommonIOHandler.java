@@ -40,10 +40,10 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
     protected final Selector selector;
     protected final HashBiMap<SelectionKey, ConnectionId> keyMap;
     protected final Logger logger = Logger.getLogger(CommonIOHandler.class.getName());
-    // Adding to output queue should be done only through calling addToOutputQueue()
+    // Adding to output queue should be done only through calling addOutput()
     // as child classes may want to override what happens when adding an event
-    private final ArrayDeque<SocketEventArguments> eventQueue;
-    private final ArrayDeque<SocketEventArguments> commandQueue;
+    private final ArrayDeque<SocketEventArguments> outputQueue;
+    private final ArrayDeque<SocketEventArguments> inputQueue;
     private final PacketDebugger debugger;
     protected SenderType selfType;
 
@@ -66,8 +66,8 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
         this.keyMap = HashBiMap.create();
         this.buffer = ByteBuffer.allocate(BUFFER_SIZE);
 
-        this.commandQueue = new ArrayDeque<>();
-        this.eventQueue = new ArrayDeque<>();
+        this.inputQueue = new ArrayDeque<>();
+        this.outputQueue = new ArrayDeque<>();
         this.packetBuffer = new PacketBuffer();
         this.debugger = new PacketDebugger();
     }
@@ -111,11 +111,11 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
     }
 
     private Optional<SocketEventArguments> fetchInputQueueItem() {
-        if (this.commandQueue.isEmpty()) {
+        if (this.inputQueue.isEmpty()) {
             return Optional.empty();
         }
 
-        SocketEventArguments arg = this.commandQueue.removeFirst();
+        SocketEventArguments arg = this.inputQueue.removeFirst();
 
         // Check if the controller is alive when IO is needed
         if (arg.getReplyType() == EventType.SendData &&
@@ -151,8 +151,17 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
      * @param arg Command for socket IO (CloseConnection/SendData)
      */
     @Override
-    public void addToCommandQueue(@NotNull SocketEventArguments arg) {
-        this.commandQueue.add(arg);
+    public void addInput(@NotNull SocketEventArguments arg) {
+        this.inputQueue.add(arg);
+    }
+
+    /**
+     * Add an item to event queue.
+     *
+     * @param arg Event data argument to be added
+     */
+    protected void addOutput(SocketEventArguments arg) {
+        this.outputQueue.add(arg);
     }
 
     private void closeConnection(@NotNull SocketEventArguments arg) {
@@ -187,7 +196,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
                     .packet(p)
                     .build();
 
-            this.addToOutputQueue(arg);
+            this.addOutput(arg);
         }
 
         String debugString = debugger.batchDebugEnd();
@@ -214,7 +223,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
         this.closeConnection(arg);
         // Notify mediator here as close connection when called by the mediator
         // re-notifies the upper layer
-        this.addToOutputQueue(arg);
+        this.addOutput(arg);
     }
 
     /**
@@ -322,19 +331,9 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
         key.interestOps(oldOps & ~SelectionKey.OP_WRITE);
     }
 
-    /**
-     * Add an item to event queue.
-     *
-     * @param arg Event data argument to be added
-     */
-    protected void addToOutputQueue(SocketEventArguments arg) {
-//        logger.warning(arg.toString());
-        this.eventQueue.add(arg);
-    }
-
     @Override
     public Optional<SocketEventArguments> getOldestEvent() {
-        return Optional.ofNullable(this.eventQueue.poll());
+        return Optional.ofNullable(this.outputQueue.poll());
     }
 
     @Override
