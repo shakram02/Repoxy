@@ -4,13 +4,16 @@ import network_io.io_synchronizer.SynchronizationFacade;
 import org.jetbrains.annotations.NotNull;
 import utils.ConnectionId;
 import utils.SenderType;
+import utils.events.ImmutableSocketDataEventArg;
 import utils.events.SocketAddressInfoEventArg;
+import utils.events.SocketDataEventArg;
 import utils.events.SocketEventArguments;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
@@ -31,12 +34,32 @@ public class ControllerIOHandler extends CommonIOHandler {
         this.address = address;
         this.port = port;
         this.logger = Logger.getLogger(String.format("%s/%d", this.address, this.port));
-        this.synchronizer = new SynchronizationFacade();
+        this.synchronizer = new SynchronizationFacade(super::addOutput, super::addInput);
 
         // If no active controllers are set. make this one the active controller
         if (ControllerIOHandler.activeControllerHandler == null) {
             ControllerIOHandler.activeControllerHandler = this;
             this.selfType = SenderType.ControllerRegion;
+        }
+    }
+
+    @Override
+    protected void addOutput(SocketEventArguments arg) {
+        if (arg instanceof SocketDataEventArg) {
+            SocketDataEventArg dataEventArg = (SocketDataEventArg) arg;
+            this.synchronizer.manageOutput(dataEventArg);
+        } else {
+            super.addOutput(arg);
+        }
+    }
+
+    @Override
+    public void addInput(@NotNull SocketEventArguments arg) {
+        if (arg instanceof SocketDataEventArg) {
+            SocketDataEventArg dataEventArg = (SocketDataEventArg) arg;
+            this.synchronizer.manageInput(dataEventArg);
+        } else {
+            super.addInput(arg);
         }
     }
 
