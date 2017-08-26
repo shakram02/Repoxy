@@ -1,6 +1,5 @@
 package helpers;
 
-import network_io.io_synchronizer.Synchronizer;
 import org.junit.Assert;
 import utils.ConnectionId;
 import utils.events.SocketDataEventArg;
@@ -9,18 +8,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class AssertionHelper {
 
     /**
      * An packet with the specified ID is ready to be output
      *
-     * @param synchronizer packet synchronizer
+     * @param getter draws packets from synced queue if possible
      * @return true if the next ready packet to output matches the ID, false otherwise
      */
-    private static boolean getAndCheck(Synchronizer synchronizer, Checker checker) {
+    private static boolean getAndCheck(Supplier<Optional<SocketDataEventArg>> getter, Checker checker) {
 
-        Optional<SocketDataEventArg> syncResult = synchronizer.getSynced();
+        Optional<SocketDataEventArg> syncResult = getter.get();
         Assert.assertTrue(syncResult.isPresent());
 
         SocketDataEventArg eventArg = syncResult.get();
@@ -40,21 +40,22 @@ public class AssertionHelper {
      * An packet with the specified ID is ready to be output
      *
      * @param id           Id of connection
-     * @param synchronizer packet synchronizer
+     * @param getter draws packets from synced queue if possible
      * @param xid          xid to match
      * @return true if the next ready packet to output matches the ID, false otherwise
      */
-    public static boolean hasValidIdMessageTypeXid(int id, Synchronizer synchronizer, int xid, Byte messageCode) {
+    public static boolean hasValidIdMessageTypeXid(int id, Supplier<Optional<SocketDataEventArg>> getter,
+                                                   int xid, Byte messageCode) {
         final ConnectionId connectionId = ConnectionId.CreateForTesting(id);
         final Checker checker = new Checker();
 
 
-        checker.addCheck(p -> p.getPacket().getXid() == xid);
-        checker.addCheck(p -> p.getPacket().getMessageCode() == messageCode);
-        checker.addCheck(p -> p.getId().equals(connectionId));
+        checker.check(p -> p.getPacket().getXid() == xid);
+        checker.check(p -> p.getPacket().getMessageCode() == messageCode);
+        checker.check(p -> p.getId().equals(connectionId));
 
         try {
-            getAndCheck(synchronizer, checker);
+            getAndCheck(getter, checker);
         } catch (AssertionError e) {
             System.err.println(String.format("Validating: messageCode: %d, XId: %d, ConnId: %d",
                     messageCode, xid, id));
@@ -67,19 +68,19 @@ public class AssertionHelper {
      * An packet with the specified ID is ready to be output
      *
      * @param id           Id of connection
-     * @param synchronizer packet synchronizer
+     * @param getter draws packets from synced queue if possible
      * @return true if the next ready packet to output matches the ID, false otherwise
      */
-    public static boolean hasValidIdMessageType(int id, Synchronizer synchronizer, byte messageCode) {
+    public static boolean hasValidIdMessageType(int id, Supplier<Optional<SocketDataEventArg>> getter, byte messageCode) {
         final ConnectionId connectionId = ConnectionId.CreateForTesting(id);
         final Checker checker = new Checker();
 
 
-        checker.addCheck(p -> p.getPacket().getMessageCode() == messageCode);
-        checker.addCheck(p -> p.getId().equals(connectionId));
+        checker.check(p -> p.getPacket().getMessageCode() == messageCode);
+        checker.check(p -> p.getId().equals(connectionId));
 
         try {
-            getAndCheck(synchronizer, checker);
+            getAndCheck(getter, checker);
         } catch (AssertionError e) {
             System.err.println(String.format("Validating: messageCode: %d, ConnId: %d",
                     messageCode, id));
@@ -91,11 +92,11 @@ public class AssertionHelper {
     /**
      * Nothing is ready to output
      *
-     * @param synchronizer packet synchronizer
+     * @param getter draws packets from synced queue if possible
      * @return true if nothing is ready to be output, false otherwise
      */
-    public static boolean absence(Synchronizer synchronizer) {
-        Optional<SocketDataEventArg> barrierReply = synchronizer.getSynced();
+    public static boolean absence(Supplier<Optional<SocketDataEventArg>> getter) {
+        Optional<SocketDataEventArg> barrierReply = getter.get();
         try {
             Assert.assertFalse(barrierReply.isPresent());
         } catch (AssertionError e) {
@@ -108,7 +109,7 @@ public class AssertionHelper {
     public static class Checker {
         private ArrayList<Predicate<SocketDataEventArg>> checks = new ArrayList<>();
 
-        public void addCheck(Predicate<SocketDataEventArg> check) {
+        public void check(Predicate<SocketDataEventArg> check) {
             checks.add(check);
         }
 
