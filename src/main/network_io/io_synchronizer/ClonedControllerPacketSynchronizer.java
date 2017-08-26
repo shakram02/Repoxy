@@ -14,7 +14,7 @@ import java.util.Optional;
  * All packets going to and coming out of the controller must be inserted to this objects.
  * <p>
  * Synchronized packets can be obtained by {@link #getSynced()}
- *
+ * <p>
  * Packets are synced with disregard to the sender, to make a concise interface and code possible.
  */
 public class ClonedControllerPacketSynchronizer implements Synchronizer {
@@ -33,6 +33,7 @@ public class ClonedControllerPacketSynchronizer implements Synchronizer {
         final boolean isQuery = OFMsgType.isQuery(messageCode);
 
         if (!isQuery && !isReply) {
+            this.syncedPacketsToController.add(dataEventArg);
             return;
         }
 
