@@ -73,7 +73,6 @@ public class XidSynchronizer {
 
         OFPacket query = getOppositeOf(replyArg);
         int queryXid = query.getXid();
-        System.out.println("Change XId from:" + reply.getXid() + " of:" + query.getHeader());
 
         return Optional.of(reply.withXid(queryXid));
     }
