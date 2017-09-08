@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/of-Dwoxy.iml" filepath="$PROJECT_DIR$/of-Dwoxy.iml" />
+      <module fileurl="file://$PROJECT_DIR$/user-interface/user-interface.iml" filepath="$PROJECT_DIR$/user-interface/user-interface.iml" />
     </modules>
   </component>
 </project>
