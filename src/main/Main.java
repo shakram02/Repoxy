@@ -35,7 +35,8 @@ public class Main {
             CONT_4 = "127.0.0.1";
             CONT_5 = "127.0.0.1";
         } else {
-            LOCALHOST = LocalhostIpSupplier.getLocalHostLANAddress("w").getHostAddress();
+            // Exclude lo* interfaces (loopback)
+            LOCALHOST = LocalhostIpSupplier.getLocalHostLANAddress("lo").getHostAddress();
             CONT_4 = "192.168.1.104";
             CONT_5 = "192.168.1.105";
         }

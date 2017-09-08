@@ -31,14 +31,14 @@ public class LocalhostIpSupplier {
      *
      * @throws UnknownHostException If the LAN address of the machine cannot be found.
      */
-    public static InetAddress getLocalHostLANAddress(String prefix) throws UnknownHostException {
+    public static InetAddress getLocalHostLANAddress(String excludedPrefix) throws UnknownHostException {
         try {
             InetAddress candidateAddress = null;
             // Iterate all NICs (network interface cards)...
             for (Enumeration ifaces = NetworkInterface.getNetworkInterfaces(); ifaces.hasMoreElements(); ) {
                 NetworkInterface iface = (NetworkInterface) ifaces.nextElement();
 
-                if (!iface.getName().toLowerCase().startsWith(prefix)) {
+                if (iface.getName().toLowerCase().startsWith(excludedPrefix)) {
                     continue;
                 }
 
