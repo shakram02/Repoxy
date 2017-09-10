@@ -9,12 +9,17 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("Hello World");
-        primaryStage.setScene(new UiBuilder(primaryStage).build());
+        UiBuilder uiBuilder = new UiBuilder(primaryStage,this::onConfigEnd);
+        primaryStage.setScene(uiBuilder.build());
         primaryStage.show();
     }
 
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    private void onConfigEnd(Configurator configurator) {
+
     }
 }
