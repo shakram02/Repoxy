@@ -14,15 +14,6 @@ class Configurator(private val controllerConfigs: ObservableList<Pair<String, In
         controllerConfigs.add(Pair(ip, port))
     }
 
-    init {
-        count++
-        println("New:" + count)
-    }
-
-    fun controllerConfigsProperty(): ObservableList<Pair<String, Int>> {
-        return controllerConfigs
-    }
-
     fun getConfigs(): Array<Pair<String, Int>> {
         if (controllerConfigs.isEmpty()) {
             createOneMachineDefaults()
@@ -50,8 +41,6 @@ class Configurator(private val controllerConfigs: ObservableList<Pair<String, In
     }
 
     companion object {
-        var count = 0
-
         fun fromString(str: String, destination: Configurator) {
             val lines = str.split("\n").filter { it.isNotEmpty() }
             val iterator = lines.iterator()
