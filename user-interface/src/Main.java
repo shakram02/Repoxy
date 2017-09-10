@@ -7,9 +7,9 @@ import javafx.stage.Stage;
 public class Main extends Application {
 
     @Override
-    public void start(Stage primaryStage) throws Exception{
+    public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("Hello World");
-        primaryStage.setScene(new UiBuilder().build());
+        primaryStage.setScene(new UiBuilder(primaryStage).build());
         primaryStage.show();
     }
 
