@@ -1,5 +1,7 @@
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
+import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.scene.Node
@@ -10,19 +12,21 @@ import javafx.scene.control.ListView
 import javafx.scene.control.TextField
 import javafx.scene.layout.GridPane
 import javafx.stage.Stage
+import java.util.function.Consumer
 
 
 const val HGAP_SIZE = 6.0
 const val VGAP_SIZE = 6.0
 const val INSET_SIZE = 6.0
 const val WINDOW_WIDTH = 400.0
-const val WINDOW_HEIGHT = 400.0
+const val WINDOW_HEIGHT = 600.0
 
-class UiBuilder(private val stage: Stage) {
+class UiBuilder(private val stage: Stage, private val onConfigEnd: Consumer<Configurator>) {
 
     private var controllerInfoList: ObservableList<Pair<String, Int>>
             = FXCollections.observableArrayList()
     private var configurator: Configurator = Configurator(controllerInfoList)
+    private var disableEditing = SimpleBooleanProperty(false)
 
     fun build(): Scene {
         val mainGrid = GridPane()
@@ -36,6 +40,7 @@ class UiBuilder(private val stage: Stage) {
         gridPane.append(fxAddHostInfo())
         gridPane.append(fxAddController())
         gridPane.append(fxSaveLoadButtons())
+        gridPane.append(fxCreateStartButton())
     }
 
     private fun fxAddHostInfo(): Node {
@@ -67,55 +72,59 @@ class UiBuilder(private val stage: Stage) {
         fxAddFormEntryToGrid(portEntry, gridPane)
         val portEntryField = portEntry.field
 
+
+        createEditModeButton("Add controller",
+                gridPane,
+                EventHandler {
+                    val controllerIp = ipEntryField.text
+                    val controllerPort = Integer.parseInt(portEntryField.text)
+                    val addressInfo = Pair<String, Int>(controllerIp, controllerPort)
+
+                    controllerInfoList.add(addressInfo)
+
+                }
+        )
+
         val infoList = ListView<Pair<String, Int>>()
-        infoList.prefWidth = gridPane.prefWidth
         infoList.items = controllerInfoList
-
-        val confirmButton = Button()
-        gridPane.append(confirmButton)
-
-        confirmButton.text = "Add controller"
-        confirmButton.onAction = EventHandler {
-            val controllerIp = ipEntryField.text
-            val controllerPort = Integer.parseInt(portEntryField.text)
-            val addressInfo = Pair<String, Int>(controllerIp, controllerPort)
-
-            controllerInfoList.add(addressInfo)
-
-        }
         gridPane.append(infoList)
-
 
         return gridPane
     }
 
+    private fun fxCreateConsoleView(): Node {
+        TODO("Create a textArea to redirect console output to")
+    }
+
+    private fun fxCreateStartButton(): Node {
+        val runButton = Button()
+        runButton.text = "Run"
+        runButton.onAction = EventHandler {
+            onConfigEnd.accept(configurator)
+            disableEditing.set(true)
+        }
+
+        return runButton
+    }
+
     private fun fxSaveLoadButtons(): Node {
         val configSaveLoad = ConfigSaveLoadHandler()
+        val grid = createGrid()
 
         val exportButton = Button()
         exportButton.text = "Export Config"
         exportButton.onAction = EventHandler { configSaveLoad.saveConfig(stage, configurator) }
 
-        val importButton = Button()
-        importButton.text = "Import Config"
-        importButton.onAction = EventHandler {
-            configSaveLoad.loadConfig(stage, this.configurator)
-        }
+        createEditModeButton(
+                "Load config",
+                grid,
+                EventHandler { configSaveLoad.loadConfig(stage, this.configurator) }
+        )
 
-        val grid = createGrid()
-        grid.add(exportButton, 0, 0)
-        grid.add(importButton, 1, 0)
+        grid.appendBesideLast(exportButton)
+
 
         return grid
-    }
-
-    private fun createGrid(): GridPane {
-        val gridPane = GridPane()
-        gridPane.hgap = HGAP_SIZE
-        gridPane.vgap = VGAP_SIZE
-        gridPane.padding = Insets(INSET_SIZE, INSET_SIZE, INSET_SIZE, INSET_SIZE)
-        return gridPane
-
     }
 
     private fun fxFormEntry(labelText: String, fieldText: String)
@@ -123,15 +132,15 @@ class UiBuilder(private val stage: Stage) {
         return FormEntry(fxLabel(labelText), fxTextField(fieldText))
     }
 
-    private fun fxAddFormEntryToGrid(formEntry: FormEntry, gridPane: GridPane) {
-        gridPane.append(formEntry.label)
-        gridPane.appendBesideLast(formEntry.field)
+    private fun fxAddFormEntryToGrid(formEntry: FormEntry, grid: GridPane) {
+        grid.append(formEntry.label)
+        grid.appendBesideLast(formEntry.field)
     }
 
     private fun fxTextField(initialText: String): TextField {
         val textField = TextField()
         textField.text = initialText
-
+        textField.disableProperty().bind(this.disableEditing)
         return textField
     }
 
@@ -140,6 +149,37 @@ class UiBuilder(private val stage: Stage) {
         label.text = text
 
         return label
+    }
+
+    private fun createGrid(): GridPane {
+        val gridPane = GridPane()
+        gridPane.hgap = HGAP_SIZE
+        gridPane.vgap = VGAP_SIZE
+
+        gridPane.padding = Insets(INSET_SIZE, INSET_SIZE, INSET_SIZE, INSET_SIZE)
+        return gridPane
+
+    }
+
+    private fun createEditModeButton(text: String, gridPane: GridPane? = null,
+                                     eventHandler: EventHandler<ActionEvent>): Button {
+        val button = createButton(text, eventHandler, gridPane)
+        button.disableProperty().bind(this.disableEditing)
+
+        return button
+    }
+
+    private fun createButton(text: String, eventHandler: EventHandler<ActionEvent>
+                             , gridPane: GridPane? = null): Button {
+        val button = Button()
+        button.text = text
+        button.onAction = eventHandler
+
+        if (gridPane != null) {
+            gridPane.append(button)
+        }
+
+        return button
     }
 
     private fun GridPane.append(node: Node) {
