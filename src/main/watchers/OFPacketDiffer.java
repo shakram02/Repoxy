@@ -7,6 +7,7 @@ import utils.LimitedSizeQueue;
 import utils.StampedPacket;
 import utils.logging.ConsoleColors;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
@@ -65,11 +66,12 @@ public class OFPacketDiffer {
              itPrimary.hasNext(); ) {
             StampedPacket primaryPacket = itPrimary.next();
 
-            if (!verifyPacket(primaryPacket)) {
-                unmatchedCount++;
-            } else {
+            if (verifyPacket(primaryPacket)) {
                 // Remove the matched packet
+                logger.info("Remove");
                 itPrimary.remove();
+            } else {
+                unmatchedCount++;
             }
         }
 
@@ -77,11 +79,15 @@ public class OFPacketDiffer {
     }
 
     private boolean verifyPacket(StampedPacket primaryPacket) {
-        for (Iterator<StampedPacket> itSecondary = this.secondaryPackets.descendingIterator();
-             itSecondary.hasNext(); ) {
-            StampedPacket secondaryPacket = itSecondary.next();
+        OFPacket primary = primaryPacket.getPacket();
+        Iterator<StampedPacket> itSecondary = this.secondaryPackets.descendingIterator();
 
-            if (!primaryPacket.getPacket().equals(secondaryPacket.getPacket())) {
+
+        while (itSecondary.hasNext()) {
+            StampedPacket secondaryPacket = itSecondary.next();
+            OFPacket secondary = secondaryPacket.getPacket();
+
+            if (primary.getMessageCode() != secondary.getMessageCode()) {
                 continue;
             }
 
@@ -107,7 +113,12 @@ public class OFPacketDiffer {
                             (timeDifference == 0 ?
                                     "" : " Primary late")));
             // Packet content and timeout are OK. Now check time out and return it
-            return timedOut;
+            //noinspection RedundantIfStatement
+            if (timedOut) {
+                return false;   // Invalid packet, timed out
+            } else {
+                return true;    // Valid packet, didn't time out
+            }
         }
 
         return false;
