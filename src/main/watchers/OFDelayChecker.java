@@ -4,6 +4,8 @@ import com.google.common.eventbus.EventBus;
 import of_packets.OFPacket;
 import org.jetbrains.annotations.NotNull;
 import utils.SenderType;
+import utils.events.ImmutableControllerFailureArgs;
+import utils.events.SocketDataEventArg;
 import utils.events.SocketEventArguments;
 import utils.events.SocketEventObserver;
 
@@ -33,45 +35,41 @@ public class OFDelayChecker implements SocketEventObserver {
         // as the other controller rejects the packets and causes unmatched packet count
         // to go up.
 
-//        if (!(arg instanceof SocketDataEventArg) || arg.getSenderType() == SenderType.SwitchesRegion) {
-//            return;
-//        }
-//
-//        SocketDataEventArg dataEventArg = (SocketDataEventArg) arg;
-//        SenderType sender = dataEventArg.getSenderType();
-//        List<OFPacket> packets = dataEventArg.getPackets();
-//
-//        int mismatchedPacketCount =
-//                this.countMismatchedPackets(sender, packets, dataEventArg.getTimestamp());
-//
-//        this.logger.info("Unmatched:" + mismatchedPacketCount);
-//        if (mismatchedPacketCount >= (this.windowSize / 2)) {
-//            // Alert!
-//            logger.warning("Changing controller!!!");
-//            differ.setLastValidTime(arg.getTimestamp());
-//            mediatorNotifier.post(ImmutableControllerFailureArgs.builder().build());
-//        }
+        if (!(arg instanceof SocketDataEventArg) || arg.getSenderType() == SenderType.SwitchesRegion) {
+            return;
+        }
+
+        SocketDataEventArg dataEventArg = (SocketDataEventArg) arg;
+        SenderType sender = dataEventArg.getSenderType();
+        OFPacket packet = dataEventArg.getPacket();
+
+        int mismatchedPacketCount =
+                this.countMismatchedPackets(sender, packet, dataEventArg.getTimestamp());
+
+        this.logger.info("Unmatched:" + mismatchedPacketCount);
+        if (mismatchedPacketCount >= (this.windowSize / 2)) {
+            // Alert!
+            logger.warning("Changing controller!!!");
+            differ.setLastValidTime(arg.getTimestamp());
+            mediatorNotifier.post(ImmutableControllerFailureArgs.builder().build());
+        }
     }
 
     /**
      * Count the number of delayed packets
      *
      * @param sender    Current packet sender
-     * @param packets   List of packets
+     * @param packet    packet
      * @param timestamp Timestamp of the event
      * @return Number of mismatched packets
      */
-    private int countMismatchedPackets(SenderType sender, List<OFPacket> packets, long timestamp) {
+    private int countMismatchedPackets(SenderType sender, OFPacket packet, long timestamp) {
 
         // Add each packet to its corresponding window
-        for (OFPacket packet : packets) {
-
-            if (sender == SenderType.ControllerRegion) {
-                this.differ.addToPrimaryWindow(packet, timestamp);
-            } else if (sender == SenderType.ReplicaRegion) {
-                this.differ.addToSecondaryWindow(packet, timestamp);
-            }
-
+        if (sender == SenderType.ControllerRegion) {
+            this.differ.addToPrimaryWindow(packet, timestamp);
+        } else if (sender == SenderType.ReplicaRegion) {
+            this.differ.addToSecondaryWindow(packet, timestamp);
         }
 
         return this.differ.countUnmatchedPackets();
