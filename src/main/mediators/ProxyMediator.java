@@ -88,13 +88,10 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
                     this.switchSockets.addInput(arg);
                 }
 
-
             } else if (senderType == SenderType.ReplicaRegion) {
                 this.onReplicaEvent(arg);
             }
         }
-
-        this.notifyWatchers(arg);
     }
 
     private void notifyWatchers(SocketEventArguments arg) {
@@ -151,8 +148,11 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
 
     private void dispatchAllControllerEvents(ControllerIOHandler controller) {
         Optional<SocketEventArguments> event = controller.getOldestEvent();
+
         while (event.isPresent()) {
-            this.dispatchEvent(event.get());
+            SocketEventArguments arg = event.get();
+            this.notifyWatchers(arg);
+            this.dispatchEvent(arg);
             event = controller.getOldestEvent();
         }
     }
