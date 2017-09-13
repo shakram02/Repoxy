@@ -1,23 +1,29 @@
 import javafx.collections.ObservableList
+import utils.LocalhostIpSupplier
 
-val LOOP_BACK_IP = "127.0.0.1"
-val OF_DEFAULT_PORT = 6833
+private val LOOP_BACK_IP = "127.0.0.1"
+private val OF_DEFAULT_PORT = 6833
 
 
-class Configurator(private val controllerConfigs: ObservableList<Pair<String, Int>>
+class Configurator(private val controllerConfigs: ObservableList<ControllerConfig>
                    , var localIp: String = LOOP_BACK_IP, var localPort: Int = OF_DEFAULT_PORT) {
 
     fun addController(addressInfo: Pair<String, Int>) {
         val ip = addressInfo.first
         val port = addressInfo.second
 
-        controllerConfigs.add(Pair(ip, port))
+        controllerConfigs.add(ControllerConfig(ip, port))
     }
 
-    fun getConfigs(): Array<Pair<String, Int>> {
+    fun getConfigs(): Array<ControllerConfig> {
         if (controllerConfigs.isEmpty()) {
             createOneMachineDefaults()
         }
+
+        if (localIp.contentEquals(LOOP_BACK_IP)) {
+            localIp = getDefaultInterface()
+        }
+
         return controllerConfigs.toTypedArray()
     }
 
@@ -26,6 +32,15 @@ class Configurator(private val controllerConfigs: ObservableList<Pair<String, In
         addController(Pair("127.0.0.1", 6835))
     }
 
+    private fun getDefaultInterface(): String {
+        try {
+            return LocalhostIpSupplier.getLocalHostLANAddress("lo").hostAddress
+        } catch (e: Exception) {
+            println(e.message)
+        }
+
+        return LOOP_BACK_IP
+    }
 
     override fun toString(): String {
         val builder = StringBuilder()
@@ -55,4 +70,6 @@ class Configurator(private val controllerConfigs: ObservableList<Pair<String, In
             }
         }
     }
+
+    data class ControllerConfig(val ip: String, val port: Int)
 }
