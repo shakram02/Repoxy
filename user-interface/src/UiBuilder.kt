@@ -1,3 +1,4 @@
+import Configurator.ControllerConfig
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -5,7 +6,7 @@ import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.scene.Node
-import javafx.scene.Scene
+import javafx.scene.Parent
 import javafx.scene.control.Button
 import javafx.scene.control.Label
 import javafx.scene.control.ListView
@@ -18,29 +19,31 @@ import java.util.function.Consumer
 const val HGAP_SIZE = 6.0
 const val VGAP_SIZE = 6.0
 const val INSET_SIZE = 6.0
-const val WINDOW_WIDTH = 400.0
-const val WINDOW_HEIGHT = 600.0
 
-class UiBuilder(private val stage: Stage, private val onConfigEnd: Consumer<Configurator>) {
+class UiBuilder(private val stage: Stage, private val onRun: Consumer<Configurator>,
+                private val onStop: Runnable) {
 
-    private var controllerInfoList: ObservableList<Pair<String, Int>>
+    private var controllerInfoList: ObservableList<ControllerConfig>
             = FXCollections.observableArrayList()
     private var configurator: Configurator = Configurator(controllerInfoList)
     private var disableEditing = SimpleBooleanProperty(false)
 
-    fun build(): Scene {
+    private lateinit var startButton: Button
+    private lateinit var stopButton: Button
+
+    fun build(): Parent {
         val mainGrid = GridPane()
         mainGrid.padding = Insets(INSET_SIZE, INSET_SIZE, INSET_SIZE, INSET_SIZE)
 
         this.createWithOrder(mainGrid)
-        return Scene(mainGrid, WINDOW_WIDTH, WINDOW_HEIGHT)
+        return mainGrid
     }
 
     private fun createWithOrder(gridPane: GridPane) {
         gridPane.append(fxAddHostInfo())
         gridPane.append(fxAddController())
         gridPane.append(fxSaveLoadButtons())
-        gridPane.append(fxCreateStartButton())
+        gridPane.append(fxCreateControlButtons())
     }
 
     private fun fxAddHostInfo(): Node {
@@ -64,11 +67,11 @@ class UiBuilder(private val stage: Stage, private val onConfigEnd: Consumer<Conf
     private fun fxAddController(): Node {
         val gridPane = createGrid()
 
-        val ipEntry = fxFormEntry("Controller IP", LOOP_BACK_IP)
+        val ipEntry = fxFormEntry("Controller IP", "")
         fxAddFormEntryToGrid(ipEntry, gridPane)
         val ipEntryField = ipEntry.field
 
-        val portEntry = fxFormEntry("Controller Port", (OF_DEFAULT_PORT + 1).toString())
+        val portEntry = fxFormEntry("Controller Port", "")
         fxAddFormEntryToGrid(portEntry, gridPane)
         val portEntryField = portEntry.field
 
@@ -78,14 +81,14 @@ class UiBuilder(private val stage: Stage, private val onConfigEnd: Consumer<Conf
                 EventHandler {
                     val controllerIp = ipEntryField.text
                     val controllerPort = Integer.parseInt(portEntryField.text)
-                    val addressInfo = Pair<String, Int>(controllerIp, controllerPort)
+                    val addressInfo = ControllerConfig(controllerIp, controllerPort)
 
                     controllerInfoList.add(addressInfo)
 
                 }
         )
 
-        val infoList = ListView<Pair<String, Int>>()
+        val infoList = ListView<ControllerConfig>()
         infoList.items = controllerInfoList
         gridPane.append(infoList)
 
@@ -96,15 +99,38 @@ class UiBuilder(private val stage: Stage, private val onConfigEnd: Consumer<Conf
         TODO("Create a textArea to redirect console output to")
     }
 
-    private fun fxCreateStartButton(): Node {
-        val runButton = Button()
-        runButton.text = "Run"
-        runButton.onAction = EventHandler {
-            onConfigEnd.accept(configurator)
+    private fun fxCreateControlButtons(): Node {
+        startButton = Button()
+        startButton.text = "Start"
+        startButton.onAction = EventHandler {
+            onRun.accept(configurator)
             disableEditing.set(true)
         }
 
-        return runButton
+        stopButton = Button()
+        stopButton.text = "Stop"
+        stopButton.onAction = EventHandler {
+            this.onStop.run()
+            this.disableEditing.set(false)
+        }
+
+        val closeButton = Button()
+        closeButton.text = "Close"
+        closeButton.onAction = EventHandler {
+            try {
+                this.onStop.run()
+            } catch (e: Exception) {
+                System.err.println(e.message)
+            }
+            stage.close()
+        }
+
+        val controlGrid = createGrid()
+        controlGrid.append(startButton)
+        controlGrid.appendBesideLast(stopButton)
+        controlGrid.append(closeButton)
+
+        return controlGrid
     }
 
     private fun fxSaveLoadButtons(): Node {
@@ -158,7 +184,6 @@ class UiBuilder(private val stage: Stage, private val onConfigEnd: Consumer<Conf
 
         gridPane.padding = Insets(INSET_SIZE, INSET_SIZE, INSET_SIZE, INSET_SIZE)
         return gridPane
-
     }
 
     private fun createEditModeButton(text: String, gridPane: GridPane? = null,
