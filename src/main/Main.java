@@ -36,7 +36,7 @@ public class Main {
             CONT_5 = "127.0.0.1";
         } else {
             // Exclude lo* interfaces (loopback) exclude loopback interfaces when not running on single machine
-            LOCALHOST = LocalhostIpSupplier.getLocalHostLANAddress("lo").getHostAddress();
+            LOCALHOST = LocalhostIpSupplier.getLocalHostLANAddress("lo");
             CONT_4 = "192.168.1.104";
             CONT_5 = "192.168.1.105";
         }
