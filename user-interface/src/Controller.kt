@@ -1,10 +1,18 @@
+import utils.ConfigContants.TIMEOUT_MILLIS
+import utils.ConfigContants.WIND_SIZE
 import utils.ProxyBuilder
+import watchers.ClientCounter
+import watchers.OFDelayChecker
+import java.util.logging.Level
+import java.util.logging.Logger
 
 class Controller {
 
     private lateinit var backgroundThread: Thread
     private val builder: ProxyBuilder = ProxyBuilder.createInstance()
     private var isRunning = false
+
+    private val logger = Logger.getLogger(Main::class.java.name)
 
     fun startServer(configurator: Configurator) {
         if (isRunning) return
@@ -43,5 +51,20 @@ class Controller {
         builder.startServer(configurator.localIp, configurator.localPort)
         println(String.format("Local IP: [%s] Ports: [%d] [%s]",
                 configurator.localIp, configurator.localPort, portStringBuilder.toString()))
+
+        val mediator = builder.mediator
+
+        val counter = ClientCounter()
+        val packetVerifier = OFDelayChecker(WIND_SIZE, mediator, TIMEOUT_MILLIS)
+
+
+        mediator.registerWatcher(counter)
+        mediator.registerWatcher(packetVerifier)
+
+        while (!Thread.interrupted()) {
+            mediator.cycle()
+        }
+
+        mediator.close()
     }
 }
