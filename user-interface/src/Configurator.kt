@@ -6,7 +6,8 @@ private val OF_DEFAULT_PORT = 6833
 
 
 class Configurator(private val controllerConfigs: ObservableList<ControllerConfig>
-                   , var localIp: String = LOOP_BACK_IP, var localPort: Int = OF_DEFAULT_PORT) {
+                   , private var localIp: String = LOOP_BACK_IP,
+                   private var localPort: Int = OF_DEFAULT_PORT, private val ipPrefix:String = "192") {
 
     fun addController(addressInfo: Pair<String, Int>) {
         val ip = addressInfo.first
@@ -28,13 +29,13 @@ class Configurator(private val controllerConfigs: ObservableList<ControllerConfi
     }
 
     private fun createOneMachineDefaults() {
-        addController(Pair("127.0.0.1", 6834))
-        addController(Pair("127.0.0.1", 6835))
+        addController(Pair(LOOP_BACK_IP, 6834))
+        addController(Pair(LOOP_BACK_IP, 6835))
     }
 
     private fun getDefaultInterface(): String {
         try {
-            return LocalhostIpSupplier.getLocalHostLANAddress("lo").hostAddress
+            return LocalhostIpSupplier.getLocalHostLANAddress(ipPrefix)
         } catch (e: Exception) {
             println(e.message)
         }
