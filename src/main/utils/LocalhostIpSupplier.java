@@ -3,9 +3,12 @@ package utils;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Enumeration;
 
 public class LocalhostIpSupplier {
+    private static ArrayList<String> ips = new ArrayList<>();
+    private static final String LOOPBACK_IP = "127.0.0.1";
 
     /**
      * Returns an <code>InetAddress</code> object encapsulating what is most likely the machine's LAN IP address.
@@ -31,16 +34,17 @@ public class LocalhostIpSupplier {
      *
      * @throws UnknownHostException If the LAN address of the machine cannot be found.
      */
-    public static InetAddress getLocalHostLANAddress(String excludedPrefix) throws UnknownHostException {
+    public static String getLocalHostLANAddress(String addressPrefix) throws UnknownHostException {
+
+        if (!ips.isEmpty()) {
+            return findTargetIp(addressPrefix);
+        }
+
         try {
             InetAddress candidateAddress = null;
             // Iterate all NICs (network interface cards)...
             for (Enumeration ifaces = NetworkInterface.getNetworkInterfaces(); ifaces.hasMoreElements(); ) {
                 NetworkInterface iface = (NetworkInterface) ifaces.nextElement();
-
-                if (iface.getName().toLowerCase().startsWith(excludedPrefix)) {
-                    continue;
-                }
 
                 // Iterate all IP addresses assigned to each card...
                 for (Enumeration inetAddrs = iface.getInetAddresses(); inetAddrs.hasMoreElements(); ) {
@@ -51,7 +55,7 @@ public class LocalhostIpSupplier {
 
                     if (inetAddr.isSiteLocalAddress()) {
                         // Found non-loopback site-local address. Return it immediately...
-                        return inetAddr;
+                        ips.add(inetAddr.getHostAddress());
                     } else if (candidateAddress == null) {
                         // Found non-loopback address, but not necessarily site-local.
                         // Store it as a candidate to be returned if site-local address is not subsequently found...
@@ -61,12 +65,14 @@ public class LocalhostIpSupplier {
                     }
                 }
             }
+
             if (candidateAddress != null) {
                 // We did not find a site-local address, but we found some other non-loopback address.
                 // Server might have a non-site-local address assigned to its NIC (or it might be running
                 // IPv6 which deprecates the "site-local" concept).
                 // Return this non-loopback candidate address...
-                return candidateAddress;
+
+                ips.add(candidateAddress.getHostAddress());
             }
             // At this point, we did not find a non-loopback address.
             // Fall back to returning whatever InetAddress.getLocalHost() returns...
@@ -74,11 +80,24 @@ public class LocalhostIpSupplier {
             if (jdkSuppliedAddress == null) {
                 throw new UnknownHostException("The JDK InetAddress.getLocalHost() method unexpectedly returned null.");
             }
-            return jdkSuppliedAddress;
+            ips.add(jdkSuppliedAddress.getHostAddress());
+
         } catch (Exception e) {
             UnknownHostException unknownHostException = new UnknownHostException("Failed to determine LAN address: " + e);
             unknownHostException.initCause(e);
             throw unknownHostException;
         }
+
+        return findTargetIp(addressPrefix);
+    }
+
+    private static String findTargetIp(String prefix) {
+        for (String address : ips) {
+            if (address.startsWith(prefix)) {
+                return address;
+            }
+        }
+
+        return LOOPBACK_IP;
     }
 }
