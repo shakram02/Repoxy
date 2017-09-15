@@ -1,9 +1,9 @@
 import utils.ConfigContants.TIMEOUT_MILLIS
 import utils.ConfigContants.WIND_SIZE
 import utils.ProxyBuilder
+import utils.logging.ColoredConsoleHandler
 import watchers.ClientCounter
 import watchers.OFDelayChecker
-import java.util.logging.Level
 import java.util.logging.Logger
 
 class Controller {
@@ -12,7 +12,9 @@ class Controller {
     private val builder: ProxyBuilder = ProxyBuilder.createInstance()
     private var isRunning = false
 
-    private val logger = Logger.getLogger(Main::class.java.name)
+    init {
+        setupLogging()
+    }
 
     fun startServer(configurator: Configurator) {
         if (isRunning) return
@@ -66,5 +68,17 @@ class Controller {
         }
 
         mediator.close()
+    }
+
+    private fun setupLogging() {
+        val globalLogger = Logger.getLogger("")
+
+        // Remove the default console handler
+        for (h in globalLogger.handlers) {
+            globalLogger.removeHandler(h)
+        }
+
+        // Add custom handler
+        globalLogger.addHandler(ColoredConsoleHandler())
     }
 }
