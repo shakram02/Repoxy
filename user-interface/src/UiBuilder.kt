@@ -49,7 +49,7 @@ class UiBuilder(private val stage: Stage, private val onRun: Consumer<Configurat
     private fun fxAddHostInfo(): Node {
         val gridPane = createGrid()
 
-        val ipEntry = fxFormEntry("Host IP", configurator.localIp)
+        val ipEntry = fxFormEntry("Host IP", configurator.getDefaultInterfaceAddress())
         fxAddFormEntryToGrid(ipEntry, gridPane)
 
         val ipEntryField = ipEntry.field
@@ -59,7 +59,7 @@ class UiBuilder(private val stage: Stage, private val onRun: Consumer<Configurat
         fxAddFormEntryToGrid(portEntry, gridPane)
 
         val portEntryField = portEntry.field
-        portEntryField.onAction = EventHandler { configurator.localPort = Integer.parseInt(ipEntryField.text) }
+        portEntryField.onAction = EventHandler { configurator.localPort = Integer.parseInt(portEntryField.text) }
 
         return gridPane
     }
