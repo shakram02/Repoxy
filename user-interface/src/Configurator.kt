@@ -22,18 +22,18 @@ class Configurator(private val controllerConfigs: ObservableList<ControllerConfi
         }
 
         if (localIp.contentEquals(LOOP_BACK_IP)) {
-            localIp = getDefaultInterface()
+            localIp = getDefaultInterfaceAddress()
         }
 
         return controllerConfigs.toTypedArray()
     }
 
     private fun createOneMachineDefaults() {
-        addController(Pair(LOOP_BACK_IP, 6834))
-        addController(Pair(LOOP_BACK_IP, 6835))
+        addController(Pair("192.168.1.104", 6834))
+        addController(Pair("192.168.1.105", 6835))
     }
 
-    private fun getDefaultInterface(): String {
+    fun getDefaultInterfaceAddress(): String {
         try {
             return LocalhostIpSupplier.getLocalHostLANAddress(ipPrefix)
         } catch (e: Exception) {
@@ -72,5 +72,9 @@ class Configurator(private val controllerConfigs: ObservableList<ControllerConfi
         }
     }
 
-    data class ControllerConfig(val ip: String, val port: Int)
+    data class ControllerConfig(val ip: String, val port: Int) {
+        override fun toString(): String {
+            return "IP:$ip, Port:$port"
+        }
+    }
 }
