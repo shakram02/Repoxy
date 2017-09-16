@@ -17,16 +17,23 @@ import java.nio.file.StandardOpenOption;
 
 public class PacketDumper implements SocketEventObserver {
 
-    Path file;
+    String fileName;
 
-    public PacketDumper(String fileName, SenderType type) throws FileNotFoundException {
-        this.file = Paths.get(fileName + type.toString());
+    public PacketDumper(String fileName) throws IOException {
+        Path logDirectory = getLogDirectoryPath();
+
+        if (!Files.exists(logDirectory)) {
+            Files.createDirectory(logDirectory);
+        }
+
+        // TODO: flush the written files every now and then
+        this.fileName = logDirectory.toString() + "/" + fileName;
     }
 
-    private void dumpPacket(OFPacket packet) {
+    private void dumpPacket(OFPacket packet, SenderType type) {
         try {
-
-            Files.write(file, OFStreamParser.serializePacket(packet).array(),
+            Files.write(Paths.get(fileName + type.toString() + ".dat"),
+                    OFStreamParser.serializePacket(packet).array(),
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND);
 
         } catch (IOException e) {
@@ -40,6 +47,11 @@ public class PacketDumper implements SocketEventObserver {
         if (!(eventArgs instanceof SocketDataEventArg)) return;
 
         SocketDataEventArg dataEventArg = (SocketDataEventArg) eventArgs;
-        dumpPacket(dataEventArg.getPacket());
+        dumpPacket(dataEventArg.getPacket(), dataEventArg.getSenderType());
+    }
+
+    private static Path getLogDirectoryPath() {
+        // Current folder /log
+        return Paths.get(Paths.get("").toAbsolutePath() + "/log");
     }
 }
