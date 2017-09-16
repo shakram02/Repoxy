@@ -8,32 +8,37 @@ import utils.events.SocketDataEventArg;
 import utils.events.SocketEventArguments;
 import utils.events.SocketEventObserver;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
 
 public class PacketDumper implements SocketEventObserver {
 
     String fileName;
+    HashMap<SenderType, Path> pathCache;
 
     public PacketDumper(String fileName) throws IOException {
         Path logDirectory = getLogDirectoryPath();
 
         if (!Files.exists(logDirectory)) {
+            // TODO: monitor file sizes, delete oldest
             Files.createDirectory(logDirectory);
         }
 
         // TODO: flush the written files every now and then
         this.fileName = logDirectory.toString() + "/" + fileName;
+        pathCache = new HashMap<>();
     }
 
     private void dumpPacket(OFPacket packet, SenderType type) {
+
+        Path path = getPathFromCache(type);
+
         try {
-            Files.write(Paths.get(fileName + type.toString() + ".dat"),
-                    OFStreamParser.serializePacket(packet).array(),
+            Files.write(path, OFStreamParser.serializePacket(packet).array(),
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND);
 
         } catch (IOException e) {
@@ -53,5 +58,18 @@ public class PacketDumper implements SocketEventObserver {
     private static Path getLogDirectoryPath() {
         // Current folder /log
         return Paths.get(Paths.get("").toAbsolutePath() + "/log");
+    }
+
+    private Path getPathFromCache(SenderType type) {
+        Path path;
+
+        if (pathCache.containsKey(type)) {
+            path = pathCache.get(type);
+        } else {
+            path = Paths.get(fileName + type.toString() + ".dat");
+            pathCache.put(type, path);
+        }
+
+        return path;
     }
 }
