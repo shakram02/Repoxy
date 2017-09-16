@@ -4,8 +4,10 @@ import mediators.ProxyMediator;
 import utils.logging.ColoredConsoleHandler;
 import watchers.ClientCounter;
 import watchers.OFDelayChecker;
+import watchers.PacketDumper;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
@@ -40,10 +42,11 @@ public class CommonMain {
 
         ClientCounter counter = new ClientCounter();
         OFDelayChecker packetVerifier = new OFDelayChecker(WIND_SIZE, mediator, TIMEOUT_MILLIS);
-
+        PacketDumper dumper = new PacketDumper(new Date().toString());
 
         mediator.registerWatcher(counter);
         mediator.registerWatcher(packetVerifier);
+        mediator.registerWatcher(dumper);
 
         while (!Thread.interrupted()) {
             mediator.cycle();

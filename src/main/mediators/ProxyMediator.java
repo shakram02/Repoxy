@@ -135,7 +135,8 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
     private void readNetworkIoEvents() {
         Optional<SocketEventArguments> event = this.switchSockets.getOldestEvent();
         while (event.isPresent()) {
-            this.dispatchEvent(event.get());
+            SocketEventArguments arg = event.get();
+            notifyAndProcessEvent(arg);
             event = this.switchSockets.getOldestEvent();
         }
     }
@@ -151,10 +152,14 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
 
         while (event.isPresent()) {
             SocketEventArguments arg = event.get();
-            this.notifyWatchers(arg);
-            this.dispatchEvent(arg);
+            notifyAndProcessEvent(arg);
             event = controller.getOldestEvent();
         }
+    }
+
+    private void notifyAndProcessEvent(SocketEventArguments arg) {
+        this.notifyWatchers(arg);
+        this.dispatchEvent(arg);
     }
 
     private void cycleControllers() throws IOException {
