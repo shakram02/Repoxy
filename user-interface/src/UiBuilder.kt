@@ -7,10 +7,7 @@ import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.scene.Node
 import javafx.scene.Parent
-import javafx.scene.control.Button
-import javafx.scene.control.Label
-import javafx.scene.control.ListView
-import javafx.scene.control.TextField
+import javafx.scene.control.*
 import javafx.scene.layout.GridPane
 import javafx.stage.Stage
 import java.util.function.Consumer
@@ -42,6 +39,7 @@ class UiBuilder(private val stage: Stage, private val onRun: Consumer<Configurat
     private fun createWithOrder(gridPane: GridPane) {
         gridPane.append(fxAddHostInfo())
         gridPane.append(fxAddController())
+        gridPane.append(fxCreateControllerList())
         gridPane.append(fxSaveLoadButtons())
         gridPane.append(fxCreateControlButtons())
     }
@@ -88,11 +86,16 @@ class UiBuilder(private val stage: Stage, private val onRun: Consumer<Configurat
                 }
         )
 
+        return gridPane
+    }
+
+    private fun fxCreateControllerList(): Node {
         val infoList = ListView<ControllerConfig>()
         infoList.items = controllerInfoList
-        gridPane.append(infoList)
+        val listGridPane = createGrid()
+        listGridPane.append(infoList)
 
-        return gridPane
+        return listGridPane
     }
 
     private fun fxCreateConsoleView(): Node {
