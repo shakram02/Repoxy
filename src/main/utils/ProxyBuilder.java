@@ -27,8 +27,8 @@ public class ProxyBuilder {
         return instance;
     }
 
-    public ProxyBuilder addController(String ip, int port) {
-        ControllerIOHandler connectorElement = new ControllerIOHandler(ip, port);
+    public ProxyBuilder addController(ControllerConfig config) {
+        ControllerIOHandler connectorElement = new ControllerIOHandler(config.getIp(), config.getPort());
         ProxyBuilder.ProxyMediator.registerController(connectorElement);
         CONTROLLERS_REGIONS.add(connectorElement);
 

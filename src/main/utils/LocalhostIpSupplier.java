@@ -91,6 +91,10 @@ public class LocalhostIpSupplier {
         return findTargetIp(addressPrefix);
     }
 
+    public static String getLocalHostLANAddress() throws UnknownHostException {
+        return getLocalHostLANAddress("192");
+    }
+
     private static String findTargetIp(String prefix) {
         for (String address : ips) {
             if (address.startsWith(prefix)) {
