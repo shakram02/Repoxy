@@ -1,4 +1,3 @@
-import Configurator.ControllerConfig
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -10,6 +9,7 @@ import javafx.scene.Parent
 import javafx.scene.control.*
 import javafx.scene.layout.GridPane
 import javafx.stage.Stage
+import utils.ControllerConfig
 import java.util.function.Consumer
 
 

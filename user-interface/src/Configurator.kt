@@ -1,4 +1,5 @@
 import javafx.collections.ObservableList
+import utils.ControllerConfig
 import utils.LocalhostIpSupplier
 
 private val LOOP_BACK_IP = "127.0.0.1"
@@ -16,7 +17,7 @@ class Configurator(private val controllerConfigs: ObservableList<ControllerConfi
         controllerConfigs.add(ControllerConfig(ip, port))
     }
 
-    fun getConfigs(): Array<ControllerConfig> {
+    fun getConfigs(): List<ControllerConfig> {
         if (controllerConfigs.isEmpty()) {
             createOneMachineDefaults()
         }
@@ -25,7 +26,7 @@ class Configurator(private val controllerConfigs: ObservableList<ControllerConfi
             localIp = getDefaultInterfaceAddress()
         }
 
-        return controllerConfigs.toTypedArray()
+        return controllerConfigs
     }
 
     private fun createOneMachineDefaults() {
@@ -48,9 +49,9 @@ class Configurator(private val controllerConfigs: ObservableList<ControllerConfi
         builder.appendln(localIp)
         builder.appendln(localPort)
 
-        this.controllerConfigs.forEach({ (ip, port) ->
-            builder.appendln(ip)
-            builder.appendln(port)
+        this.controllerConfigs.forEach({ config: ControllerConfig ->
+            builder.appendln(config.ip)
+            builder.appendln(config.port)
         })
 
         return builder.toString()
@@ -69,12 +70,6 @@ class Configurator(private val controllerConfigs: ObservableList<ControllerConfi
                 val port = Integer.parseInt(iterator.next())
                 destination.addController(Pair(ip, port))
             }
-        }
-    }
-
-    data class ControllerConfig(val ip: String, val port: Int) {
-        override fun toString(): String {
-            return "IP:$ip, Port:$port"
         }
     }
 }
