@@ -28,6 +28,8 @@ public class OFDelayChecker implements SocketEventObserver {
     private int timedOutPacketCount = 0;
     private PacketMatcher packetMatcher;
 
+    private boolean willIgnoreComparison = false;
+
     public OFDelayChecker(int windowSize, SocketEventObserver mediator, int timestampThreshold) {
         this.logger = Logger.getLogger(OFDelayChecker.class.getName());
         this.packetFailThreshold = (windowSize / 2);
@@ -55,6 +57,10 @@ public class OFDelayChecker implements SocketEventObserver {
 
         // Add the packet for validation cycle
         this.addToAppropriateQueue(sender, packet, dataEventArg.getTimestamp());
+
+        if (this.willIgnoreComparison) {
+            return;
+        }
 
         // Loop on all elements to validate previously unvalidated packets
         this.updateState();
@@ -85,14 +91,25 @@ public class OFDelayChecker implements SocketEventObserver {
             Iterator<StampedPacket> secondaryPacketIterator = this.secondaryPackets.descendingIterator();
             StampedPacket mainPacket = mainPacketIterator.next();
 
-            if (this.timeoutChecker.isTimedOut(mainPacket)) {
-                mainPacketIterator.remove();
-                this.timedOutPacketCount++;
-                continue;
+            boolean matched = false;
+            while (secondaryPacketIterator.hasNext()) {
+                StampedPacket secondControllerPacket = secondaryPacketIterator.next();
+
+                if (!this.packetMatcher.match(mainPacket, secondControllerPacket)) {
+                    continue;
+                }
+
+                secondaryPacketIterator.remove();
+                matched = true;
+
+                if (this.timeoutChecker.hasTimedOut(mainPacket, secondControllerPacket)) {
+                    this.timedOutPacketCount++;
+                }
             }
 
-            if (this.packetMatcher.findByIterator(mainPacket, secondaryPacketIterator)) {
-                secondaryPacketIterator.remove();
+            if (matched) {
+                mainPacketIterator.remove();
+            } else {
                 this.unmatchedPackets++;
             }
         }
@@ -122,6 +139,7 @@ public class OFDelayChecker implements SocketEventObserver {
         // Alert!
         //TODO: update check timestamp with timeout class
         //TODO: clear packet queues as appropriate
+        this.willIgnoreComparison = true;
         mediatorNotifier.post(ImmutableControllerFailureArgs.builder().build());
     }
 
