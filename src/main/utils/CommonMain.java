@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 public class CommonMain {
     public static final int WIND_SIZE = 30;
-    public static final int TIMEOUT_MILLIS = 6000;
+    public static final int TIMEOUT_MILLIS = 500;
     private static ProxyBuilder builder = ProxyBuilder.createInstance();
 
     public static void setupLogging() {
