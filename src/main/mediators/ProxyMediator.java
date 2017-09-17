@@ -13,7 +13,9 @@ import utils.events.*;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 
@@ -22,7 +24,7 @@ import java.util.logging.Logger;
  */
 public class ProxyMediator implements Closeable, SocketEventObserver {
     private final ConnectionAcceptorIOHandler switchSockets;
-    private final ArrayList<ControllerIOHandler> controllerHandlers;
+    private final ConcurrentLinkedQueue<ControllerIOHandler> controllerHandlers;
     private final ArrayList<SocketEventObserver> packetWatchers;
     protected Logger logger;
 
@@ -30,7 +32,7 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
     public ProxyMediator(ConnectionAcceptorIOHandler switchSockets) {
 
         // Run the event checkers on other threads
-        this.controllerHandlers = new ArrayList<>();
+        this.controllerHandlers = new ConcurrentLinkedQueue<>();
         this.switchSockets = switchSockets;
         this.logger = Logger.getLogger(ProxyMediator.class.getName());
 
@@ -186,8 +188,9 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
             return;
         }
 
-        ControllerIOHandler backup = this.controllerHandlers.get(1);
+        ControllerIOHandler old = this.controllerHandlers.remove();
+        ControllerIOHandler backup = this.controllerHandlers.peek();
+        Objects.requireNonNull(backup);
         this.setActiveController(backup.getAddress(), backup.getPort());
-        this.controllerHandlers.remove(0);
     }
 }
