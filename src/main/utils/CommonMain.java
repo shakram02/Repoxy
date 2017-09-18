@@ -3,8 +3,8 @@ package utils;
 import mediators.ProxyMediator;
 import utils.logging.ColoredConsoleHandler;
 import watchers.ClientCounter;
-import watchers.OFDelayChecker;
 import watchers.PacketDumper;
+import watchers.packet_verification.OFDelayChecker;
 
 import java.io.IOException;
 import java.util.Date;
@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 public class CommonMain {
     public static final int WIND_SIZE = 30;
-    public static final int TIMEOUT_MILLIS = 6000;
+    public static final int TIMEOUT_MILLIS = 500;
     private static ProxyBuilder builder = ProxyBuilder.createInstance();
 
     public static void setupLogging() {
