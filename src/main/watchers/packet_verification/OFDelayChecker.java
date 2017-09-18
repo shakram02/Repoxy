@@ -59,6 +59,7 @@ public class OFDelayChecker implements SocketEventObserver {
         this.addToAppropriateQueue(sender, packet, dataEventArg.getTimestamp());
 
         if (this.willIgnoreComparison) {
+            logger.info("Comparison ignored");
             return;
         }
 
@@ -86,7 +87,7 @@ public class OFDelayChecker implements SocketEventObserver {
         this.timedOutPacketCount = 0;
 
         Iterator<StampedPacket> mainPacketIterator = this.mainPackets.descendingIterator();
-        // TODO: run this code and test it
+
         while (mainPacketIterator.hasNext()) {
             Iterator<StampedPacket> secondaryPacketIterator = this.secondaryPackets.descendingIterator();
             StampedPacket mainPacket = mainPacketIterator.next();
@@ -99,12 +100,13 @@ public class OFDelayChecker implements SocketEventObserver {
                     continue;
                 }
 
-                secondaryPacketIterator.remove();
-                matched = true;
-
                 if (this.timeoutChecker.hasTimedOut(mainPacket, secondControllerPacket)) {
                     this.timedOutPacketCount++;
                 }
+
+                secondaryPacketIterator.remove();
+                matched = true;
+                break;
             }
 
             if (matched) {
@@ -128,17 +130,16 @@ public class OFDelayChecker implements SocketEventObserver {
         // Add each packet to its corresponding window
         if (sender == SenderType.ControllerRegion) {
             this.mainPackets.add(stampedPacket);
-        } else if (sender == SenderType.ReplicaRegion) {
-            this.secondaryPackets.add(stampedPacket);
         } else {
-            throw new IllegalStateException("Invalid sender type");
+            this.secondaryPackets.add(stampedPacket);
         }
     }
 
     private void switchController() {
         // Alert!
-        //TODO: update check timestamp with timeout class
-        //TODO: clear packet queues as appropriate
+        // TODO: update check timestamp with timeout class
+        // TODO: clear packet queues as appropriate
+        // TODO: migrate left-over packets
         this.willIgnoreComparison = true;
         mediatorNotifier.post(ImmutableControllerFailureArgs.builder().build());
     }
