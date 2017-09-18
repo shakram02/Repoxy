@@ -1,10 +1,6 @@
 package watchers.packet_verification;
 
-import of_packets.OFPacket;
 import utils.StampedPacket;
-
-import java.util.Arrays;
-import java.util.Iterator;
 
 class TimeoutChecker {
     private final long threshold;
@@ -13,8 +9,10 @@ class TimeoutChecker {
         this.threshold = threshold;
     }
 
-    public boolean isTimedOut(final StampedPacket packet) {
-        long now = System.currentTimeMillis();
-        return (packet.getTimestamp() - now) > threshold;
+    public boolean hasTimedOut(final StampedPacket packet, final StampedPacket secondary) {
+        long delay = Math.abs(packet.getTimestamp() - secondary.getTimestamp());
+        System.out.println("Delay:" + delay);
+
+        return delay > threshold;
     }
 }
