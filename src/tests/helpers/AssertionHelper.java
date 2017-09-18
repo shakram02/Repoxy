@@ -1,6 +1,6 @@
 package helpers;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import utils.ConnectionId;
 import utils.events.SocketDataEventArg;
 
@@ -21,7 +21,7 @@ public class AssertionHelper {
     private static boolean getAndCheck(Supplier<Optional<SocketDataEventArg>> getter, Checker checker) {
 
         Optional<SocketDataEventArg> syncResult = getter.get();
-        Assert.assertTrue(syncResult.isPresent());
+        Assertions.assertTrue(syncResult.isPresent());
 
         SocketDataEventArg eventArg = syncResult.get();
 
@@ -29,8 +29,7 @@ public class AssertionHelper {
         for (int i = 0; i < checks.size(); i++) {
             Predicate<SocketDataEventArg> check = checks.get(i);
 
-            Assert.assertTrue(String.format("Failed to assert %d %s", i, eventArg)
-                    , check.test(eventArg));
+            Assertions.assertTrue(check.test(eventArg), String.format("Failed to assert %d %s", i, eventArg));
         }
 
         return true;
@@ -39,9 +38,9 @@ public class AssertionHelper {
     /**
      * An packet with the specified ID is ready to be output
      *
-     * @param id           Id of connection
+     * @param id     Id of connection
      * @param getter draws packets from synced queue if possible
-     * @param xid          xid to match
+     * @param xid    xid to match
      * @return true if the next ready packet to output matches the ID, false otherwise
      */
     public static boolean hasValidIdMessageTypeXid(int id, Supplier<Optional<SocketDataEventArg>> getter,
@@ -67,7 +66,7 @@ public class AssertionHelper {
     /**
      * An packet with the specified ID is ready to be output
      *
-     * @param id           Id of connection
+     * @param id     Id of connection
      * @param getter draws packets from synced queue if possible
      * @return true if the next ready packet to output matches the ID, false otherwise
      */
@@ -98,7 +97,7 @@ public class AssertionHelper {
     public static boolean absence(Supplier<Optional<SocketDataEventArg>> getter) {
         Optional<SocketDataEventArg> barrierReply = getter.get();
         try {
-            Assert.assertFalse(barrierReply.isPresent());
+            Assertions.assertFalse(barrierReply.isPresent());
         } catch (AssertionError e) {
             return false;
         }
