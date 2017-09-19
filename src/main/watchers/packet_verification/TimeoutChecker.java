@@ -20,25 +20,29 @@ class TimeoutChecker {
     }
 
     public boolean isMainPacketTimedOut(final long mainPacketTimestamp) {
-        boolean timedOut = Math.abs(lastMainPacketTimestamp - mainPacketTimestamp) > threshold;
+        long delay = Math.abs(lastMainPacketTimestamp - mainPacketTimestamp);
         lastMainPacketTimestamp = mainPacketTimestamp;
 
-        return timedOut;
+        return !isWildTimeout(delay) && delay > threshold;
     }
 
     public boolean hasTimedOut(final StampedPacket packet, final StampedPacket secondary) {
-
         long delay = Math.abs(packet.getTimestamp() - secondary.getTimestamp());
+
         String info = "Delay:" + delay;
 
         System.out.println(info);
         this.dumper.dump(info, FILE_NAME);
 
+        return !isWildTimeout(delay) && delay > threshold;
+    }
+
+    private boolean isWildTimeout(long delay) {
+        System.out.println("Delay:" + delay);
         if (isNew && (delay > ARBITRARY_UNKNOWN_DELAY)) {
             isNew = false;
-            return false;
+            return true;
         }
-
-        return delay > threshold;
+        return false;
     }
 }
