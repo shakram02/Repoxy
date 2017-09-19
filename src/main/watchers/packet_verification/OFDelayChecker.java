@@ -1,12 +1,9 @@
 package watchers.packet_verification;
 
 import com.google.common.eventbus.EventBus;
-import of_packets.OFPacket;
 import org.jetbrains.annotations.NotNull;
-import utils.ImmutableStampedPacket;
 import utils.LimitedSizeQueue;
 import utils.SenderType;
-import utils.StampedPacket;
 import utils.events.ImmutableControllerFailureArgs;
 import utils.events.SocketDataEventArg;
 import utils.events.SocketEventArguments;
@@ -20,8 +17,8 @@ public class OFDelayChecker implements SocketEventObserver {
     private final EventBus mediatorNotifier;
     private int packetFailThreshold;
 
-    private final LimitedSizeQueue<StampedPacket> mainPackets;
-    private final LimitedSizeQueue<StampedPacket> secondaryPackets;
+    private final LimitedSizeQueue<SocketDataEventArg> mainPackets;
+    private final LimitedSizeQueue<SocketDataEventArg> secondaryPackets;
 
     private TimeoutChecker timeoutChecker;
     private int unmatchedPackets = 0;
@@ -52,18 +49,14 @@ public class OFDelayChecker implements SocketEventObserver {
         }
 
         SocketDataEventArg dataEventArg = (SocketDataEventArg) arg;
-        SenderType sender = dataEventArg.getSenderType();
-        OFPacket packet = dataEventArg.getPacket();
-
         // Add the packet for validation cycle
-        this.addToAppropriateQueue(sender, packet, dataEventArg.getTimestamp());
+        this.addToAppropriateQueue(dataEventArg);
 
         if (this.willIgnoreComparison) {
             logger.info("Comparison ignored");
             return;
         }
 
-        
 
         // Loop on all elements to validate previously unvalidated packets
         this.updateState();
@@ -88,15 +81,15 @@ public class OFDelayChecker implements SocketEventObserver {
         this.unmatchedPackets = 0;
         this.timedOutPacketCount = 0;
 
-        Iterator<StampedPacket> mainPacketIterator = this.mainPackets.descendingIterator();
+        Iterator<SocketDataEventArg> mainPacketIterator = this.mainPackets.descendingIterator();
 
         while (mainPacketIterator.hasNext()) {
-            Iterator<StampedPacket> secondaryPacketIterator = this.secondaryPackets.descendingIterator();
-            StampedPacket mainPacket = mainPacketIterator.next();
+            Iterator<SocketDataEventArg> secondaryPacketIterator = this.secondaryPackets.descendingIterator();
+            SocketDataEventArg mainPacket = mainPacketIterator.next();
 
             boolean matched = false;
             while (secondaryPacketIterator.hasNext()) {
-                StampedPacket secondControllerPacket = secondaryPacketIterator.next();
+                SocketDataEventArg secondControllerPacket = secondaryPacketIterator.next();
 
                 if (!this.packetMatcher.match(mainPacket, secondControllerPacket)) {
                     continue;
@@ -122,18 +115,14 @@ public class OFDelayChecker implements SocketEventObserver {
     /**
      * Count the number of delayed packets
      *
-     * @param sender    Current packet sender
-     * @param packet    packet
-     * @param timestamp Timestamp of the event
+     * @param arg packet
      */
-    private void addToAppropriateQueue(SenderType sender, OFPacket packet, long timestamp) {
-        StampedPacket stampedPacket = createStampedPacket(packet, timestamp);
-
+    private void addToAppropriateQueue(SocketDataEventArg arg) {
         // Add each packet to its corresponding window
-        if (sender == SenderType.ControllerRegion) {
-            this.mainPackets.add(stampedPacket);
+        if (arg.getSenderType() == SenderType.ControllerRegion) {
+            this.mainPackets.add(arg);
         } else {
-            this.secondaryPackets.add(stampedPacket);
+            this.secondaryPackets.add(arg);
         }
     }
 
@@ -144,12 +133,5 @@ public class OFDelayChecker implements SocketEventObserver {
         // TODO: migrate left-over packets
         this.willIgnoreComparison = true;
         mediatorNotifier.post(ImmutableControllerFailureArgs.builder().build());
-    }
-
-    private StampedPacket createStampedPacket(OFPacket packet, long timestamp) {
-        return ImmutableStampedPacket.builder()
-                .packet(packet)
-                .timestamp(timestamp)
-                .build();
     }
 }

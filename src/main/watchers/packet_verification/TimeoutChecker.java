@@ -1,7 +1,7 @@
 package watchers.packet_verification;
 
 import utils.Dumper;
-import utils.StampedPacket;
+import utils.events.SocketDataEventArg;
 
 import java.util.Date;
 
@@ -26,7 +26,7 @@ class TimeoutChecker {
         return !isEchoDelay(delay) && delay > threshold;
     }
 
-    public boolean hasTimedOut(final StampedPacket packet, final StampedPacket secondary) {
+    public boolean hasTimedOut(final SocketDataEventArg packet, final SocketDataEventArg secondary) {
         long delay = Math.abs(packet.getTimestamp() - secondary.getTimestamp());
         String info = "Delay:" + delay;
 

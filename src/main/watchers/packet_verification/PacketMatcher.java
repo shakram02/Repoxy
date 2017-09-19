@@ -1,13 +1,12 @@
 package watchers.packet_verification;
 
 import of_packets.OFPacket;
-import utils.StampedPacket;
+import utils.events.SocketDataEventArg;
 
 import java.util.Arrays;
-import java.util.Iterator;
 
 class PacketMatcher {
-    public boolean match(final StampedPacket first, StampedPacket second) {
+    public boolean match(final SocketDataEventArg first, SocketDataEventArg second) {
         OFPacket firstPacket = first.getPacket();
         OFPacket secondPacket = second.getPacket();
 
