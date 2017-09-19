@@ -3,6 +3,9 @@
 out/*
 log/*
 lib/*
+Proxy-config.txt
+
+*/uiDesigner.xml
 
 # User-specific stuff:
 .idea/**/workspace.xml
