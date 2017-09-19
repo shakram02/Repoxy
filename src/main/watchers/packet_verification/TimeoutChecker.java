@@ -33,12 +33,7 @@ class TimeoutChecker {
         System.out.println(info);
         this.dumper.dump(info, FILE_NAME);
 
-        String info = "Delay:" + delay;
-
-        System.out.println(info);
-        this.dumper.dump(info, FILE_NAME);
-
-        return !isWildTimeout(delay) && delay > threshold;
+        return !isEchoDelay(delay) && delay > threshold;
     }
 
     private boolean isEchoDelay(long delay) {
