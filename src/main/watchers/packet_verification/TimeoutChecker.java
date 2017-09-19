@@ -3,12 +3,14 @@ package watchers.packet_verification;
 import utils.Dumper;
 import utils.StampedPacket;
 
+import java.util.Date;
+
 class TimeoutChecker {
     private final long threshold;
     private boolean isNew;
     private static final int ARBITRARY_UNKNOWN_DELAY = 4000;    // TODO: some random 5sec delay happens once, idk
     private long lastMainPacketTimestamp;
-    private final String FILE_NAME = "DELAYS.txt";
+    private static final String FILE_NAME = new Date().toString() + "- DELAYS.txt";
     private Dumper<String> dumper;
 
     public TimeoutChecker(final long threshold) {
