@@ -63,12 +63,6 @@ public class OFDelayChecker implements SocketEventObserver {
             return;
         }
 
-        if (sender == SenderType.ControllerRegion &&
-                this.timeoutChecker.isMainPacketTimedOut(arg.getTimestamp())) {
-            logger.warning("Early detected timeout main controller packet");
-            switchController();
-        }
-
         // Loop on all elements to validate previously unvalidated packets
         this.updateState();
 
