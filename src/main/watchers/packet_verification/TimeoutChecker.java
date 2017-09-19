@@ -7,15 +7,14 @@ import java.util.Date;
 
 class TimeoutChecker {
     private final long threshold;
-    private boolean isNew;
-    private static final int ARBITRARY_UNKNOWN_DELAY = 4000;    // TODO: some random 5sec delay happens once, idk
+    private static final int ECHO_INTERVAL_CEILING = 5500;
+    private static final int ECHO_INTERVAL_FLOOR = 4500;
     private long lastMainPacketTimestamp;
     private static final String FILE_NAME = new Date().toString() + "- DELAYS.txt";
     private Dumper<String> dumper;
 
     public TimeoutChecker(final long threshold) {
         this.threshold = threshold;
-        this.isNew = true;
         this.lastMainPacketTimestamp = System.currentTimeMillis();
         this.dumper = new Dumper<>(String::getBytes);
     }
@@ -24,7 +23,7 @@ class TimeoutChecker {
         long delay = Math.abs(lastMainPacketTimestamp - mainPacketTimestamp);
         lastMainPacketTimestamp = mainPacketTimestamp;
 
-        return !isWildTimeout(delay) && delay > threshold;
+        return !isEchoDelay(delay) && delay > threshold;
     }
 
     public boolean hasTimedOut(final StampedPacket packet, final StampedPacket secondary) {
@@ -38,13 +37,11 @@ class TimeoutChecker {
         return !isWildTimeout(delay) && delay > threshold;
     }
 
-    private boolean isWildTimeout(long delay) {
-        if (isNew && (delay > ARBITRARY_UNKNOWN_DELAY)) {
-            System.out.println("Arbitrary delay, " + delay);
-            isNew = false;
-            return true;
-        }
+    private boolean isEchoDelay(long delay) {
+        // The echo packet is sent every ~5 seconds, if this is the current
+        // delay. ignore it, as the network delay will almost never generate a
+        // 5 seconds delay
         System.out.println("Delay:" + delay);
-        return false;
+        return delay >= ECHO_INTERVAL_FLOOR && delay <= ECHO_INTERVAL_CEILING;
     }
 }
