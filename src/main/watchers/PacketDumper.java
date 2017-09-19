@@ -11,14 +11,13 @@ import utils.events.SocketEventObserver;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 
 public class PacketDumper implements SocketEventObserver {
 
     private final Dumper<OFPacket> fileDumper;
     String fileName;
-    HashMap<SenderType, Path> pathCache;
+    HashMap<SenderType, String> pathCache;
 
     public PacketDumper(String fileName) throws IOException {
         this.fileName = fileName;
@@ -31,7 +30,7 @@ public class PacketDumper implements SocketEventObserver {
     }
 
     private void dumpPacket(SocketDataEventArg arg, SenderType type) {
-        Path path = getPathFromCache(type);
+        String path = getPathFromCache(type);
         this.fileDumper.dump(arg.getPacket(), path);
     }
 
@@ -43,13 +42,13 @@ public class PacketDumper implements SocketEventObserver {
         dumpPacket(dataEventArg, dataEventArg.getSenderType());
     }
 
-    private Path getPathFromCache(SenderType type) {
-        Path path;
+    private String getPathFromCache(SenderType type) {
+        String path;
 
         if (pathCache.containsKey(type)) {
             path = pathCache.get(type);
         } else {
-            path = Paths.get(fileName + type.toString() + ".dat");
+            path = fileName + type.toString() + ".dat";
             pathCache.put(type, path);
         }
 
