@@ -2,6 +2,7 @@ package watchers.packet_verification;
 
 import com.google.common.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
+import utils.ExpiringArrayList;
 import utils.LimitedSizeQueue;
 import utils.SenderType;
 import utils.events.ImmutableControllerFailureArgs;
@@ -17,8 +18,8 @@ public class OFDelayChecker implements SocketEventObserver {
     private final EventBus mediatorNotifier;
     private int packetFailThreshold;
 
-    private final LimitedSizeQueue<SocketDataEventArg> mainPackets;
-    private final LimitedSizeQueue<SocketDataEventArg> secondaryPackets;
+    private final ExpiringArrayList mainPackets;
+    private final ExpiringArrayList secondaryPackets;
 
     private TimeoutChecker timeoutChecker;
     private int unmatchedPackets = 0;
@@ -34,8 +35,8 @@ public class OFDelayChecker implements SocketEventObserver {
         this.mediatorNotifier = new EventBus(OFDelayChecker.class.getName());
         this.mediatorNotifier.register(mediator);
 
-        this.mainPackets = new LimitedSizeQueue<>(windowSize);
-        this.secondaryPackets = new LimitedSizeQueue<>(windowSize);
+        this.mainPackets = new ExpiringArrayList(timestampThreshold, this::onMainExpired);
+        this.secondaryPackets = new ExpiringArrayList(timestampThreshold, this::onSecondaryExpired);
 
         this.timeoutChecker = new TimeoutChecker(timestampThreshold);
         this.packetMatcher = new PacketMatcher();
@@ -81,10 +82,10 @@ public class OFDelayChecker implements SocketEventObserver {
         this.unmatchedPackets = 0;
         this.timedOutPacketCount = 0;
 
-        Iterator<SocketDataEventArg> mainPacketIterator = this.mainPackets.descendingIterator();
+        Iterator<SocketDataEventArg> mainPacketIterator = this.mainPackets.iterator();
 
         while (mainPacketIterator.hasNext()) {
-            Iterator<SocketDataEventArg> secondaryPacketIterator = this.secondaryPackets.descendingIterator();
+            Iterator<SocketDataEventArg> secondaryPacketIterator = this.secondaryPackets.iterator();
             SocketDataEventArg mainPacket = mainPacketIterator.next();
 
             boolean matched = false;
@@ -133,5 +134,13 @@ public class OFDelayChecker implements SocketEventObserver {
         // TODO: migrate left-over packets
         this.willIgnoreComparison = true;
         mediatorNotifier.post(ImmutableControllerFailureArgs.builder().build());
+    }
+
+    private void onMainExpired(SocketDataEventArg mainPacket) {
+        logger.warning("Main packet expired:" + mainPacket);
+    }
+
+    private void onSecondaryExpired(SocketDataEventArg secondaryPacket) {
+        logger.warning("Secondary packet expired:" + secondaryPacket);
     }
 }
