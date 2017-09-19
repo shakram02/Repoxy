@@ -15,6 +15,7 @@ class TimeoutChecker {
 
     public TimeoutChecker(final long threshold) {
         this.threshold = threshold;
+        this.isNew = true;
         this.lastMainPacketTimestamp = System.currentTimeMillis();
         this.dumper = new Dumper<>(String::getBytes);
     }
