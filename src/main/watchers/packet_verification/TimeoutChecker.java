@@ -28,6 +28,10 @@ class TimeoutChecker {
 
     public boolean hasTimedOut(final StampedPacket packet, final StampedPacket secondary) {
         long delay = Math.abs(packet.getTimestamp() - secondary.getTimestamp());
+        String info = "Delay:" + delay;
+
+        System.out.println(info);
+        this.dumper.dump(info, FILE_NAME);
 
         String info = "Delay:" + delay;
 
