@@ -38,11 +38,12 @@ class TimeoutChecker {
     }
 
     private boolean isWildTimeout(long delay) {
-        System.out.println("Delay:" + delay);
         if (isNew && (delay > ARBITRARY_UNKNOWN_DELAY)) {
+            System.out.println("Arbitrary delay, " + delay);
             isNew = false;
             return true;
         }
+        System.out.println("Delay:" + delay);
         return false;
     }
 }
