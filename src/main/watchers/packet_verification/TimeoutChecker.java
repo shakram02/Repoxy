@@ -40,7 +40,6 @@ class TimeoutChecker {
         // The echo packet is sent every ~5 seconds, if this is the current
         // delay. ignore it, as the network delay will almost never generate a
         // 5 seconds delay
-        System.out.println("Delay:" + delay);
         return delay >= ECHO_INTERVAL_FLOOR && delay <= ECHO_INTERVAL_CEILING;
     }
 }

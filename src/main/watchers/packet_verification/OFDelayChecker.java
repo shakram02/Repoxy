@@ -63,6 +63,8 @@ public class OFDelayChecker implements SocketEventObserver {
             return;
         }
 
+        
+
         // Loop on all elements to validate previously unvalidated packets
         this.updateState();
 
