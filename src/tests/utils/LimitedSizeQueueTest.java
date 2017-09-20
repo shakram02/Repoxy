@@ -14,7 +14,7 @@ class LimitedSizeQueueTest {
         }
 
         int oldest = queue.getOldest();
-        int youngest = queue.getYongest();
+        int youngest = queue.getYoungest();
 
         assertTrue(oldest == array[2]);
         assertTrue(youngest == array[3]);
@@ -29,7 +29,7 @@ class LimitedSizeQueueTest {
             queue.add(anArray);
         }
         int oldest = queue.getOldest();
-        int youngest = queue.getYongest();
+        int youngest = queue.getYoungest();
 
         assertTrue(oldest == array[0]);
         assertTrue(youngest == array[array.length - 1]);

@@ -18,7 +18,7 @@ public class LimitedSizeQueue<K> extends LinkedList<K> {
         return super.add(k);
     }
 
-    public K getYongest() {
+    public K getYoungest() {
         return get(this.size() - 1);
     }
 

@@ -8,7 +8,7 @@ private val OF_DEFAULT_PORT = 6833
 
 class Configurator(private val controllerConfigs: ObservableList<ControllerConfig>
                    , var localIp: String = LOOP_BACK_IP,
-                   var localPort: Int = OF_DEFAULT_PORT, private val ipPrefix: String = "192") {
+                   var localPort: Int = OF_DEFAULT_PORT, private val ipPrefix: String = "192.168") {
 
     fun addController(addressInfo: Pair<String, Int>) {
         val ip = addressInfo.first
