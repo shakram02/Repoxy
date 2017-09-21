@@ -18,9 +18,9 @@ class PacketMatcher {
 
     public void addPacket(final SocketDataEventArg packet) {
         if (packet.getSenderType() == SenderType.ControllerRegion) {
-            this.mainControllerPackets.addPacket(packet.getId(), packet);
+            this.mainControllerPackets.addPacket(packet);
         } else {
-            this.secondaryControllerPackets.addPacket(packet.getId(), packet);
+            this.secondaryControllerPackets.addPacket(packet);
         }
     }
 
