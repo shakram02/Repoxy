@@ -40,7 +40,7 @@ public class XidSynchronizer {
             return;
         }
 
-        this.packetBuffer.addPacket(arg.getId(), arg);
+        this.packetBuffer.addPacket(arg);
     }
 
     /**

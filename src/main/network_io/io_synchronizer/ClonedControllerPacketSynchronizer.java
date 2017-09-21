@@ -50,7 +50,7 @@ public class ClonedControllerPacketSynchronizer implements Synchronizer {
         }
 
         // A reply coming from switches is stored until its query is available
-        this.replies.addPacket(dataEventArg.getId(), dataEventArg);
+        this.replies.addPacket(dataEventArg);
     }
 
 

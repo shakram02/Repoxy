@@ -10,8 +10,8 @@ import java.util.Iterator;
  */
 public class PacketBuffer extends QueueMap<ConnectionId, SocketDataEventArg> {
 
-    public void addPacket(ConnectionId id, SocketDataEventArg packet) {
-        super.addObject(id, packet);
+    public void addPacket(SocketDataEventArg packet) {
+        super.addObject(packet.getId(), packet);
     }
 
     public void clearAllData(ConnectionId id) {
