@@ -7,8 +7,6 @@ import java.util.Date;
 
 class TimeoutChecker {
     private static final String FILE_NAME = new Date().toString() + "- DELAYS.txt";
-    private static final int ECHO_INTERVAL_CEILING = 5500;
-    private static final int ECHO_INTERVAL_FLOOR = 4500;
     private final long threshold;
     private Dumper<String> dumper;
 
