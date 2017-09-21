@@ -207,7 +207,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
     }
 
     private void sendData(@NotNull SocketDataEventArg arg) {
-        this.packetBuffer.addPacket(arg.getId(), arg);
+        this.packetBuffer.addPacket(arg);
         SelectionKey key = this.keyMap.inverse().get(arg.getId());
         this.addOutput(key);
     }
