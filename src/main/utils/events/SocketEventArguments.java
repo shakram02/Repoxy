@@ -11,7 +11,7 @@ public abstract class SocketEventArguments {
 
     @Value.Lazy
     public long getTimestamp() {
-        return System.currentTimeMillis();
+        return System.nanoTime();
     }
 
     public abstract EventType getReplyType();
