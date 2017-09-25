@@ -30,8 +30,8 @@ class Configurator(private val controllerConfigs: ObservableList<ControllerConfi
     }
 
     private fun createOneMachineDefaults() {
-        addController(Pair("192.168.1.104", 6834))
-        addController(Pair("192.168.1.105", 6835))
+        addController(Pair("192.168.1.244", 6834))
+        addController(Pair("192.168.1.245", 6835))
     }
 
     fun getDefaultInterfaceAddress(): String {
