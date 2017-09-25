@@ -27,16 +27,13 @@ show up when used with the help component ("./pox.py help --mycomponent").
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
 
-
 # Even a simple usage of the logger is much nicer than print!
 log = core.getLogger()
-
 
 # This table maps (switch,MAC-addr) pairs to the port on 'switch' at
 # which we last saw a packet *from* 'MAC-addr'.
 # (In this case, we use a Connection object for the switch.)
 table = {}
-
 
 # To send out all ports, we can use either of the special ports
 # OFPP_FLOOD or OFPP_ALL.  We'd like to just use OFPP_FLOOD,
@@ -47,27 +44,27 @@ all_ports = of.OFPP_FLOOD
 
 # Handle messages the switch has sent us because it has no
 # matching rule.
-def _handle_PacketIn (event):
-  packet = event.parsed
+def _handle_PacketIn(event):
+    packet = event.parsed
 
-  # Learn the source
-  table[(event.connection,packet.src)] = event.port
+    # Learn the source
+    table[(event.connection, packet.src)] = event.port
 
-  dst_port = table.get((event.connection,packet.dst))
-  
-  # send the packet out all ports (except the one it came in on!)
-  # and hope the destination is out there somewhere. :)
-  msg = of.ofp_packet_out(data = event.ofp)
-  msg.actions.append(of.ofp_action_output(port = all_ports))
-  event.connection.send(msg)
-  log.debug("Forwarding %s <-> %s" % (packet.src, packet.dst))
+    dst_port = table.get((event.connection, packet.dst))
+
+    # send the packet out all ports (except the one it came in on!)
+    # and hope the destination is out there somewhere. :)
+    msg = of.ofp_packet_out(data=event.ofp)
+    msg.actions.append(of.ofp_action_output(port=all_ports))
+    event.connection.send(msg)
+    log.debug("Forwarding %s <-> %s" % (packet.src, packet.dst))
 
 
-def launch (disable_flood = False):
-  global all_ports
-  if disable_flood:
-    all_ports = of.OFPP_ALL
+def launch(disable_flood=False):
+    global all_ports
+    if disable_flood:
+        all_ports = of.OFPP_ALL
 
-  core.openflow.addListenerByName("PacketIn", _handle_PacketIn)
+    core.openflow.addListenerByName("PacketIn", _handle_PacketIn)
 
-  log.info("Pair-Learning switch running.")
+    log.info("Pair-Learning switch running.")
