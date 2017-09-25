@@ -67,4 +67,4 @@ def launch(disable_flood=False):
 
     core.openflow.addListenerByName("PacketIn", _handle_PacketIn)
 
-    log.info("Pair-Learning switch running.")
+    log.debug("Forwarding switch running.")
