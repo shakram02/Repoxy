@@ -17,9 +17,9 @@ class TimeoutChecker {
 
     public boolean hasTimedOut(final SocketDataEventArg packet, final SocketDataEventArg secondary) {
         long delay = Math.abs(packet.getTimestamp() - secondary.getTimestamp());
-        String info = "Delay:" + delay;
+        String info = System.nanoTime() + " " + delay + "\n";
 
-        System.out.println(info);
+        System.out.print(info);
         this.dumper.dump(info, FILE_NAME);
 
         return delay > threshold;
