@@ -1,9 +1,10 @@
 #!/usr/bin/python
 from mininet import clean
-from mininet.node import RemoteController
-from mininet.net import Mininet
-from mininet.util import dumpNodeConnections
 from mininet.log import setLogLevel
+from mininet.net import Mininet
+from mininet.node import RemoteController
+from mininet.util import dumpNodeConnections
+
 import complex_topology
 
 
@@ -17,14 +18,12 @@ def create_network():
     controller_port = 6833
     # controller = RemoteController('c0', ip=controller_ip, port=6833)
 
-    topo = complex_topology.ComplexTopo(4, 2)
+    topo = complex_topology.ComplexTopo()
+
     net = Mininet(topo, build=False)
+    controller = net.addController('c0', RemoteController, ip=controller_ip, port=controller_port)
 
-    c0 = net.addController('c0', controller=RemoteController, ip=controller_ip, port=controller_port)
-
-    # Connect switches to controller
-    for s in net.switches:
-        s.start([c0])
+    topo.build_network(net, 4, 2, controller)
 
     return net
 

@@ -5,32 +5,39 @@ from mininet.topo import Topo
 class ComplexTopo(Topo):
     """Single switch connected to n hosts"""
 
-    def __init__(self, *args, **params):
+    def build_network(self, net, switch_count, hosts_per_switch, controller):
+        hosts = self._create_hosts(net, switch_count, hosts_per_switch)
+        switches = self._create_switches(net, switch_count)
 
-        super(ComplexTopo, self).__init__(*args, **params)
+        self._connect_hosts_to_switches(net, hosts, switches, hosts_per_switch)
+        self._connect_switches(net, switches)
+        self._connect_controller_to_switches(switches, controller)
+        self.build()
 
-    def build(self, n, m):
-        last_switch = None
+    @staticmethod
+    def _connect_hosts_to_switches(net, hosts, switches, hosts_per_switch):
 
-        for s in range(m):
-            # Create a new switch
-            switch = self.addSwitch('s%s' % s)
+        for switch in reversed(switches):
+            # Take the number of hosts of this switch out of the list
+            for i in range(hosts_per_switch):
+                net.addLink(switch, hosts.pop())
 
-            # Connect all switches
-            if last_switch is not None:
-                self.addLink(switch, last_switch)
+    @staticmethod
+    def _connect_switches(net, switches):
+        for i in range(len(switches) - 1):
+            net.addLink(switches[i], switches[i + 1])
 
-            last_switch = switch
-            self.create_hosts(n, switch, n * s)
+    @staticmethod
+    def _connect_controller_to_switches(switches, controller):
+        for s in switches:
+            s.start([controller])
 
-    def create_controller(self, ip, port):
-        pass
+    @staticmethod
+    def _create_switches(net, switch_count):
+        """ Creates network switches """
+        return [net.addSwitch('s%s' % x) for x in range(switch_count)]
 
-    def create_hosts(self, n, switch, host_id):
-        """ Add n hosts to the given switch """
-
-        # Add n hosts for each switch
-        for h in range(n):
-            host = self.addHost('h%s' % host_id)
-            self.addLink(switch, host)
-            host_id += 1
+    @staticmethod
+    def _create_hosts(net, switch_count, hosts_per_switch):
+        """ Creates all hosts in network """
+        return [net.addHost('h%s' % x) for x in range(switch_count * hosts_per_switch)]
