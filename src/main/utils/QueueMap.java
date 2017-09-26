@@ -40,6 +40,11 @@ public class QueueMap<K, V> implements Map<K, V> {
         return this.map.get(key).iterator();
     }
 
+    @NotNull
+    protected final ConcurrentLinkedQueue<V> getList(K key) {
+        return this.map.get(key);
+    }
+
     protected final boolean hasItems(K key) {
         return this.map.containsKey(key) && !this.map.get(key).isEmpty();
 
