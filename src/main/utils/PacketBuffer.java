@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import utils.events.SocketDataEventArg;
 
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Buffer for packets
@@ -24,6 +25,11 @@ public class PacketBuffer extends QueueMap<ConnectionId, SocketDataEventArg> {
 
     public Iterator<SocketDataEventArg> packetIterator(ConnectionId id) {
         return super.iterator(id);
+    }
+
+    @NotNull
+    public ConcurrentLinkedQueue<SocketDataEventArg> getPacketQueue(ConnectionId id) {
+        return super.getList(id);
     }
 
     @NotNull
