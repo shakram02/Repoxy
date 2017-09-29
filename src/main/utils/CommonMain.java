@@ -53,6 +53,6 @@ public class CommonMain {
         }
 
         mediator.close();
-
+        // TODO: Close the server socket, allow for full restart
     }
 }
