@@ -45,6 +45,12 @@ public class ProxyBuilder {
 
     }
 
+    public void stopServer() {
+        switches.shutdownServer();
+        // Invalidate the builder to create a new one in the next run
+        ProxyBuilder.instance = null;
+    }
+
     public ProxyMediator getMediator() {
         return ProxyBuilder.ProxyMediator;
     }

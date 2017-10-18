@@ -11,6 +11,9 @@ import utils.SenderType;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketOption;
+import java.net.SocketOptions;
+import java.net.StandardSocketOptions;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
@@ -18,6 +21,7 @@ import java.util.logging.Logger;
 
 public class ConnectionAcceptorIOHandler extends CommonIOHandler {
     protected final Logger logger;
+    private ServerSocketChannel server;
 
     public ConnectionAcceptorIOHandler() {
         super(SenderType.SwitchesRegion);
@@ -67,13 +71,25 @@ public class ConnectionAcceptorIOHandler extends CommonIOHandler {
         String address = arg.getIp();
         int port = arg.getPort();
 
-        ServerSocketChannel server = ServerSocketChannel.open();
+        server = ServerSocketChannel.open();
         server.configureBlocking(false);
+
+        // Don't wait for tcp connection to die, reuse the address
+        server.setOption(StandardSocketOptions.SO_REUSEADDR, true);
         SelectionKey key = server.register(this.selector, SelectionKey.OP_ACCEPT);
 
         ConnectionId id = ImmutableConnectionId.builder().build();
         this.keyMap.put(key, id);
 
         server.socket().bind(new InetSocketAddress(address, port));
+    }
+
+    public void shutdownServer() {
+        try {
+            server.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new IllegalStateException(e);
+        }
     }
 }
