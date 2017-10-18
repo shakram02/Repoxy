@@ -130,6 +130,7 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
             this.readNetworkIoEvents();
 
         } catch (IOException e) {
+            e.printStackTrace();
             throw new IllegalStateException(e);
         }
     }
