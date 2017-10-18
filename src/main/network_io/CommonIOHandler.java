@@ -203,7 +203,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
         if (debugString.isEmpty()) {
             return;
         }
-        this.logger.info(debugString);
+//        this.logger.info(debugString);
     }
 
     private void sendData(@NotNull SocketDataEventArg arg) {
@@ -242,14 +242,20 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
         assert id != null : "Entry not found " + key;
 
         if (key.isValid() && key.isReadable()) {
-
-            int read = channel.read(buffer);
-            if (read == -1) {
+            try {
+                int read = channel.read(buffer);
+                if (read == -1) {
+                    this.onDisconnect(id);
+                    return;
+                }
+                this.onData(id, channel, read);
+            } catch (IOException e) {
+                // Connection reset throws an exception
+                e.printStackTrace();
                 this.onDisconnect(id);
-                return;
             }
 
-            this.onData(id, channel, read);
+
         } else if (key.isValid() && key.isWritable() && ((SocketChannel) key.channel()).isConnected()) {
             this.writePackets(id, channel);
             this.removeOutput(id);
