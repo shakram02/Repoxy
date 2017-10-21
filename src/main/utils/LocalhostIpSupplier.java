@@ -92,7 +92,7 @@ public class LocalhostIpSupplier {
     }
 
     public static String getLocalHostLANAddress() throws UnknownHostException {
-        return getLocalHostLANAddress("192");
+        return getLocalHostLANAddress("192.168");
     }
 
     private static String findTargetIp(String prefix) {

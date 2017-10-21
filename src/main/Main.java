@@ -13,8 +13,8 @@ import static utils.CommonMain.startProxy;
 
 public class Main {
     private static String LOCALHOST;
-    private static String CONT_4 = "127.0.0.1"; //"192.168.1.104";
-    private static String CONT_5 = "127.0.0.1"; //"192.168.1.105";
+    private static String CONT_4 = "192.168.1.244";
+    private static String CONT_5 = "192.168.1.245";
     public static int OF_PORT = 6833;
     public static int CONTROLLER_PORT = 6834;
     public static int REPLICATED_CONTROLLER_PORT = 6835;
@@ -31,8 +31,8 @@ public class Main {
         } else {
             // Exclude lo* interfaces (loopback) exclude loopback interfaces when not running on single machine
             LOCALHOST = LocalhostIpSupplier.getLocalHostLANAddress();
-            CONT_4 = "192.168.1.104";
-            CONT_5 = "192.168.1.105";
+            CONT_4 = "192.168.1.244";
+            CONT_5 = "192.168.1.245";
         }
 
         System.out.println(String.format("Local IP: [%s] Ports: [%d] [%d] [%d]",
