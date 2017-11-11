@@ -1,15 +1,10 @@
-import mediators.ProxyMediator;
 import utils.ControllerConfig;
 import utils.LocalhostIpSupplier;
-import watchers.ClientCounter;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
 
-import static utils.CommonMain.setupLogging;
-import static utils.CommonMain.startProxy;
+import static utils.CommonMain.*;
 
 public class Main {
     private static String LOCALHOST;
@@ -44,30 +39,6 @@ public class Main {
         configs.add(new ControllerConfig(CONT_5, REPLICATED_CONTROLLER_PORT));
 
         startProxy(LOCALHOST, OF_PORT, configs);
-    }
-
-
-    private static void createAndRunSwitcher(final ProxyMediator mediator, final ClientCounter counter) {
-        TimerTask t = new TimerTask() {
-            int alt = 0;
-
-            @Override
-            public void run() {
-                if (!counter.hasClients()) {
-                    return; // Cancel the task if nobody is connected
-                }
-
-                if (alt % 2 == 0) {
-                    mediator.setActiveController(LOCALHOST, REPLICATED_CONTROLLER_PORT);
-                } else {
-                    mediator.setActiveController(LOCALHOST, CONTROLLER_PORT);
-                }
-                alt++;
-            }
-        };
-
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(t, 2000, 10000);
-        timer.cancel();
+        stopProxy();
     }
 }

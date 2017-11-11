@@ -3,7 +3,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-public class Main extends Application {
+public class GuiMain extends Application {
     Controller controller = new Controller();
     Stage primaryStage;
 

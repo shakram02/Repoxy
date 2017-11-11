@@ -51,12 +51,10 @@ public class CommonMain {
         while (!Thread.interrupted()) {
             mediator.cycle();
         }
-
-        mediator.close();
-        // TODO: Close the server socket, allow for full restart
     }
 
-    public static void stopProxy() {
+    public static void stopProxy() throws IOException {
+        builder.getMediator().close();
         builder.stopServer();
     }
 }
