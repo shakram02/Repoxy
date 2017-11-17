@@ -42,11 +42,13 @@ public class CommonMain {
 
         ClientCounter counter = new ClientCounter();
         OFDelayChecker packetVerifier = new OFDelayChecker(WIND_SIZE, mediator, TIMEOUT_MILLIS);
-        PacketDumper dumper = new PacketDumper(new Date().toString());
+
+        // TODO Dumping is disabled
+        //        PacketDumper dumper = new PacketDumper(new Date().toString());
 
         mediator.registerWatcher(counter);
         mediator.registerWatcher(packetVerifier);
-        mediator.registerWatcher(dumper);
+        //        mediator.registerWatcher(dumper);
 
         while (!Thread.interrupted()) {
             mediator.cycle();
