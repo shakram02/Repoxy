@@ -16,6 +16,14 @@ public class MatchBuffer<T> {
         this.biPredicate = biPredicate;
     }
 
+    /**
+     * Checks if the added packet has a match or not. If it has a match
+     * both of the packet and the match are removed
+     *
+     * @param data packet that will be queued until a match arrives
+     *             or will be returned because its match exists
+     * @return The entered packet if its match exists, Empty if nothing is matched
+     */
     public Optional<T> addIfMatchNotFound(T data) {
         Objects.requireNonNull(data);
         Iterator<T> iter = collection.iterator();
