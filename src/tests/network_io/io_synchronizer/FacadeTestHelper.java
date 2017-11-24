@@ -15,15 +15,11 @@ public class FacadeTestHelper {
     public FacadeTestHelper() {
         this.toController = new LinkedList<>();
         this.toSwitches = new LinkedList<>();
-        this.facade = new SynchronizationFacade(toSwitches::add, toController::add);
+        this.facade = new SynchronizationFacade();
     }
 
     public void addUnSynchronized(SocketDataEventArg arg) {
-        if (arg.getSenderType() == SenderType.SwitchesRegion) {
-            this.facade.manageInput(arg);
-        } else {
-            this.facade.manageOutput(arg);
-        }
+        this.facade.addInput(arg);
     }
 
     public boolean absence(boolean ofOutput) {

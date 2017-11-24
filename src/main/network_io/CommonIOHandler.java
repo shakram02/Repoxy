@@ -94,7 +94,6 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
             this.handleRWDOps(key);
             this.handleSpecialKey(key);
         }
-
     }
 
     private void processEvent(@NotNull SocketEventArguments arg) {
@@ -203,7 +202,8 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
         if (debugString.isEmpty()) {
             return;
         }
-//        this.logger.info(debugString);
+        // TODO prints packets
+        this.logger.info(debugString);
     }
 
     private void sendData(@NotNull SocketDataEventArg arg) {

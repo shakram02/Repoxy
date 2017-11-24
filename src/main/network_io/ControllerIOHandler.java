@@ -4,7 +4,6 @@ import network_io.io_synchronizer.SynchronizationFacade;
 import org.jetbrains.annotations.NotNull;
 import utils.ConnectionId;
 import utils.SenderType;
-import utils.events.ImmutableSocketDataEventArg;
 import utils.events.SocketAddressInfoEventArg;
 import utils.events.SocketDataEventArg;
 import utils.events.SocketEventArguments;
@@ -13,7 +12,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
@@ -34,7 +32,7 @@ public class ControllerIOHandler extends CommonIOHandler {
         this.address = address;
         this.port = port;
         this.logger = Logger.getLogger(String.format("%s/%d", this.address, this.port));
-        this.synchronizer = new SynchronizationFacade(super::addOutput, super::addInput);
+        this.synchronizer = new SynchronizationFacade();
 
         // If no active controllers are set. make this one the active controller
         if (ControllerIOHandler.activeControllerHandler == null) {
@@ -47,7 +45,7 @@ public class ControllerIOHandler extends CommonIOHandler {
     protected void addOutput(SocketEventArguments arg) {
         if (arg instanceof SocketDataEventArg) {
             SocketDataEventArg dataEventArg = (SocketDataEventArg) arg;
-            this.synchronizer.manageOutput(dataEventArg);
+            this.synchronizer.addInput(dataEventArg);
         } else {
             super.addOutput(arg);
         }
@@ -57,10 +55,16 @@ public class ControllerIOHandler extends CommonIOHandler {
     public void addInput(@NotNull SocketEventArguments arg) {
         if (arg instanceof SocketDataEventArg) {
             SocketDataEventArg dataEventArg = (SocketDataEventArg) arg;
-            this.synchronizer.manageInput(dataEventArg);
+            this.synchronizer.addInput(dataEventArg);
         } else {
             super.addInput(arg);
         }
+    }
+
+    @Override
+    public void cycle() throws IOException {
+        super.cycle();
+        this.synchronizer.execute();
     }
 
     /**

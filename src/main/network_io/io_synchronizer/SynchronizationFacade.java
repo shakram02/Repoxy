@@ -1,28 +1,22 @@
 package network_io.io_synchronizer;
 
 import middleware.ProxyMiddleware;
-import utils.ConnectionId;
 import utils.events.SocketDataEventArg;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 
 /**
- * Provides an interface for synchronization mechanism and hides implementation details
+ * Synchronizes Xid of the input packets, the output queue doesn't care
+ * about the sender, it's the responsibility of the caller to decide whom
+ * to send the output packets to
  */
 public class SynchronizationFacade extends ProxyMiddleware {
     private XidSynchronizer xidSynchronizer;
     private ClonedControllerPacketSynchronizer delaySynchronizer;
 
-    private Consumer<SocketDataEventArg> sendToController;
-    private Consumer<SocketDataEventArg> sendToSwitches;
-
-    public SynchronizationFacade(Consumer<SocketDataEventArg> sendToSwitches,
-                                 Consumer<SocketDataEventArg> sendToController) {
+    public SynchronizationFacade() {
         this.xidSynchronizer = new XidSynchronizer();
         this.delaySynchronizer = new ClonedControllerPacketSynchronizer();
-        this.sendToSwitches = sendToSwitches;
-        this.sendToController = sendToController;
     }
 
     private void addUnSynchronized(SocketDataEventArg arg) {
@@ -58,19 +52,6 @@ public class SynchronizationFacade extends ProxyMiddleware {
 
             synced = this.getSynced();
         }
-    }
-
-    public void manageInput(SocketDataEventArg incoming) {
-        this.manageIo(incoming);
-    }
-
-    public void manageOutput(SocketDataEventArg incoming) {
-        this.manageIo(incoming);
-    }
-
-    private void manageIo(SocketDataEventArg incoming) {
-        this.addUnSynchronized(incoming);
-        this.updateOutputQueue();
     }
 
     @Override
