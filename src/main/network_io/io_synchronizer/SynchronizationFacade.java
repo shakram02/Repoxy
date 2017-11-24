@@ -1,6 +1,7 @@
 package network_io.io_synchronizer;
 
-import utils.SenderType;
+import middleware.ProxyMiddleware;
+import utils.ConnectionId;
 import utils.events.SocketDataEventArg;
 
 import java.util.Optional;
@@ -9,7 +10,7 @@ import java.util.function.Consumer;
 /**
  * Provides an interface for synchronization mechanism and hides implementation details
  */
-public class SynchronizationFacade {
+public class SynchronizationFacade extends ProxyMiddleware {
     private XidSynchronizer xidSynchronizer;
     private ClonedControllerPacketSynchronizer delaySynchronizer;
 
@@ -47,17 +48,13 @@ public class SynchronizationFacade {
         return Optional.of(fullySynced.orElse(timeSyncedEventArg));
     }
 
-    private void updateIoQueues() {
+    private void updateOutputQueue() {
         Optional<SocketDataEventArg> synced = this.getSynced();
 
         while (synced.isPresent()) {
+
             SocketDataEventArg dataEventArg = synced.get();
-            if (dataEventArg.getSenderType() == SenderType.SwitchesRegion) {
-                this.sendToController.accept(dataEventArg);
-            } else {
-                // We disregard the type of the controller as it might change over time
-                this.sendToSwitches.accept(dataEventArg);
-            }
+            this.output.add(dataEventArg);
 
             synced = this.getSynced();
         }
@@ -73,6 +70,16 @@ public class SynchronizationFacade {
 
     private void manageIo(SocketDataEventArg incoming) {
         this.addUnSynchronized(incoming);
-        this.updateIoQueues();
+        this.updateOutputQueue();
     }
+
+    @Override
+    public void execute() {
+        while (!this.input.isEmpty()) {
+            SocketDataEventArg packet = this.input.poll();
+            this.addUnSynchronized(packet);
+            this.updateOutputQueue();
+        }
+    }
+
 }
