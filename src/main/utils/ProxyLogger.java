@@ -1,4 +1,4 @@
-package tests.utils;
+package utils;
 
 import java.util.logging.Formatter;
 import java.util.logging.Level;

@@ -1,4 +1,4 @@
-package tests.utils;
+package utils;
 
 public enum SenderType {
     SwitchesRegion,

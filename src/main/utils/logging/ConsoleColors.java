@@ -1,4 +1,4 @@
-package tests.utils.logging;
+package utils.logging;
 
 public class ConsoleColors {
     // Reset

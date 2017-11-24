@@ -1,4 +1,4 @@
-package tests.utils.io;
+package utils.io;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;

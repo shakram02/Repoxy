@@ -1,4 +1,4 @@
-package tests.utils.events;
+package utils.events;
 
 import com.google.common.eventbus.Subscribe;
 import org.jetbrains.annotations.NotNull;

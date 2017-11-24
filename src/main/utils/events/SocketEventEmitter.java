@@ -1,4 +1,4 @@
-package tests.utils.events;
+package utils.events;
 
 public interface SocketEventEmitter {
     void register(SocketEventObserver observer);

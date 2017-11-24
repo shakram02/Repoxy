@@ -1,10 +1,10 @@
-package tests.utils;
+package utils;
 
-import tests.of_packets.OFMsgType;
-import tests.of_packets.OFPacket;
-import tests.of_packets.OFStreamParser;
-import tests.utils.events.SocketDataEventArg;
-import tests.utils.logging.ConsoleColors;
+import of_packets.OFMsgType;
+import of_packets.OFPacket;
+import of_packets.OFStreamParser;
+import utils.events.SocketDataEventArg;
+import utils.logging.ConsoleColors;
 
 import java.util.Arrays;
 

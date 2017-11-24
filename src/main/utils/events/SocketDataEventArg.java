@@ -1,8 +1,8 @@
-package tests.utils.events;
+package utils.events;
 
-import tests.of_packets.OFMsgType;
-import tests.of_packets.OFPacket;
-import tests.of_packets.OFStreamParser;
+import of_packets.OFMsgType;
+import of_packets.OFPacket;
+import of_packets.OFStreamParser;
 import org.immutables.value.Value;
 
 import java.nio.ByteBuffer;

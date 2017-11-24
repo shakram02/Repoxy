@@ -1,4 +1,4 @@
-package tests.utils;
+package utils;
 
 import org.immutables.value.Value;
 import org.jetbrains.annotations.NotNull;
@@ -161,12 +161,12 @@ public class QueueMap<K, V> implements Map<K, V> {
 
         for (Map.Entry<K, ConcurrentLinkedQueue<V>> item : this.map.entrySet()) {
             for (V value : item.getValue()) {
-                Entry e = tests.utils.ImmutableQueueMapEntry
+                Entry e = utils.ImmutableQueueMapEntry
                         .builder()
                         .key(item.getKey())
                         .value(value)
                         .build();
-                result.add((tests.utils.ImmutableQueueMapEntry<K, V>) e);
+                result.add((utils.ImmutableQueueMapEntry<K, V>) e);
             }
         }
 

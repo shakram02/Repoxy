@@ -1,7 +1,7 @@
-package tests.utils;
+package utils;
 
 import org.jetbrains.annotations.NotNull;
-import tests.utils.events.SocketDataEventArg;
+import utils.events.SocketDataEventArg;
 
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;

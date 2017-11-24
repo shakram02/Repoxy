@@ -1,6 +1,6 @@
-package tests.utils;
+package utils;
 
-import tests.utils.events.ImmutableSocketAddressInfoEventArg;
+import utils.events.ImmutableSocketAddressInfoEventArg;
 import mediators.ProxyMediator;
 import network_io.ConnectionAcceptorIOHandler;
 import network_io.ControllerIOHandler;

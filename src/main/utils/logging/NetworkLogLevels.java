@@ -1,7 +1,7 @@
-package tests.utils.logging;
+package utils.logging;
 
-import tests.utils.SenderType;
-import tests.utils.events.SocketEventArguments;
+import utils.SenderType;
+import utils.events.SocketEventArguments;
 
 import java.util.logging.Level;
 

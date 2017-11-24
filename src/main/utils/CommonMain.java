@@ -1,7 +1,7 @@
-package tests.utils;
+package utils;
 
 import mediators.ProxyMediator;
-import tests.utils.logging.ColoredConsoleHandler;
+import utils.logging.ColoredConsoleHandler;
 import middleware.nonblocking.ClientCounter;
 import middleware.blocking.OFDelayChecker;
 

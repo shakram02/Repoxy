@@ -1,4 +1,4 @@
-package tests.utils;
+package utils;
 
 public class LineBasedStringBuilder {
     private final StringBuilder sb;

@@ -1,4 +1,4 @@
-package tests.utils.events;
+package utils.events;
 
 import org.immutables.value.Value;
 

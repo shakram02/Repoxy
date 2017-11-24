@@ -1,4 +1,4 @@
-package tests.utils;
+package utils;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;

@@ -1,8 +1,8 @@
-package tests.utils.events;
+package utils.events;
 
 import org.immutables.value.Value;
-import tests.utils.ConnectionId;
-import tests.utils.SenderType;
+import utils.ConnectionId;
+import utils.SenderType;
 
 @Value.Immutable
 public abstract class ControllerFailureArgs extends SocketEventArguments {

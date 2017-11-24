@@ -1,4 +1,4 @@
-package tests.utils.events;
+package utils.events;
 
 /**
  * Event type for Proxylets

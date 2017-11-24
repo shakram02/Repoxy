@@ -1,4 +1,4 @@
-package tests.utils;
+package utils;
 
 import org.immutables.value.Value;
 
@@ -20,7 +20,7 @@ public abstract class ConnectionId {
     }
 
     public static ConnectionId CreateForTesting(int id) {
-        ConnectionId falseId = tests.utils.ImmutableConnectionId.builder().build();
+        ConnectionId falseId = utils.ImmutableConnectionId.builder().build();
         falseId.id = id;
         return falseId;
     }
