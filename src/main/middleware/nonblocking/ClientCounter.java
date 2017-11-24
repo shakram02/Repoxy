@@ -1,4 +1,4 @@
-package middleware;
+package middleware.nonblocking;
 
 import org.jetbrains.annotations.NotNull;
 import utils.events.EventType;
