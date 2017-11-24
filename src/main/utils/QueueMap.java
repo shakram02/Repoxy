@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class QueueMap<K, V> implements Map<K, V> {
     private ConcurrentHashMap<K, ConcurrentLinkedQueue<V>> map;
 
-    protected QueueMap() {
+    public QueueMap() {
         this.map = new ConcurrentHashMap<>();
     }
 

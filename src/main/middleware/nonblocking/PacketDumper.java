@@ -1,4 +1,4 @@
-package watchers;
+package middleware;
 
 import of_packets.OFPacket;
 import of_packets.OFStreamParser;
@@ -10,7 +10,6 @@ import utils.events.SocketEventArguments;
 import utils.events.SocketEventObserver;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.HashMap;
 
 public class PacketDumper implements SocketEventObserver {
