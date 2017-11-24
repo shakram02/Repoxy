@@ -1,4 +1,4 @@
-package middleware.packet_verification;
+package middleware.blocking;
 
 import of_packets.OFPacket;
 import utils.ConnectionId;

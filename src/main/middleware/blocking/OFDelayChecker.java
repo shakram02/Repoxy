@@ -1,4 +1,4 @@
-package middleware.packet_verification;
+package middleware.blocking;
 
 import com.google.common.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;

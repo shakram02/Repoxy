@@ -1,4 +1,4 @@
-package middleware.packet_verification;
+package middleware.blocking;
 
 import utils.Dumper;
 import utils.events.SocketDataEventArg;
