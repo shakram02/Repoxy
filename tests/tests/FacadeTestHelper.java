@@ -1,6 +1,6 @@
 package tests;
 
-import network_io.io_synchronizer.SynchronizationFacade;
+import middleware.blocking.io_synchronizer.SynchronizationFacade;
 import utils.SenderType;
 import utils.events.SocketDataEventArg;
 

@@ -1,6 +1,6 @@
 package network_io;
 
-import network_io.io_synchronizer.SynchronizationFacade;
+import middleware.blocking.io_synchronizer.SynchronizationFacade;
 import org.jetbrains.annotations.NotNull;
 import utils.ConnectionId;
 import utils.SenderType;

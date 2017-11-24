@@ -1,6 +1,6 @@
 package tests;
 
-import network_io.io_synchronizer.XidSynchronizer;
+import middleware.blocking.io_synchronizer.XidSynchronizer;
 import org.junit.Assert;
 import org.junit.Test;
 import of_packets.OFPacket;

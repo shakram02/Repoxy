@@ -1,6 +1,6 @@
 package tests;
 
-import network_io.io_synchronizer.ClonedControllerPacketSynchronizer;
+import middleware.blocking.io_synchronizer.ClonedControllerPacketSynchronizer;
 import org.junit.Assert;
 import org.junit.Test;
 import utils.SenderType;
