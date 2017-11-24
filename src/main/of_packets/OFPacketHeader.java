@@ -1,4 +1,4 @@
-package tests.of_packets;
+package of_packets;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
@@ -73,7 +73,7 @@ public abstract class OFPacketHeader {
         int len = buff.readUnsignedShort();
         int x_id = buff.readInt();
 
-        return tests.of_packets.ImmutableOFPacketHeader.builder()
+        return of_packets.ImmutableOFPacketHeader.builder()
                 .version(version)
                 .messageCode(msg_t)
                 .len(len)

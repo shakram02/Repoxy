@@ -1,8 +1,8 @@
-package tests.of_packets;
+package of_packets;
 
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
-import tests.utils.io.PartitionReader;
+import utils.io.PartitionReader;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -73,14 +73,14 @@ public class OFStreamParser {
 
         if (ofPacketLength == 0) {
             // Packet was only a header ex. OF_HELLO
-            return tests.of_packets.ImmutableOFPacket.builder()
+            return of_packets.ImmutableOFPacket.builder()
                     .data()
                     .header(header)
                     .build();
         }
 
         byte[] body = reader.getBulk(ofPacketLength);
-        return tests.of_packets.ImmutableOFPacket.builder()
+        return of_packets.ImmutableOFPacket.builder()
                 .data(body)
                 .header(header)
                 .build();

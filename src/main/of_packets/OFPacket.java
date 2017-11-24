@@ -1,4 +1,4 @@
-package tests.of_packets;
+package of_packets;
 
 import org.immutables.value.Value;
 
