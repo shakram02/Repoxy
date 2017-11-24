@@ -1,8 +1,8 @@
 package tests;
 
 import org.junit.jupiter.api.Assertions;
-import tests.utils.ConnectionId;
-import tests.utils.events.SocketDataEventArg;
+import utils.ConnectionId;
+import utils.events.SocketDataEventArg;
 
 import java.util.ArrayList;
 import java.util.List;

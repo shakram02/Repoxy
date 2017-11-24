@@ -1,7 +1,7 @@
 package tests;
 
 import org.junit.Test;
-import tests.utils.LimitedSizeQueue;
+import utils.LimitedSizeQueue;
 
 import static org.junit.jupiter.api.Assertions.*;
 

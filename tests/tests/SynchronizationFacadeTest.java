@@ -1,9 +1,9 @@
 package tests;
 
-import tests.of_packets.OFMsgType;
+import of_packets.OFMsgType;
 import org.junit.Assert;
 import org.junit.Test;
-import tests.utils.SenderType;
+import utils.SenderType;
 
 public class SynchronizationFacadeTest {
     @Test

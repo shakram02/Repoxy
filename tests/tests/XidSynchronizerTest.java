@@ -3,9 +3,9 @@ package tests;
 import network_io.io_synchronizer.XidSynchronizer;
 import org.junit.Assert;
 import org.junit.Test;
-import tests.of_packets.OFPacket;
-import tests.utils.SenderType;
-import tests.utils.events.SocketDataEventArg;
+import of_packets.OFPacket;
+import utils.SenderType;
+import utils.events.SocketDataEventArg;
 
 import java.util.Optional;
 
