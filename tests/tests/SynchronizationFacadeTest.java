@@ -1,21 +1,19 @@
-package network_io.io_synchronizer;
+package tests;
 
-import helpers.TestPacketArgMaker;
-import helpers.TestPackets;
-import of_packets.OFMsgType;
+import tests.of_packets.OFMsgType;
 import org.junit.Assert;
-import org.junit.jupiter.api.Test;
-import utils.SenderType;
+import org.junit.Test;
+import tests.utils.SenderType;
 
-class SynchronizationFacadeTest {
+public class SynchronizationFacadeTest {
     @Test
-    void simpleOnePacket() {
+    public void simpleOnePacket() {
         FacadeTestHelper tester = new FacadeTestHelper();
         int requestXid = 54;
 
         tester.addUnSynchronized(TestPacketArgMaker.createFromPacket(1,
                 TestPackets.BarrierRequestXid54, SenderType.ReplicaRegion));
-
+        tester.facade.execute();
 
         Assert.assertTrue(tester.checkPacket(1, SenderType.ReplicaRegion, requestXid,
                 OFMsgType.OFPT_BARRIER_REQUEST));
@@ -31,7 +29,7 @@ class SynchronizationFacadeTest {
     }
 
     @Test
-    void simpleOnePacketReversedDifferentXids() {
+    public void simpleOnePacketReversedDifferentXids() {
         FacadeTestHelper tester = new FacadeTestHelper();
 
         int requestXid = 11;
@@ -55,7 +53,7 @@ class SynchronizationFacadeTest {
     }
 
     @Test
-    void simpleOnePacketReversedSameXids() {
+    public void simpleOnePacketReversedSameXids() {
         FacadeTestHelper tester = new FacadeTestHelper();
         int requestXid = 10;
 
@@ -77,7 +75,7 @@ class SynchronizationFacadeTest {
     }
 
     @Test
-    void twoPacketsSameXidsDifferentConnections() {
+    public void twoPacketsSameXidsDifferentConnections() {
         FacadeTestHelper tester = new FacadeTestHelper();
 
         tester.addUnSynchronized(TestPacketArgMaker.createFromPacket(1,
@@ -106,7 +104,7 @@ class SynchronizationFacadeTest {
     }
 
     @Test
-    void twoPacketsDifferentXidsDifferentConnections() {
+    public void twoPacketsDifferentXidsDifferentConnections() {
         FacadeTestHelper tester = new FacadeTestHelper();
         int barrierRequestXid = 53;
         int barrierReplyXid = 11;

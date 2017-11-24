@@ -1,11 +1,11 @@
-package helpers;
+package tests;
 
-import of_packets.OFPacket;
-import of_packets.OFStreamParser;
-import utils.ConnectionId;
-import utils.SenderType;
-import utils.events.ImmutableSocketDataEventArg;
-import utils.events.SocketDataEventArg;
+import tests.of_packets.OFPacket;
+import tests.of_packets.OFStreamParser;
+import tests.utils.ConnectionId;
+import tests.utils.SenderType;
+import tests.utils.events.ImmutableSocketDataEventArg;
+import tests.utils.events.SocketDataEventArg;
 
 public class TestPacketArgMaker {
 

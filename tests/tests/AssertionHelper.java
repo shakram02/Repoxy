@@ -1,8 +1,8 @@
-package helpers;
+package tests;
 
 import org.junit.jupiter.api.Assertions;
-import utils.ConnectionId;
-import utils.events.SocketDataEventArg;
+import tests.utils.ConnectionId;
+import tests.utils.events.SocketDataEventArg;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,21 +15,16 @@ public class AssertionHelper {
     /**
      * An packet with the specified ID is ready to be output
      *
-     * @param getter draws packets from synced queue if possible
+     * @param packet draws packets from synced queue if possible
      * @return true if the next ready packet to output matches the ID, false otherwise
      */
-    private static boolean getAndCheck(Supplier<Optional<SocketDataEventArg>> getter, Checker checker) {
-
-        Optional<SocketDataEventArg> syncResult = getter.get();
-        Assertions.assertTrue(syncResult.isPresent());
-
-        SocketDataEventArg eventArg = syncResult.get();
+    private static boolean getAndCheck(SocketDataEventArg packet, Checker checker) {
 
         List<Predicate<SocketDataEventArg>> checks = checker.getChecks();
         for (int i = 0; i < checks.size(); i++) {
             Predicate<SocketDataEventArg> check = checks.get(i);
 
-            Assertions.assertTrue(check.test(eventArg), String.format("Failed to assert %d %s", i, eventArg));
+            Assertions.assertTrue(check.test(packet), String.format("Failed to assert %d %s", i, packet));
         }
 
         return true;
@@ -39,11 +34,11 @@ public class AssertionHelper {
      * An packet with the specified ID is ready to be output
      *
      * @param id     Id of connection
-     * @param getter draws packets from synced queue if possible
+     * @param packet packet from synced queue
      * @param xid    xid to match
      * @return true if the next ready packet to output matches the ID, false otherwise
      */
-    public static boolean hasValidIdMessageTypeXid(int id, Supplier<Optional<SocketDataEventArg>> getter,
+    public static boolean hasValidIdMessageTypeXid(int id, SocketDataEventArg packet,
                                                    int xid, Byte messageCode) {
         final ConnectionId connectionId = ConnectionId.CreateForTesting(id);
         final Checker checker = new Checker();
@@ -54,7 +49,7 @@ public class AssertionHelper {
         checker.check(p -> p.getId().equals(connectionId));
 
         try {
-            getAndCheck(getter, checker);
+            getAndCheck(packet, checker);
         } catch (AssertionError e) {
             System.err.println(String.format("Validating: messageCode: %d, XId: %d, ConnId: %d",
                     messageCode, xid, id));
@@ -67,10 +62,10 @@ public class AssertionHelper {
      * An packet with the specified ID is ready to be output
      *
      * @param id     Id of connection
-     * @param getter draws packets from synced queue if possible
+     * @param packet draws packets from synced queue if possible
      * @return true if the next ready packet to output matches the ID, false otherwise
      */
-    public static boolean hasValidIdMessageType(int id, Supplier<Optional<SocketDataEventArg>> getter, byte messageCode) {
+    public static boolean hasValidIdMessageType(int id, SocketDataEventArg packet, byte messageCode) {
         final ConnectionId connectionId = ConnectionId.CreateForTesting(id);
         final Checker checker = new Checker();
 
@@ -79,7 +74,7 @@ public class AssertionHelper {
         checker.check(p -> p.getId().equals(connectionId));
 
         try {
-            getAndCheck(getter, checker);
+            getAndCheck(packet, checker);
         } catch (AssertionError e) {
             System.err.println(String.format("Validating: messageCode: %d, ConnId: %d",
                     messageCode, id));

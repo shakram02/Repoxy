@@ -1,42 +1,34 @@
-package network_io.io_synchronizer;
+package tests;
 
-import helpers.AssertionHelper;
-import helpers.TestPacketArgMaker;
-import helpers.TestPackets;
-import of_packets.OFMsgType;
+import network_io.io_synchronizer.ClonedControllerPacketSynchronizer;
 import org.junit.Assert;
-import org.junit.jupiter.api.Test;
-import utils.SenderType;
-import utils.events.SocketDataEventArg;
+import org.junit.Test;
+import tests.utils.SenderType;
 
-import static helpers.AssertionHelper.absence;
-import static of_packets.OFMsgType.OFPT_BARRIER_REPLY;
-import static of_packets.OFMsgType.OFPT_BARRIER_REQUEST;
-
-class ClonedControllerPacketSynchronizerTest {
+public class ClonedControllerPacketSynchronizerTest {
     @Test
-    void testSyncSimple() {
+    public void testSyncSimple() {
         ClonedControllerPacketSynchronizer synchronizer = new ClonedControllerPacketSynchronizer();
 
         // Add the query
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(1,
                 TestPackets.BarrierRequestXid54, SenderType.ReplicaRegion));
 
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer::getSynced, OFPT_BARRIER_REQUEST));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer.getSynced().get(), tests.of_packets.OFMsgType.OFPT_BARRIER_REQUEST));
 
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(1,
                 TestPackets.BarrierReplyXid54, SenderType.SwitchesRegion));
 
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer::getSynced,
-                OFMsgType.OFPT_BARRIER_REPLY));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer.getSynced().get(),
+                tests.of_packets.OFMsgType.OFPT_BARRIER_REPLY));
 
 
         // Nothing left
-        Assert.assertTrue(absence(synchronizer::getSynced));
+        Assert.assertTrue(AssertionHelper.absence(synchronizer::getSynced));
     }
 
     @Test
-    void testSyncReversedSimple() {
+    public void testSyncReversedSimple() {
         ClonedControllerPacketSynchronizer synchronizer = new ClonedControllerPacketSynchronizer();
 
         // Add the reply
@@ -44,21 +36,21 @@ class ClonedControllerPacketSynchronizerTest {
                 TestPackets.BarrierReplyXid54, SenderType.SwitchesRegion));
 
         // Asserting false because replies shouldn't be released until their request was added
-        Assert.assertTrue(absence(synchronizer::getSynced));
+        Assert.assertTrue(AssertionHelper.absence(synchronizer::getSynced));
 
         // Add the query
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(1,
                 TestPackets.BarrierRequestXid54, SenderType.ReplicaRegion));
 
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer::getSynced, OFPT_BARRIER_REQUEST));
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer::getSynced, OFPT_BARRIER_REPLY));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer.getSynced().get(), tests.of_packets.OFMsgType.OFPT_BARRIER_REQUEST));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer.getSynced().get(), tests.of_packets.OFMsgType.OFPT_BARRIER_REPLY));
 
         // Nothing left
-        Assert.assertTrue(absence(synchronizer::getSynced));
+        Assert.assertTrue(AssertionHelper.absence(synchronizer::getSynced));
     }
 
     @Test
-    void testSyncTwoRequestOneReply() {
+    public void testSyncTwoRequestOneReply() {
         ClonedControllerPacketSynchronizer synchronizer = new ClonedControllerPacketSynchronizer();
 
         // Add the query
@@ -76,18 +68,18 @@ class ClonedControllerPacketSynchronizerTest {
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(2,
                 TestPackets.BarrierReplyXid54, SenderType.SwitchesRegion));
 
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer::getSynced, OFPT_BARRIER_REQUEST));
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(2, synchronizer::getSynced, OFPT_BARRIER_REQUEST));
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(2, synchronizer::getSynced, OFPT_BARRIER_REQUEST));
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(2, synchronizer::getSynced, OFPT_BARRIER_REPLY));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer.getSynced().get(), tests.of_packets.OFMsgType.OFPT_BARRIER_REQUEST));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(2, synchronizer.getSynced().get(), tests.of_packets.OFMsgType.OFPT_BARRIER_REQUEST));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(2, synchronizer.getSynced().get(), tests.of_packets.OFMsgType.OFPT_BARRIER_REQUEST));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(2, synchronizer.getSynced().get(), tests.of_packets.OFMsgType.OFPT_BARRIER_REPLY));
 
         // Packet with ConnectionId 1 won't be released until its reply arrive, so now the toSwitches
         // queue to controller is empty
-        Assert.assertTrue(absence(synchronizer::getSynced));
+        Assert.assertTrue(AssertionHelper.absence(synchronizer::getSynced));
     }
 
     @Test
-    void testSwitchRequest() {
+    public void testSwitchRequest() {
         ClonedControllerPacketSynchronizer synchronizer = new ClonedControllerPacketSynchronizer();
 
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(1,
@@ -96,12 +88,12 @@ class ClonedControllerPacketSynchronizerTest {
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(1,
                 TestPackets.BarrierReplyXid54, SenderType.ControllerRegion));
 
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer::getSynced, OFPT_BARRIER_REQUEST));
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer::getSynced, OFPT_BARRIER_REPLY));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer.getSynced().get(), tests.of_packets.OFMsgType.OFPT_BARRIER_REQUEST));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer.getSynced().get(), tests.of_packets.OFMsgType.OFPT_BARRIER_REPLY));
     }
 
     @Test
-    void testSwitchRequestReversed() {
+    public void testSwitchRequestReversed() {
         ClonedControllerPacketSynchronizer synchronizer = new ClonedControllerPacketSynchronizer();
 
 
@@ -111,12 +103,12 @@ class ClonedControllerPacketSynchronizerTest {
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(1,
                 TestPackets.BarrierRequestXid54, SenderType.SwitchesRegion));
 
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer::getSynced, OFPT_BARRIER_REQUEST));
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer::getSynced, OFPT_BARRIER_REPLY));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer.getSynced().get(), tests.of_packets.OFMsgType.OFPT_BARRIER_REQUEST));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer.getSynced().get(), tests.of_packets.OFMsgType.OFPT_BARRIER_REPLY));
     }
 
     @Test
-    void testDifferentConnectionIDs() {
+    public void testDifferentConnectionIDs() {
         ClonedControllerPacketSynchronizer synchronizer = new ClonedControllerPacketSynchronizer();
 
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(1,
@@ -132,15 +124,15 @@ class ClonedControllerPacketSynchronizerTest {
                 TestPackets.BarrierReplyXid54, SenderType.SwitchesRegion));
 
         // Request comes out
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer::getSynced, OFPT_BARRIER_REQUEST));
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(2, synchronizer::getSynced, OFPT_BARRIER_REQUEST));
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(2, synchronizer::getSynced, OFPT_BARRIER_REPLY));
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer::getSynced, OFPT_BARRIER_REPLY));
-        Assert.assertTrue(absence(synchronizer::getSynced));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer.getSynced().get(), tests.of_packets.OFMsgType.OFPT_BARRIER_REQUEST));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(2, synchronizer.getSynced().get(), tests.of_packets.OFMsgType.OFPT_BARRIER_REQUEST));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(2, synchronizer.getSynced().get(), tests.of_packets.OFMsgType.OFPT_BARRIER_REPLY));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(1, synchronizer.getSynced().get(), tests.of_packets.OFMsgType.OFPT_BARRIER_REPLY));
+        Assert.assertTrue(AssertionHelper.absence(synchronizer::getSynced));
     }
 
     @Test
-    void testSyncTwoRequestTwoReplies() {
+    public void testSyncTwoRequestTwoReplies() {
         ClonedControllerPacketSynchronizer synchronizer = new ClonedControllerPacketSynchronizer();
 
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(2,
@@ -150,32 +142,32 @@ class ClonedControllerPacketSynchronizerTest {
                 TestPackets.BarrierReplyXid54, SenderType.SwitchesRegion));
 
         // Now the replies are only remaining, they won't go out
-        Assert.assertTrue(absence(synchronizer::getSynced));
+        Assert.assertTrue(AssertionHelper.absence(synchronizer::getSynced));
 
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(2,
                 TestPackets.BarrierRequestXid54, SenderType.ReplicaRegion));
 
         // Request and reply come out
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(2, synchronizer::getSynced, OFPT_BARRIER_REQUEST));
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(2, synchronizer::getSynced, OFPT_BARRIER_REPLY));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(2, synchronizer.getSynced().get(), tests.of_packets.OFMsgType.OFPT_BARRIER_REQUEST));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(2, synchronizer.getSynced().get(), tests.of_packets.OFMsgType.OFPT_BARRIER_REPLY));
 
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(2,
                 TestPackets.BarrierRequestXid54, SenderType.ReplicaRegion));
 
         // Request and reply come out
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(2, synchronizer::getSynced, OFPT_BARRIER_REQUEST));
-        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(2, synchronizer::getSynced, OFPT_BARRIER_REPLY));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(2, synchronizer.getSynced().get(), tests.of_packets.OFMsgType.OFPT_BARRIER_REQUEST));
+        Assert.assertTrue(AssertionHelper.hasValidIdMessageType(2, synchronizer.getSynced().get(), tests.of_packets.OFMsgType.OFPT_BARRIER_REPLY));
 
-        Assert.assertTrue(absence(synchronizer::getSynced));
+        Assert.assertTrue(AssertionHelper.absence(synchronizer::getSynced));
     }
 
     @Test
-    void testSyncReplyWithNoQuery() {
+    public void testSyncReplyWithNoQuery() {
         ClonedControllerPacketSynchronizer synchronizer = new ClonedControllerPacketSynchronizer();
 
         synchronizer.addUnSynchronized(TestPacketArgMaker.createFromPacket(2,
                 TestPackets.BarrierReplyXid54, SenderType.SwitchesRegion));
 
-        Assert.assertTrue(absence(synchronizer::getSynced));
+        Assert.assertTrue(AssertionHelper.absence(synchronizer::getSynced));
     }
 }

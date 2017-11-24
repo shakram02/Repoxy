@@ -1,19 +1,17 @@
-package utils.xid_sync;
+package tests;
 
-import helpers.TestPacketArgMaker;
-import helpers.TestPackets;
 import network_io.io_synchronizer.XidSynchronizer;
-import of_packets.OFPacket;
 import org.junit.Assert;
-import org.junit.jupiter.api.Test;
-import utils.SenderType;
-import utils.events.SocketDataEventArg;
+import org.junit.Test;
+import tests.of_packets.OFPacket;
+import tests.utils.SenderType;
+import tests.utils.events.SocketDataEventArg;
 
 import java.util.Optional;
 
-class XidSynchronizerTest {
+public class XidSynchronizerTest {
     @Test
-    void syncOneXid() {
+    public void syncOneXid() {
         XidSynchronizer synchronizer = new XidSynchronizer();
         int requestXid = 11;
         SocketDataEventArg dataEventArgs = TestPacketArgMaker.createFromPacket(1,
@@ -33,7 +31,7 @@ class XidSynchronizerTest {
     }
 
     @Test
-    void syncOneXidFalseConnectionID() {
+    public void syncOneXidFalseConnectionID() {
         final XidSynchronizer synchronizer = new XidSynchronizer();
         int connectionId = 1;
         int falseConnectionId = 2;
@@ -49,7 +47,7 @@ class XidSynchronizerTest {
     }
 
     @Test
-    void syncSwitchQuery() {
+    public void syncSwitchQuery() {
         final XidSynchronizer synchronizer = new XidSynchronizer();
 
         synchronizer.saveCopyIfQuery(TestPacketArgMaker.createFromPacket(1,

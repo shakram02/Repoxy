@@ -1,4 +1,4 @@
-package of_packets;
+package tests.of_packets;
 
 
 import com.google.common.collect.ImmutableList;
@@ -44,7 +44,7 @@ public class OFStreamParserTest {
 
         byte[] bytes = new byte[]{1, 0, 0, 8, 0, 0, 0, 1};
 
-        OFPacketHeader helloHeader = of_packets.ImmutableOFPacketHeader.builder()
+        OFPacketHeader helloHeader = tests.of_packets.ImmutableOFPacketHeader.builder()
                 .version((byte) 1)
                 .messageCode((byte) 0)
                 .len(8)
@@ -52,7 +52,7 @@ public class OFStreamParserTest {
                 .build();
 
         ByteBuffer buffer = OFStreamParser.serializePacket(
-                of_packets.ImmutableOFPacket.builder()
+                tests.of_packets.ImmutableOFPacket.builder()
                         .header(helloHeader)
                         .data().build());
 

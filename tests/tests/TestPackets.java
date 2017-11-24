@@ -1,4 +1,4 @@
-package helpers;
+package tests;
 
 public class TestPackets {
     public static byte[] GetConfigRequestXid23 = new byte[]{1, 7, 0, 8, 0, 0, 0, 23};
