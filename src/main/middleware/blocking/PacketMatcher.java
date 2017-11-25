@@ -21,9 +21,14 @@ import java.util.concurrent.LinkedTransferQueue;
  * Note that matched replicated packets are dropped
  */
 public class PacketMatcher extends ProxyMiddleware {
+    private static int DEFAULT_TIMEOUT_MILLIS = 20;
     private LinkedTransferQueue<SocketDataEventArg> waitingPackets;
     private final long millisThreshold;
     private long lastMatchedPacketTimestamp;
+
+    public PacketMatcher() {
+        this(DEFAULT_TIMEOUT_MILLIS);
+    }
 
     public PacketMatcher(int millisThreshold) {
         this.millisThreshold = millisThreshold;
