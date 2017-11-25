@@ -25,7 +25,7 @@ public class FacadeTestHelper {
     }
 
     public boolean absence() {
-        return this.facade.isEmpty();
+        return this.facade.hasOutput();
     }
 
     private SocketDataEventArg getToController() {
@@ -40,7 +40,7 @@ public class FacadeTestHelper {
 
 
     private void drawPacket() {
-        if (this.facade.isEmpty()) {
+        if (this.facade.hasOutput()) {
             return;
         }
 

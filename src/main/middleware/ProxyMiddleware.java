@@ -13,9 +13,9 @@ import java.util.concurrent.LinkedTransferQueue;
  * of the pipeline) and simplifies the logic inside the middleware
  */
 public abstract class ProxyMiddleware {
-    protected LinkedTransferQueue<SocketDataEventArg> input;
-    protected LinkedTransferQueue<SocketDataEventArg> output;
-    protected LinkedTransferQueue<SocketDataEventArg> error;
+    protected final LinkedTransferQueue<SocketDataEventArg> input;
+    protected final LinkedTransferQueue<SocketDataEventArg> output;
+    protected final LinkedTransferQueue<SocketDataEventArg> error;
 
     public ProxyMiddleware() {
         input = new LinkedTransferQueue<>();
@@ -39,11 +39,11 @@ public abstract class ProxyMiddleware {
         return this.error.poll();
     }
 
-    public boolean isEmpty() {
-        return this.output.isEmpty();
+    public boolean hasOutput() {
+        return !this.output.isEmpty();
     }
 
-    public boolean isError() {
+    public boolean hasError() {
         return !this.error.isEmpty();
     }
 }

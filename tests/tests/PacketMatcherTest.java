@@ -23,7 +23,7 @@ public class PacketMatcherTest {
         SocketDataEventArg eventArg = matcher.getOutput();
         // Last packet is emitted
         Assert.assertTrue(eventArg.getSenderType() == SenderType.ControllerRegion);
-        Assert.assertTrue(matcher.isEmpty());
+        Assert.assertTrue(matcher.hasOutput());
     }
 
     @Test
@@ -44,7 +44,7 @@ public class PacketMatcherTest {
 
         matcher.execute();
 
-        Assert.assertTrue(matcher.isError());
-        Assert.assertFalse(matcher.isEmpty());
+        Assert.assertTrue(matcher.hasError());
+        Assert.assertFalse(matcher.hasOutput());
     }
 }
