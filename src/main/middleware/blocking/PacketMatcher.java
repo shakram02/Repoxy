@@ -16,8 +16,7 @@ import java.util.concurrent.LinkedTransferQueue;
  * If the packets match, it's added to the output buffer, otherwise it's added
  * to the error buffer.
  * <p>
- * If a packet times out, it's not known until another
- * packet comes and matches a packet.
+ * If a packet times out, it's not known until an input comes in
  * <p>
  * Note that matched replicated packets are dropped
  */
