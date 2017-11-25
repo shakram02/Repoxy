@@ -40,11 +40,13 @@ public class PacketMatcherTest {
         Thread.sleep(10);
 
         matcher.addInput(TestPacketArgMaker.
-                createFromPacket(1, TestPackets.BarrierReplyXid54, SenderType.ControllerRegion));
+                createFromPacket(1, TestPackets.FeaturesRequestXid11, SenderType.ControllerRegion));
 
         matcher.execute();
 
+        // The first 2 packets will have timed out
         Assert.assertTrue(matcher.hasError());
+        // No output exists as no packets match
         Assert.assertFalse(matcher.hasOutput());
     }
 }
