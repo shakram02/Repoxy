@@ -22,13 +22,13 @@ import java.util.concurrent.LinkedTransferQueue;
  */
 public class PacketMatcher extends ProxyMiddleware {
     private LinkedTransferQueue<SocketDataEventArg> waitingPackets;
-    private final long thresholdNanoSeconds;
+    private final long millisThreshold;
     private long lastMatchedPacketTimestamp;
 
-    public PacketMatcher(long thresholdNanoSeconds) {
-        this.thresholdNanoSeconds = thresholdNanoSeconds;
+    public PacketMatcher(int millisThreshold) {
+        this.millisThreshold = millisThreshold;
         waitingPackets = new LinkedTransferQueue<>();
-        lastMatchedPacketTimestamp = System.nanoTime();
+        lastMatchedPacketTimestamp = System.currentTimeMillis();
     }
 
     @Override
@@ -66,7 +66,7 @@ public class PacketMatcher extends ProxyMiddleware {
 
         long delta = packet.getTimestamp() - lastMatchedPacketTimestamp;
         // Check if the packet is old enough
-        if (delta < thresholdNanoSeconds) {
+        if (delta < millisThreshold) {
             return;
         }
 
