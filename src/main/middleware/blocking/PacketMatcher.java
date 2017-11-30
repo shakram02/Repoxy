@@ -2,6 +2,7 @@ package middleware.blocking;
 
 import middleware.ProxyMiddleware;
 import of_packets.OFPacket;
+import utils.MonotonicClock;
 import utils.events.SocketDataEventArg;
 
 import java.util.Arrays;
@@ -23,8 +24,7 @@ import java.util.concurrent.LinkedTransferQueue;
 public class PacketMatcher extends ProxyMiddleware {
     private static int DEFAULT_TIMEOUT_MILLIS = 20;
     private LinkedTransferQueue<SocketDataEventArg> waitingPackets;
-    private final long millisThreshold;
-    private long lastMatchedPacketTimestamp;
+    private final int millisThreshold;
 
     public PacketMatcher() {
         this(DEFAULT_TIMEOUT_MILLIS);
@@ -33,20 +33,16 @@ public class PacketMatcher extends ProxyMiddleware {
     public PacketMatcher(int millisThreshold) {
         this.millisThreshold = millisThreshold;
         waitingPackets = new LinkedTransferQueue<>();
-        lastMatchedPacketTimestamp = System.currentTimeMillis();
     }
 
     @Override
     public void execute() {
-
         while (!this.input.isEmpty()) {
 
             SocketDataEventArg packet = this.input.poll();
             Optional<SocketDataEventArg> match = hasQueuedMatch(packet);
 
             if (match.isPresent()) {
-                // Store the timestamp of the older packet
-                this.lastMatchedPacketTimestamp = match.get().getTimestamp();
                 this.output.add(packet);
             } else {
                 // Add the packet to waiting Queue
@@ -55,6 +51,11 @@ public class PacketMatcher extends ProxyMiddleware {
         }
 
         sweepUnmatched();
+    }
+
+    @Override
+    public ProxyMiddleware clone() {
+        return new PacketMatcher(this.millisThreshold);
     }
 
     /**
@@ -67,15 +68,17 @@ public class PacketMatcher extends ProxyMiddleware {
             return;
         }
 
+        // We only need to check the first packet, since it's
+        // the oldest one in the queue
         SocketDataEventArg packet = this.waitingPackets.peek();
 
-        long delta = packet.getTimestamp() - lastMatchedPacketTimestamp;
+        long delta = MonotonicClock.getTimeMillis() - packet.getTimestamp();
+
         // Check if the packet is old enough
         if (delta < millisThreshold) {
             return;
         }
 
-        // A packet that's newer that the head was matched
         // TODO: we should log a warning/error
         this.error.add(this.waitingPackets.poll());
     }

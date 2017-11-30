@@ -12,7 +12,7 @@ import java.util.concurrent.LinkedTransferQueue;
  * makes the data management in a central location (before the start
  * of the pipeline) and simplifies the logic inside the middleware
  */
-public abstract class ProxyMiddleware {
+public abstract class ProxyMiddleware implements Cloneable {
     protected final LinkedTransferQueue<SocketDataEventArg> input;
     protected final LinkedTransferQueue<SocketDataEventArg> output;
     protected final LinkedTransferQueue<SocketDataEventArg> error;
@@ -46,4 +46,6 @@ public abstract class ProxyMiddleware {
     public boolean hasError() {
         return !this.error.isEmpty();
     }
+
+    public abstract ProxyMiddleware clone();
 }

@@ -63,4 +63,9 @@ public class SynchronizationFacade extends ProxyMiddleware {
         }
     }
 
+    @Override
+    public ProxyMiddleware clone() {
+        throw new RuntimeException("Synchronization facade doesn't need to be cloned");
+    }
+
 }
