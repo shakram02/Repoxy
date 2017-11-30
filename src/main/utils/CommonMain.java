@@ -1,9 +1,10 @@
 package utils;
 
 import mediators.ProxyMediator;
+import middleware.blocking.PacketMatcher;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import utils.logging.ColoredConsoleHandler;
 import middleware.nonblocking.ClientCounter;
-import middleware.blocking.OFDelayChecker;
 
 import java.io.IOException;
 import java.util.List;
@@ -29,7 +30,7 @@ public class CommonMain {
 
     public static void startProxy(String localIp, int localPort, List<ControllerConfig> configList)
             throws IOException {
-
+        // TODO, why not start the server after adding controllers?
         builder.startServer(localIp, localPort);
 
         for (ControllerConfig controllerConfig : configList) {
@@ -39,13 +40,14 @@ public class CommonMain {
         ProxyMediator mediator = builder.getMediator();
 
         ClientCounter counter = new ClientCounter();
-        OFDelayChecker packetVerifier = new OFDelayChecker(WIND_SIZE, mediator, TIMEOUT_MILLIS);
+//        OFDelayChecker packetVerifier = new OFDelayChecker(mediator, TIMEOUT_MILLIS);
 
         // TODO Dumping is disabled
         //        PacketDumper dumper = new PacketDumper(new Date().toString());
-
+        builder.addMiddleware(new PacketMatcher());
         mediator.registerWatcher(counter);
-        mediator.registerWatcher(packetVerifier);
+
+//        mediator.registerWatcher(packetVerifier);
         //        mediator.registerWatcher(dumper);
 
         while (!Thread.interrupted()) {
