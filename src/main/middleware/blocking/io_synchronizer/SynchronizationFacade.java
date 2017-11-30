@@ -6,7 +6,7 @@ import utils.events.SocketDataEventArg;
 import java.util.Optional;
 
 /**
- * Synchronizes Xid of the input packets, the output queue doesn't care
+ * Synchronizes Xid of the input packets from switches, the output queue doesn't care
  * about the sender, it's the responsibility of the caller to decide whom
  * to send the output packets to
  */
