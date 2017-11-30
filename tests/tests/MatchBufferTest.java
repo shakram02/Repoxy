@@ -1,14 +1,16 @@
-package utils;
+package tests;
 
 import org.junit.Test;
+import utils.MatchBuffer;
+
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.Objects;
 
 
-class MatchBufferTest {
+public class MatchBufferTest {
 
     @Test
-    void testBasicFunctionality() {
+    public void testBasicFunctionality() {
 
         MatchBuffer<Integer> integerMatchBuffer = new MatchBuffer<>(Objects::equals);
 

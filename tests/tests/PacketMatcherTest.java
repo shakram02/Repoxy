@@ -9,7 +9,7 @@ import utils.events.SocketDataEventArg;
 public class PacketMatcherTest {
     @Test
     public void simpleTest() {
-        PacketMatcher matcher = new PacketMatcher(120);
+        PacketMatcher matcher = new PacketMatcher();
 
 
         matcher.addInput(TestPacketArgMaker.
@@ -23,12 +23,11 @@ public class PacketMatcherTest {
         SocketDataEventArg eventArg = matcher.getOutput();
         // Last packet is emitted
         Assert.assertTrue(eventArg.getSenderType() == SenderType.ControllerRegion);
-        Assert.assertTrue(matcher.hasOutput());
     }
 
     @Test
     public void timeoutTest() throws InterruptedException {
-        PacketMatcher matcher = new PacketMatcher(10);
+        PacketMatcher matcher = new PacketMatcher();
 
 
         matcher.addInput(TestPacketArgMaker.
@@ -37,7 +36,7 @@ public class PacketMatcherTest {
         matcher.addInput(TestPacketArgMaker.
                 createFromPacket(1, TestPackets.BarrierRequestXid54, SenderType.ControllerRegion));
 
-        Thread.sleep(10);
+        Thread.sleep(100);
 
         matcher.addInput(TestPacketArgMaker.
                 createFromPacket(1, TestPackets.FeaturesRequestXid11, SenderType.ControllerRegion));
