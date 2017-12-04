@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  */
 public class ControllerIOHandler extends CommonIOHandler {
     private static ControllerIOHandler activeControllerHandler;
-    SynchronizationFacade synchronizer;
+    SynchronizationFacade synchronizer; // TODO Remove sync. from io handler
     @NotNull
     private final String address;
     private final int port;
@@ -65,6 +65,19 @@ public class ControllerIOHandler extends CommonIOHandler {
     public void cycle() throws IOException {
         super.cycle();
         this.synchronizer.execute();
+
+        // Move the packets from the synchronizer middleware
+        // and hand it to the super class to send it
+        while (this.synchronizer.hasOutput()) {
+
+            SocketDataEventArg packet = this.synchronizer.getOutput();
+
+            if (packet.getSenderType() == SenderType.SwitchesRegion) {
+                super.addInput(packet);
+            } else {
+                super.addOutput(packet);
+            }
+        }
     }
 
     /**
