@@ -15,13 +15,14 @@ public class PacketDebugger {
         basetime = MonotonicClock.getTimeMillis();
     }
 
-    public void debugDataEventArg(ConnectionId id, SocketDataEventArg arg) {
-        String debugMessage = stringifyPacket(id, arg.getSenderType(), arg.getPacket());
+    public String debugDataEventArg(SocketDataEventArg arg) {
+        String debugMessage = stringifyPacket(arg.getId(), arg.getSenderType(), arg.getPacket());
+
         if (debugMessage.length() == 0) {
-            return;
+            return "";
         }
 
-        System.out.println(debugMessage);
+        return debugMessage;
     }
 
     public String stringifyPacket(ConnectionId id, SenderType sender, OFPacket packet) {
@@ -40,19 +41,19 @@ public class PacketDebugger {
         }
 
         infoBuilder.append(color);
-        infoBuilder.append(MonotonicClock.getTimeMillis() - basetime);
+        infoBuilder.append(MonotonicClock.getTimeMillis());
         infoBuilder.append(" | ");
-        infoBuilder.append("From");
-        infoBuilder.append(" [id:");
+        infoBuilder.append("[id:");
         infoBuilder.append(id.toString());
         infoBuilder.append("] ");
+        infoBuilder.append("From ");
         infoBuilder.append(sender);
         infoBuilder.append("\n");
 
-//        if (packet.getHeader().getMessageCode() == OFMsgType.OFPT_ECHO_REPLY ||
-//                packet.getHeader().getMessageCode() == OFMsgType.OFPT_ECHO_REQUEST) {
-//            return "";
-//        }
+        if (packet.getHeader().getMessageCode() == OFMsgType.OFPT_ECHO_REPLY ||
+                packet.getHeader().getMessageCode() == OFMsgType.OFPT_ECHO_REQUEST) {
+            return "";
+        }
 
         infoBuilder.append("\t");
         infoBuilder.append(packet.getHeader());
