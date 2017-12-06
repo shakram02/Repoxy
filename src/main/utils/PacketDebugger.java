@@ -9,8 +9,14 @@ import utils.logging.ConsoleColors;
 import java.util.Arrays;
 
 public class PacketDebugger {
-    public void debugDataEventArg(SocketDataEventArg arg) {
-        String debugMessage = stringifyPacket(arg.getSenderType(), arg.getPacket());
+    private long basetime;
+
+    public PacketDebugger() {
+        basetime = MonotonicClock.getTimeMillis();
+    }
+
+    public void debugDataEventArg(ConnectionId id, SocketDataEventArg arg) {
+        String debugMessage = stringifyPacket(id, arg.getSenderType(), arg.getPacket());
         if (debugMessage.length() == 0) {
             return;
         }
@@ -18,7 +24,7 @@ public class PacketDebugger {
         System.out.println(debugMessage);
     }
 
-    public String stringifyPacket(SenderType sender, OFPacket packet) {
+    public String stringifyPacket(ConnectionId id, SenderType sender, OFPacket packet) {
         StringBuilder infoBuilder = new StringBuilder();
         String color = "";
         switch (sender) {
@@ -32,20 +38,26 @@ public class PacketDebugger {
                 color = ConsoleColors.BLUE;
                 break;
         }
+
         infoBuilder.append(color);
-        infoBuilder.append("From:");
+        infoBuilder.append(MonotonicClock.getTimeMillis() - basetime);
+        infoBuilder.append(" | ");
+        infoBuilder.append("From");
+        infoBuilder.append(" [id:");
+        infoBuilder.append(id.toString());
+        infoBuilder.append("] ");
         infoBuilder.append(sender);
         infoBuilder.append("\n");
 
-        if (packet.getHeader().getMessageCode() == OFMsgType.OFPT_ECHO_REPLY ||
-                packet.getHeader().getMessageCode() == OFMsgType.OFPT_ECHO_REQUEST) {
-            return "";
-        }
+//        if (packet.getHeader().getMessageCode() == OFMsgType.OFPT_ECHO_REPLY ||
+//                packet.getHeader().getMessageCode() == OFMsgType.OFPT_ECHO_REQUEST) {
+//            return "";
+//        }
 
         infoBuilder.append("\t");
         infoBuilder.append(packet.getHeader());
-        infoBuilder.append("\t\t");
-        infoBuilder.append(Arrays.toString(OFStreamParser.serializePacket(packet).array()));
+//        infoBuilder.append("\t\t");
+//        infoBuilder.append(Arrays.toString(OFStreamParser.serializePacket(packet).array()));
         infoBuilder.append("\n");
 
         infoBuilder.append(ConsoleColors.RESET);
@@ -58,8 +70,8 @@ public class PacketDebugger {
         batchStringBuilder.setLength(0);
     }
 
-    public void addToBatchDebug(SenderType sender, OFPacket packet) {
-        String stringed = this.stringifyPacket(sender, packet);
+    public void addToBatchDebug(ConnectionId id, SenderType sender, OFPacket packet) {
+        String stringed = this.stringifyPacket(id, sender, packet);
 
         if (stringed.length() == 0) {
             return;

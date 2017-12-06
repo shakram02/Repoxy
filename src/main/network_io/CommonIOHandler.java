@@ -159,7 +159,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
      *
      * @param arg Event data argument to be added
      */
-    protected void addOutput(SocketEventArguments arg) {
+    protected void addOutput(@NotNull SocketEventArguments arg) {
         this.outputQueue.add(arg);
     }
 
@@ -187,7 +187,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
 
         debugger.batchDebugStart();
         for (OFPacket p : packets) {
-            debugger.addToBatchDebug(this.selfType, p);
+            debugger.addToBatchDebug(id, this.selfType, p);
 
             SocketDataEventArg arg = utils.events.ImmutableSocketDataEventArg.builder()
                     .id(id)
