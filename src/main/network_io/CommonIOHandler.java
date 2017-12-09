@@ -94,7 +94,6 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
             this.handleRWDOps(key);
             this.handleSpecialKey(key);
         }
-
     }
 
     private void processEvent(@NotNull SocketEventArguments arg) {
@@ -160,7 +159,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
      *
      * @param arg Event data argument to be added
      */
-    protected void addOutput(SocketEventArguments arg) {
+    protected void addOutput(@NotNull SocketEventArguments arg) {
         this.outputQueue.add(arg);
     }
 
@@ -188,7 +187,7 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
 
         debugger.batchDebugStart();
         for (OFPacket p : packets) {
-            debugger.addToBatchDebug(this.selfType, p);
+            debugger.addToBatchDebug(id, this.selfType, p);
 
             SocketDataEventArg arg = utils.events.ImmutableSocketDataEventArg.builder()
                     .id(id)
@@ -203,13 +202,20 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
         if (debugString.isEmpty()) {
             return;
         }
-        this.logger.info(debugString);
+        // TODO prints packets
+        this.logger.info("Receiving: " + debugString);
     }
 
     private void sendData(@NotNull SocketDataEventArg arg) {
         this.packetBuffer.addPacket(arg);
         SelectionKey key = this.keyMap.inverse().get(arg.getId());
         this.addOutput(key);
+
+        String debugString = debugger.debugDataEventArg(arg);
+        if (debugString.isEmpty()) {
+            return;
+        }
+        this.logger.info("Sending: " + debugString);
     }
 
     private void onDisconnect(@NotNull ConnectionId id) {
@@ -242,14 +248,20 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
         assert id != null : "Entry not found " + key;
 
         if (key.isValid() && key.isReadable()) {
-
-            int read = channel.read(buffer);
-            if (read == -1) {
+            try {
+                int read = channel.read(buffer);
+                if (read == -1) {
+                    this.onDisconnect(id);
+                    return;
+                }
+                this.onData(id, channel, read);
+            } catch (IOException e) {
+                // Connection reset throws an exception
+                e.printStackTrace();
                 this.onDisconnect(id);
-                return;
             }
 
-            this.onData(id, channel, read);
+
         } else if (key.isValid() && key.isWritable() && ((SocketChannel) key.channel()).isConnected()) {
             this.writePackets(id, channel);
             this.removeOutput(id);

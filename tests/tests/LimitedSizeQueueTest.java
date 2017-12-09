@@ -1,6 +1,8 @@
-package utils;
+package tests;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
+import utils.LimitedSizeQueue;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class LimitedSizeQueueTest {

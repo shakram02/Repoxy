@@ -1,4 +1,4 @@
-package helpers;
+package tests;
 
 import of_packets.OFPacket;
 import of_packets.OFStreamParser;

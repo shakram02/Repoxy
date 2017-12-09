@@ -1,4 +1,4 @@
-package network_io.io_synchronizer;
+package middleware.blocking.io_synchronizer;
 
 import of_packets.OFMsgType;
 import utils.ConnectionId;

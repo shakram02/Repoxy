@@ -1,17 +1,23 @@
 package utils.events;
 
-import org.immutables.value.Value;
 import utils.ConnectionId;
+import utils.MonotonicClock;
 import utils.SenderType;
 
 public abstract class SocketEventArguments {
+    private final long timestamp;
+
     public abstract ConnectionId getId();
 
     public abstract SenderType getSenderType();
 
-    @Value.Lazy
-    public long getTimestamp() {
-        return System.nanoTime();
+    public SocketEventArguments() {
+        this.timestamp = MonotonicClock.getTimeMillis();
+    }
+
+
+    public final long getTimestamp() {
+        return timestamp;
     }
 
     public abstract EventType getReplyType();

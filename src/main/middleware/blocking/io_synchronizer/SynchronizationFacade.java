@@ -1,27 +1,22 @@
-package network_io.io_synchronizer;
+package middleware.blocking.io_synchronizer;
 
-import utils.SenderType;
+import middleware.ProxyMiddleware;
 import utils.events.SocketDataEventArg;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 
 /**
- * Provides an interface for synchronization mechanism and hides implementation details
+ * Synchronizes Xid of the input packets from switches, the output queue doesn't care
+ * about the sender, it's the responsibility of the caller to decide whom
+ * to send the output packets to
  */
-public class SynchronizationFacade {
+public class SynchronizationFacade extends ProxyMiddleware {
     private XidSynchronizer xidSynchronizer;
     private ClonedControllerPacketSynchronizer delaySynchronizer;
 
-    private Consumer<SocketDataEventArg> sendToController;
-    private Consumer<SocketDataEventArg> sendToSwitches;
-
-    public SynchronizationFacade(Consumer<SocketDataEventArg> sendToSwitches,
-                                 Consumer<SocketDataEventArg> sendToController) {
+    public SynchronizationFacade() {
         this.xidSynchronizer = new XidSynchronizer();
         this.delaySynchronizer = new ClonedControllerPacketSynchronizer();
-        this.sendToSwitches = sendToSwitches;
-        this.sendToController = sendToController;
     }
 
     private void addUnSynchronized(SocketDataEventArg arg) {
@@ -47,32 +42,30 @@ public class SynchronizationFacade {
         return Optional.of(fullySynced.orElse(timeSyncedEventArg));
     }
 
-    private void updateIoQueues() {
+    private void updateOutputQueue() {
         Optional<SocketDataEventArg> synced = this.getSynced();
 
         while (synced.isPresent()) {
+
             SocketDataEventArg dataEventArg = synced.get();
-            if (dataEventArg.getSenderType() == SenderType.SwitchesRegion) {
-                this.sendToController.accept(dataEventArg);
-            } else {
-                // We disregard the type of the controller as it might change over time
-                this.sendToSwitches.accept(dataEventArg);
-            }
+            this.output.add(dataEventArg);
 
             synced = this.getSynced();
         }
     }
 
-    public void manageInput(SocketDataEventArg incoming) {
-        this.manageIo(incoming);
+    @Override
+    public void execute() {
+        while (!this.input.isEmpty()) {
+            SocketDataEventArg packet = this.input.poll();
+            this.addUnSynchronized(packet);
+            this.updateOutputQueue();
+        }
     }
 
-    public void manageOutput(SocketDataEventArg incoming) {
-        this.manageIo(incoming);
+    @Override
+    public ProxyMiddleware clone() {
+        throw new RuntimeException("Synchronization facade doesn't need to be cloned");
     }
 
-    private void manageIo(SocketDataEventArg incoming) {
-        this.addUnSynchronized(incoming);
-        this.updateIoQueues();
-    }
 }

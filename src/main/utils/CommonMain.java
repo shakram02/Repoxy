@@ -1,13 +1,12 @@
 package utils;
 
 import mediators.ProxyMediator;
+import middleware.blocking.PacketMatcher;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import utils.logging.ColoredConsoleHandler;
-import watchers.ClientCounter;
-import watchers.PacketDumper;
-import watchers.packet_verification.OFDelayChecker;
+import middleware.nonblocking.ClientCounter;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
@@ -31,7 +30,7 @@ public class CommonMain {
 
     public static void startProxy(String localIp, int localPort, List<ControllerConfig> configList)
             throws IOException {
-
+        // TODO, why not start the server after adding controllers?
         builder.startServer(localIp, localPort);
 
         for (ControllerConfig controllerConfig : configList) {
@@ -41,18 +40,23 @@ public class CommonMain {
         ProxyMediator mediator = builder.getMediator();
 
         ClientCounter counter = new ClientCounter();
-        OFDelayChecker packetVerifier = new OFDelayChecker(WIND_SIZE, mediator, TIMEOUT_MILLIS);
-        PacketDumper dumper = new PacketDumper(new Date().toString());
+//        OFDelayChecker packetVerifier = new OFDelayChecker(mediator, TIMEOUT_MILLIS);
 
+        // TODO Dumping is disabled
+        //        PacketDumper dumper = new PacketDumper(new Date().toString());
+        builder.addMiddleware(new PacketMatcher());
         mediator.registerWatcher(counter);
-        mediator.registerWatcher(packetVerifier);
-        mediator.registerWatcher(dumper);
+
+//        mediator.registerWatcher(packetVerifier);
+        //        mediator.registerWatcher(dumper);
 
         while (!Thread.interrupted()) {
             mediator.cycle();
         }
+    }
 
-        mediator.close();
-
+    public static void stopProxy() throws IOException {
+        builder.getMediator().close();
+        builder.stopServer();
     }
 }

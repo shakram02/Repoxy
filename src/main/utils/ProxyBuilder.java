@@ -1,5 +1,7 @@
 package utils;
 
+import middleware.MiddlewareManager;
+import middleware.ProxyMiddleware;
 import utils.events.ImmutableSocketAddressInfoEventArg;
 import mediators.ProxyMediator;
 import network_io.ConnectionAcceptorIOHandler;
@@ -15,14 +17,15 @@ public class ProxyBuilder {
     private static ConnectionAcceptorIOHandler switches;
 
     private static ProxyBuilder instance;
+    private static MiddlewareManager middlewareManager;
 
     public static ProxyBuilder createInstance() throws RuntimeErrorException {
         if (ProxyBuilder.instance != null) {
             throw new RuntimeErrorException(new Error("Instance is already created"));
         }
         ProxyBuilder.switches = new ConnectionAcceptorIOHandler();
-
-        ProxyBuilder.ProxyMediator = new ProxyMediator(switches);
+        ProxyBuilder.middlewareManager = new MiddlewareManager();
+        ProxyBuilder.ProxyMediator = new ProxyMediator(middlewareManager, switches);
         ProxyBuilder.instance = new ProxyBuilder();
         return instance;
     }
@@ -43,6 +46,16 @@ public class ProxyBuilder {
                         .port(port)
                         .build());
 
+    }
+
+    public void stopServer() {
+        switches.shutdownServer();
+        // Invalidate the builder to create a new one in the next run
+        ProxyBuilder.instance = null;
+    }
+
+    public void addMiddleware(ProxyMiddleware middleware) {
+        middlewareManager.addMiddleware(middleware);
     }
 
     public ProxyMediator getMediator() {
