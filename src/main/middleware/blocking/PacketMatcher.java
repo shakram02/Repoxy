@@ -3,12 +3,14 @@ package middleware.blocking;
 import middleware.ProxyMiddleware;
 import of_packets.OFPacket;
 import utils.MonotonicClock;
+import utils.SenderType;
 import utils.events.SocketDataEventArg;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.concurrent.LinkedTransferQueue;
+import java.util.logging.Logger;
 
 /**
  * Matches packets from {@link utils.SenderType#ControllerRegion} with packets
@@ -22,7 +24,8 @@ import java.util.concurrent.LinkedTransferQueue;
  * Note that matched replicated packets are dropped
  */
 public class PacketMatcher extends ProxyMiddleware {
-    private static int DEFAULT_TIMEOUT_MILLIS = 20;
+    private static int DEFAULT_TIMEOUT_MILLIS = 1000;
+    private final Logger logger = Logger.getLogger(PacketMatcher.class.getName());
     private LinkedTransferQueue<SocketDataEventArg> waitingPackets;
     private final int millisThreshold;
 
@@ -42,11 +45,10 @@ public class PacketMatcher extends ProxyMiddleware {
             SocketDataEventArg packet = this.input.poll();
             Optional<SocketDataEventArg> match = hasQueuedMatch(packet);
 
-            if (match.isPresent()) {
-                this.output.add(packet);
-            } else {
-                // Add the packet to waiting Queue
+            if (!match.isPresent()) {
                 this.waitingPackets.add(packet);
+            } else {
+                this.output.add(packet);
             }
         }
 
@@ -71,7 +73,6 @@ public class PacketMatcher extends ProxyMiddleware {
         // We only need to check the first packet, since it's
         // the oldest one in the queue
         SocketDataEventArg packet = this.waitingPackets.peek();
-
         long delta = MonotonicClock.getTimeMillis() - packet.getTimestamp();
 
         // Check if the packet is old enough
@@ -80,7 +81,11 @@ public class PacketMatcher extends ProxyMiddleware {
         }
 
         // TODO: we should log a warning/error
-        this.error.add(this.waitingPackets.poll());
+        SocketDataEventArg timedOutPacket = this.waitingPackets.poll();
+
+        this.error.add(timedOutPacket);
+        this.logger.warning("Packet timed out:" + timedOutPacket + " Delta:" + delta);
+        throw new IllegalStateException("Error in packet matching");
     }
 
     public int countUnmatched() {
