@@ -42,7 +42,7 @@ public class ControllerIOHandler extends CommonIOHandler {
     }
 
     @Override
-    protected void addOutput(SocketEventArguments arg) {
+    protected void addOutput(@NotNull SocketEventArguments arg) {
         if (arg instanceof SocketDataEventArg) {
             SocketDataEventArg dataEventArg = (SocketDataEventArg) arg;
             this.synchronizer.addInput(dataEventArg);
