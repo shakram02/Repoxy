@@ -203,13 +203,19 @@ public abstract class CommonIOHandler implements SocketIOer, Closeable {
             return;
         }
         // TODO prints packets
-        this.logger.info(debugString);
+        this.logger.info("Receiving: " + debugString);
     }
 
     private void sendData(@NotNull SocketDataEventArg arg) {
         this.packetBuffer.addPacket(arg);
         SelectionKey key = this.keyMap.inverse().get(arg.getId());
         this.addOutput(key);
+
+        String debugString = debugger.debugDataEventArg(arg);
+        if (debugString.isEmpty()) {
+            return;
+        }
+        this.logger.info("Sending: " + debugString);
     }
 
     private void onDisconnect(@NotNull ConnectionId id) {
