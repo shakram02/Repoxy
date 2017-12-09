@@ -5,7 +5,6 @@ import middleware.blocking.PacketMatcher;
 import of_packets.OFMsgType;
 import org.junit.Assert;
 import org.junit.Test;
-import utils.ConnectionId;
 import utils.SenderType;
 
 public class MiddlewareManagerTests {
@@ -18,13 +17,11 @@ public class MiddlewareManagerTests {
         manager.addMiddleware(new PacketMatcher());
         int xid = 54; // Xid the same as in the test packet
 
-        manager.addPacket(TestPacketArgMaker.
+        manager.addToPipeline(TestPacketArgMaker.
                 createFromPacket(1, TestPackets.BarrierReplyXid54, SenderType.ReplicaRegion));
 
-        manager.addPacket(TestPacketArgMaker.
+        manager.addToPipeline(TestPacketArgMaker.
                 createFromPacket(1, TestPackets.BarrierReplyXid54, SenderType.ControllerRegion));
-
-        manager.cycle();
 
         Assert.assertTrue(AssertionHelper.hasValidIdMessageTypeXid(1,
                 manager.getOutput(), xid, OFMsgType.OFPT_BARRIER_REPLY));
@@ -41,19 +38,17 @@ public class MiddlewareManagerTests {
         manager.addMiddleware(new PacketMatcher());
         int xid = 54;
 
-        manager.addPacket(TestPacketArgMaker.
+        manager.addToPipeline(TestPacketArgMaker.
                 createFromPacket(1, TestPackets.BarrierReplyXid54, SenderType.ReplicaRegion));
 
-        manager.addPacket(TestPacketArgMaker.
+        manager.addToPipeline(TestPacketArgMaker.
                 createFromPacket(1, TestPackets.BarrierReplyXid54, SenderType.ReplicaRegion));
 
-        manager.addPacket(TestPacketArgMaker.
+        manager.addToPipeline(TestPacketArgMaker.
                 createFromPacket(2, TestPackets.BarrierReplyXid54, SenderType.ControllerRegion));
 
-        manager.addPacket(TestPacketArgMaker.
+        manager.addToPipeline(TestPacketArgMaker.
                 createFromPacket(2, TestPackets.BarrierReplyXid54, SenderType.ControllerRegion));
-
-        manager.cycle();
 
         Assert.assertTrue(AssertionHelper.hasValidIdMessageTypeXid(1, manager.getOutput(),
                 xid, OFMsgType.OFPT_BARRIER_REPLY));
@@ -68,14 +63,12 @@ public class MiddlewareManagerTests {
         MiddlewareManager manager = new MiddlewareManager();
         manager.addMiddleware(new PacketMatcher());
 
-        manager.addPacket(TestPacketArgMaker.
+        manager.addToPipeline(TestPacketArgMaker.
                 createFromPacket(1, TestPackets.BarrierReplyXid54, SenderType.ReplicaRegion));
 
         // Different connection IDs
-        manager.addPacket(TestPacketArgMaker.
+        manager.addToPipeline(TestPacketArgMaker.
                 createFromPacket(2, TestPackets.BarrierReplyXid54, SenderType.ControllerRegion));
-
-        manager.cycle();
 
         // No output will be present because the packets won't be matched due to different IDs
         // and won't timeout since no input is there
@@ -87,7 +80,7 @@ public class MiddlewareManagerTests {
         MiddlewareManager manager = new MiddlewareManager();
         manager.addMiddleware(new PacketMatcher());
 
-        manager.addPacket(TestPacketArgMaker.
+        manager.addToPipeline(TestPacketArgMaker.
                 createFromPacket(1, TestPackets.BarrierReplyXid54, SenderType.ReplicaRegion));
 
         try {
@@ -97,9 +90,8 @@ public class MiddlewareManagerTests {
         }
 
         // Timeout, exception thrown
-        manager.addPacket(TestPacketArgMaker.
+        manager.addToPipeline(TestPacketArgMaker.
                 createFromPacket(1, TestPackets.BarrierReplyXid54, SenderType.ControllerRegion));
 
-        manager.cycle();
     }
 }

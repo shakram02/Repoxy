@@ -2,6 +2,7 @@ package middleware;
 
 import utils.ConnectionId;
 import utils.PacketBuffer;
+import utils.SenderType;
 import utils.events.SocketDataEventArg;
 
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ public class MiddlewareManager {
      * For every connection ID that we have, run the packets for that ID
      * through all the middleware
      */
-    public void cycle() {
+    private void cycle() {
         for (ConnectionId id : connectionMiddleware.keySet()) {
             Queue<SocketDataEventArg> middlewareOutput = runThroughMiddleware(id);
 
@@ -49,7 +50,7 @@ public class MiddlewareManager {
         registeredMiddleware.add(middleware);
     }
 
-    public void addPacket(SocketDataEventArg packet) {
+    public void addToPipeline(SocketDataEventArg packet) {
         if (!connectionMiddleware.containsKey(packet.getId())) {
             // Create a new set of middleware object for the new connection
             // since the middleware are stateful objects and can't be reused on
@@ -57,6 +58,7 @@ public class MiddlewareManager {
             registerConnection(packet.getId());
         }
         this.inputBuffer.addPacket(packet);
+        this.cycle();
     }
 
     private Queue<SocketDataEventArg> runThroughMiddleware(ConnectionId id) {
@@ -64,8 +66,26 @@ public class MiddlewareManager {
         Queue<SocketDataEventArg> packetQueue = inputBuffer.getPacketQueue(id);
         // Input to the next stage
         Queue<SocketDataEventArg> stageOutput = new LinkedBlockingQueue<>();
+        ArrayList<ProxyMiddleware> middlewares = connectionMiddleware.get(id);
 
-        for (ProxyMiddleware middleware : connectionMiddleware.get(id)) {
+        // Handle the case that no middleware is present
+        if (middlewares.isEmpty()) {
+            // Consume the packet queue
+            while (!packetQueue.isEmpty()) {
+                SocketDataEventArg p = packetQueue.poll();
+
+                // Packets from the backup controller are only used for matching
+                // if no middleware is present, we don't need to pass those
+                // packets to the switches
+                if (p.getSenderType() == SenderType.ControllerRegion) {
+                    stageOutput.add(p);
+                }
+            }
+            return stageOutput;
+        }
+
+        // Normal case, we have middleware
+        for (ProxyMiddleware middleware : middlewares) {
             // In the first run, use the middleware manager input queue
             if (!packetQueue.isEmpty()) {
                 stageOutput = processByMiddleware(packetQueue, middleware);

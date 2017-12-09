@@ -30,6 +30,8 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
 
 
     public ProxyMediator(MiddlewareManager middlewareManager, ConnectionAcceptorIOHandler switchSockets) {
+        // The middleware manager compares packets from the 2 controllers and going to switches to
+        // find out which packets timed out.
         this.middlewareManager = middlewareManager;
 
         // Run the event checkers on other threads
@@ -116,8 +118,6 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
 
     public void cycle() {
         try {
-            this.middlewareManager.cycle();
-
             this.switchSockets.cycle();
             ArrayList<SocketEventArguments> networkIoEvents = this.readNetworkIoEvents();
             notifyAndProcessEvents(networkIoEvents);
@@ -173,15 +173,16 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
     private void notifyAndProcessEvent(SocketEventArguments arg) {
         this.notifyWatchers(arg);
 
-        if (arg.getReplyType() == EventType.SendData && arg.getSenderType() != SenderType.SwitchesRegion) {
-            middlewareManager.addPacket((SocketDataEventArg) arg);
-
-            while (middlewareManager.hasOutput()) {
-                SocketDataEventArg dataEventArg = middlewareManager.getOutput();
-                this.switchSockets.addInput(dataEventArg);
-            }
-        } else {
+        if (arg.getSenderType() == SenderType.SwitchesRegion || arg.getReplyType() != EventType.SendData) {
             this.dispatchEvent(arg);
+            return;
+        }
+
+        middlewareManager.addToPipeline((SocketDataEventArg) arg);
+
+        while (middlewareManager.hasOutput()) {
+            SocketDataEventArg dataEventArg = middlewareManager.getOutput();
+            this.switchSockets.addInput(dataEventArg);
         }
     }
 
