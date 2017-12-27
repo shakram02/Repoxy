@@ -1,6 +1,7 @@
 package middleware;
 
 import org.jetbrains.annotations.NotNull;
+import utils.ConnectionId;
 import utils.events.SocketDataEventArg;
 
 import java.util.concurrent.LinkedTransferQueue;
@@ -16,6 +17,7 @@ public abstract class ProxyMiddleware implements Cloneable {
     protected final LinkedTransferQueue<SocketDataEventArg> input;
     protected final LinkedTransferQueue<SocketDataEventArg> output;
     protected final LinkedTransferQueue<SocketDataEventArg> error;
+    protected ConnectionId id;
 
     public ProxyMiddleware() {
         input = new LinkedTransferQueue<>();
@@ -47,5 +49,5 @@ public abstract class ProxyMiddleware implements Cloneable {
         return !this.error.isEmpty();
     }
 
-    public abstract ProxyMiddleware clone();
+    public abstract ProxyMiddleware clone(ConnectionId id);
 }

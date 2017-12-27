@@ -1,6 +1,7 @@
 package middleware.blocking.io_synchronizer;
 
 import middleware.ProxyMiddleware;
+import utils.ConnectionId;
 import utils.events.SocketDataEventArg;
 
 import java.util.Optional;
@@ -64,7 +65,7 @@ public class SynchronizationFacade extends ProxyMiddleware {
     }
 
     @Override
-    public ProxyMiddleware clone() {
+    public ProxyMiddleware clone(ConnectionId id) {
         throw new RuntimeException("Synchronization facade doesn't need to be cloned");
     }
 

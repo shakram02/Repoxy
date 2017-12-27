@@ -2,6 +2,7 @@ package middleware.blocking;
 
 import middleware.ProxyMiddleware;
 import of_packets.OFPacket;
+import utils.ConnectionId;
 import utils.MonotonicClock;
 import utils.SenderType;
 import utils.events.SocketDataEventArg;
@@ -56,8 +57,10 @@ public class PacketMatcher extends ProxyMiddleware {
     }
 
     @Override
-    public ProxyMiddleware clone() {
-        return new PacketMatcher(this.millisThreshold);
+    public ProxyMiddleware clone(ConnectionId id) {
+        PacketMatcher m = new PacketMatcher(this.millisThreshold);
+        m.id = id;
+        return m;
     }
 
     /**

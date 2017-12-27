@@ -122,15 +122,15 @@ public class MiddlewareManager {
     }
 
     private void registerConnection(ConnectionId id) {
-        ArrayList<ProxyMiddleware> mw = createNewMiddlewarePipeline();
+        ArrayList<ProxyMiddleware> mw = createNewMiddlewarePipeline(id);
         this.connectionMiddleware.put(id, mw);
     }
 
-    private ArrayList<ProxyMiddleware> createNewMiddlewarePipeline() {
+    private ArrayList<ProxyMiddleware> createNewMiddlewarePipeline(ConnectionId id) {
         ArrayList<ProxyMiddleware> middleWareForId = new ArrayList<>(this.registeredMiddleware.size());
 
         for (ProxyMiddleware mw : this.registeredMiddleware) {
-            middleWareForId.add(mw.clone());
+            middleWareForId.add(mw.clone(id));
         }
 
         return middleWareForId;
