@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import utils.ConnectionId;
 import utils.events.SocketDataEventArg;
 
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedTransferQueue;
 
 /**
@@ -14,15 +15,15 @@ import java.util.concurrent.LinkedTransferQueue;
  * of the pipeline) and simplifies the logic inside the middleware
  */
 public abstract class ProxyMiddleware implements Cloneable {
-    protected final LinkedTransferQueue<SocketDataEventArg> input;
-    protected final LinkedTransferQueue<SocketDataEventArg> output;
-    protected final LinkedTransferQueue<SocketDataEventArg> error;
+    protected final LinkedBlockingDeque<SocketDataEventArg> input;
+    protected final LinkedBlockingDeque<SocketDataEventArg> output;
+    protected final LinkedBlockingDeque<SocketDataEventArg> error;
     protected ConnectionId id;
 
     public ProxyMiddleware() {
-        input = new LinkedTransferQueue<>();
-        output = new LinkedTransferQueue<>();
-        error = new LinkedTransferQueue<>();
+        input = new LinkedBlockingDeque<>();
+        output = new LinkedBlockingDeque<>();
+        error = new LinkedBlockingDeque<>();
     }
 
     public final void addInput(SocketDataEventArg input) {
