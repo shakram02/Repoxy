@@ -29,6 +29,8 @@ public class MiddlewareManager {
      */
     private void cycle() {
         for (ConnectionId id : connectionMiddleware.keySet()) {
+            if (inputBuffer.getPacketQueue(id).isEmpty()) continue;
+
             Queue<SocketDataEventArg> middlewareOutput = runThroughMiddleware(id);
 
             // TODO: how to order the output?
