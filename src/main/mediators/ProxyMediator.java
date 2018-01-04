@@ -215,6 +215,7 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
             return;
         }
 
+        this.middlewareManager.setMainControllerAlive(false);
         // HACK: old handler must be removed because it's now disconnected
         ControllerIOHandler old = this.controllerHandlers.remove();
         ControllerIOHandler backup = this.controllerHandlers.peek();
