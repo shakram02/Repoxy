@@ -4,13 +4,12 @@ import middleware.ProxyMiddleware;
 import of_packets.OFPacket;
 import utils.ConnectionId;
 import utils.MonotonicClock;
-import utils.SenderType;
 import utils.events.SocketDataEventArg;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Optional;
-import java.util.concurrent.LinkedTransferQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
 
 /**
@@ -27,7 +26,7 @@ import java.util.logging.Logger;
 public class PacketMatcher extends ProxyMiddleware {
     private static int DEFAULT_TIMEOUT_MILLIS = 1000;
     private final Logger logger = Logger.getLogger(PacketMatcher.class.getName());
-    private LinkedTransferQueue<SocketDataEventArg> waitingPackets;
+    private LinkedBlockingQueue<SocketDataEventArg> waitingPackets;
     private final int millisThreshold;
 
     public PacketMatcher() {
@@ -36,7 +35,7 @@ public class PacketMatcher extends ProxyMiddleware {
 
     public PacketMatcher(int millisThreshold) {
         this.millisThreshold = millisThreshold;
-        waitingPackets = new LinkedTransferQueue<>();
+        waitingPackets = new LinkedBlockingQueue<>();
     }
 
     @Override
