@@ -9,6 +9,7 @@ import utils.events.SocketDataEventArg;
 import utils.events.SocketEventArguments;
 
 import java.io.IOException;
+import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
@@ -100,6 +101,10 @@ public class ControllerIOHandler extends CommonIOHandler {
         if (channel.isConnectionPending()) {
             try {
                 channel.finishConnect();
+
+                ConnectionId id = this.keyMap.get(key);
+                int localPort = ((InetSocketAddress) channel.getLocalAddress()).getPort();
+                this.logger.info("[" + this.selfType + "] ConnId [" + id + "] -> " + localPort + " On controller");
             } catch (IOException e) {
                 this.keyMap.remove(key);
                 throw e;
