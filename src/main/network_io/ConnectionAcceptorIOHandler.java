@@ -10,6 +10,7 @@ import utils.ConnectionId;
 import utils.SenderType;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.StandardSocketOptions;
 import java.nio.channels.SelectionKey;
@@ -48,8 +49,6 @@ public class ConnectionAcceptorIOHandler extends CommonIOHandler {
         ConnectionId id = ImmutableConnectionId.builder().build();
         this.keyMap.put(key, id);
 
-        this.logger.info(key.channel().toString());
-
         SocketEventArguments eventArg = ImmutableSocketConnectionIdArgs
                 .builder()
                 .senderType(this.selfType)
@@ -57,6 +56,8 @@ public class ConnectionAcceptorIOHandler extends CommonIOHandler {
                 .id(id).build();
         this.addOutput(eventArg);
 
+        int remotePort = ((InetSocketAddress) channel.getRemoteAddress()).getPort();
+        this.logger.info("Id [" + id + "] -> " + remotePort + " on network");
     }
 
     /**
@@ -75,10 +76,8 @@ public class ConnectionAcceptorIOHandler extends CommonIOHandler {
         // Don't wait for tcp connection to die, reuse the address
         server.setOption(StandardSocketOptions.SO_REUSEADDR, true);
         SelectionKey key = server.register(this.selector, SelectionKey.OP_ACCEPT);
-
         ConnectionId id = ImmutableConnectionId.builder().build();
         this.keyMap.put(key, id);
-
         server.socket().bind(new InetSocketAddress(address, port));
     }
 
