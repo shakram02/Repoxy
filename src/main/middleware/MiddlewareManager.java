@@ -15,6 +15,7 @@ public class MiddlewareManager {
     private PacketBuffer inputBuffer;
     private Queue<SocketDataEventArg> outputBuffer;
     private HashMap<ConnectionId, ArrayList<ProxyMiddleware>> connectionMiddleware;
+    private boolean isMainControllerAlive;
 
     public MiddlewareManager() {
         registeredMiddleware = new ArrayList<>();
@@ -71,7 +72,11 @@ public class MiddlewareManager {
         ArrayList<ProxyMiddleware> middlewares = connectionMiddleware.get(id);
 
         // Handle the case that no middleware is present
-        if (middlewares.isEmpty()) {
+
+        // TODO HACK HACK HACK HACK, this case should be handled separately
+        // In case the main controller is dead, pass the packets
+        // of the backup controller, which is now manages as ControllerRegion not ReplicaRegion
+        if (middlewares.isEmpty() || !isMainControllerAlive) {
             // Consume the packet queue
             while (!packetQueue.isEmpty()) {
                 SocketDataEventArg p = packetQueue.poll();
@@ -144,5 +149,9 @@ public class MiddlewareManager {
 
     public SocketDataEventArg getOutput() {
         return this.outputBuffer.poll();
+    }
+
+    public void setMainControllerAlive(boolean mainControllerAlive) {
+        isMainControllerAlive = mainControllerAlive;
     }
 }
