@@ -1,0 +1,28 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="Repoxy:jar">
+    <output-path>$PROJECT_DIR$/../Repoxy/out/artifacts/Repoxy.jar</output-path>
+    <root id="archive" name="of-Dwoxy.jar">
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/../Repoxy/out/artifacts/of_Dwoxy_jar/META-INF/MANIFEST.MF" />
+      </element>
+      <element id="module-output" name="Repoxy" />
+      <element id="extracted-dir" path="$APPLICATION_HOME_DIR$/lib/annotations.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Repoxy/lib/junit-theories-4.12.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Repoxy/lib/junit-4.12.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Repoxy/lib/hamcrest-core-1.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Repoxy/lib/javaruntype-1.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Repoxy/lib/antlr-runtime-3.1.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Repoxy/lib/junit-jupiter-engine-5.0.0-RC3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Repoxy/lib/junit-platform-engine-1.0.0-RC3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Repoxy/lib/junit-platform-commons-1.0.0-RC3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Repoxy/lib/opentest4j-1.0.0-RC1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Repoxy/lib/junit-jupiter-api-5.0.0-RC3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Repoxy/lib/value-2.5.5.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Repoxy/lib/guava-23.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Repoxy/lib/jsr305-1.3.9.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Repoxy/lib/error_prone_annotations-2.0.18.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Repoxy/lib/j2objc-annotations-1.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Repoxy/lib/animal-sniffer-annotations-1.14.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

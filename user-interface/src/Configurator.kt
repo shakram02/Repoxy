@@ -2,6 +2,7 @@ import javafx.collections.ObservableList
 import utils.ControllerConfig
 import utils.LocalhostIpSupplier
 
+
 private val LOOP_BACK_IP = "127.0.0.1"
 private val OF_DEFAULT_PORT = 6833
 
