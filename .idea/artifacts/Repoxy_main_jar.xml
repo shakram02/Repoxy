@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="Repoxy-main:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Repoxy_main_jar</output-path>
+    <root id="archive" name="Repoxy-main.jar">
+      <element id="module-output" name="Repoxy-main" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/value-2.5.5.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/guava-23.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$APPLICATION_HOME_DIR$/redist/annotations-java8.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
