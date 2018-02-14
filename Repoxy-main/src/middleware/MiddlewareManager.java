@@ -15,7 +15,7 @@ public class MiddlewareManager {
     private PacketBuffer inputBuffer;
     private Queue<SocketDataEventArg> outputBuffer;
     private HashMap<ConnectionId, ArrayList<ProxyMiddleware>> connectionMiddleware;
-    private boolean isMainControllerAlive;
+    private boolean isMainControllerAlive = true;
 
     public MiddlewareManager() {
         registeredMiddleware = new ArrayList<>();
@@ -77,6 +77,7 @@ public class MiddlewareManager {
         // In case the main controller is dead, pass the packets
         // of the backup controller, which is now manages as ControllerRegion not ReplicaRegion
         if (middlewares.isEmpty() || !isMainControllerAlive) {
+            System.out.println("Passing over middleware, Controller Alive:");
             // Consume the packet queue
             while (!packetQueue.isEmpty()) {
                 SocketDataEventArg p = packetQueue.poll();
