@@ -3,6 +3,7 @@ package tests;
 import org.junit.Test;
 import utils.LimitedSizeQueue;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.*;
 
 class LimitedSizeQueueTest {

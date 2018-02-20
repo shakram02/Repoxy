@@ -2,7 +2,7 @@ package tests;
 
 import middleware.MiddlewareManager;
 import middleware.blocking.PacketMatcher;
-import of_packets.OFMsgType;
+import openflow.OFMsgType;
 import org.junit.Assert;
 import org.junit.Test;
 import utils.SenderType;

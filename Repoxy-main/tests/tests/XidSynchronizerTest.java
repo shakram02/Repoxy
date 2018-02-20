@@ -1,9 +1,10 @@
 package tests;
 
 import middleware.blocking.io_synchronizer.XidSynchronizer;
+import openflow.OFPacket;
 import org.junit.Assert;
 import org.junit.Test;
-import of_packets.OFPacket;
+
 import utils.SenderType;
 import utils.events.SocketDataEventArg;
 

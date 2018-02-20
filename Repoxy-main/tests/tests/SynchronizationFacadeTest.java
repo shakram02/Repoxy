@@ -1,7 +1,8 @@
 package tests;
 
 import middleware.blocking.io_synchronizer.SynchronizationFacade;
-import of_packets.OFMsgType;
+
+import openflow.OFMsgType;
 import org.junit.Assert;
 import org.junit.Test;
 import utils.SenderType;

@@ -3,6 +3,7 @@ package of_packets;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Bytes;
+import openflow.*;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -44,7 +45,7 @@ public class OFStreamParserTest {
 
         byte[] bytes = new byte[]{1, 0, 0, 8, 0, 0, 0, 1};
 
-        OFPacketHeader helloHeader = of_packets.ImmutableOFPacketHeader.builder()
+        OFPacketHeader helloHeader = ImmutableOFPacketHeader.builder()
                 .version((byte) 1)
                 .messageCode((byte) 0)
                 .len(8)
@@ -52,7 +53,7 @@ public class OFStreamParserTest {
                 .build();
 
         ByteBuffer buffer = OFStreamParser.serializePacket(
-                of_packets.ImmutableOFPacket.builder()
+                ImmutableOFPacket.builder()
                         .header(helloHeader)
                         .data().build());
 

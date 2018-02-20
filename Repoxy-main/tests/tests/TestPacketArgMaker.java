@@ -1,7 +1,8 @@
 package tests;
 
-import of_packets.OFPacket;
-import of_packets.OFStreamParser;
+
+import openflow.OFPacket;
+import openflow.OFStreamParser;
 import utils.ConnectionId;
 import utils.SenderType;
 import utils.events.ImmutableSocketDataEventArg;
