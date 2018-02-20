@@ -10,7 +10,6 @@ import java.util.logging.Handler;
 import java.util.logging.Logger;
 
 public class CommonMain {
-    public static final int TIMEOUT_MILLIS = 1000;
     private static ProxyBuilder builder = ProxyBuilder.createInstance();
 
     public static void setupLogging() {
@@ -43,7 +42,7 @@ public class CommonMain {
 //        mediator.registerWatcher(packetVerifier);
 //        mediator.registerWatcher(dumper);
 
-        builder.addMiddleware(new PacketMatcher(TIMEOUT_MILLIS));
+        builder.addMiddleware(new PacketMatcher());
 
         while (!Thread.interrupted()) {
             mediator.cycle();
