@@ -57,7 +57,7 @@ public class ConnectionAcceptorIOHandler extends CommonIOHandler {
         this.addOutput(eventArg);
 
         int remotePort = ((InetSocketAddress) channel.getRemoteAddress()).getPort();
-        this.logger.info("Id [" + id + "] -> " + remotePort + " on network");
+        this.logger.info("Network " + remotePort + " -> " + "Id [" + id + "]");
     }
 
     /**

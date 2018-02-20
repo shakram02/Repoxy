@@ -187,9 +187,9 @@ public abstract class CommonIOHandler implements main.network_io.interfaces.Sock
         ByteArrayDataOutput data = readRemainingBytes(channel, read);
         ImmutableList<OFPacket> packets = OFStreamParser.parseStream(data.toByteArray());
 
-        debugger.batchDebugStart();
+//        debugger.batchDebugStart();
         for (OFPacket p : packets) {
-            debugger.addToBatchDebug(id, this.selfType, p);
+//            debugger.addToBatchDebug(id, this.selfType, p);
 
             SocketDataEventArg arg = utils.events.ImmutableSocketDataEventArg.builder()
                     .id(id)
@@ -199,13 +199,13 @@ public abstract class CommonIOHandler implements main.network_io.interfaces.Sock
 
             this.addOutput(arg);
         }
-
-        String debugString = debugger.batchDebugEnd();
-        if (debugString.isEmpty()) {
-            return;
-        }
+//
+//        String debugString = debugger.batchDebugEnd();
+//        if (debugString.isEmpty()) {
+//            return;
+//        }
         // TODO prints packets
-        this.logger.info("Receiving: " + debugString);
+//        this.logger.info("Receiving: " + debugString);
     }
 
     private void sendData(@NotNull SocketDataEventArg arg) {
@@ -213,11 +213,11 @@ public abstract class CommonIOHandler implements main.network_io.interfaces.Sock
         SelectionKey key = this.keyMap.inverse().get(arg.getId());
         this.addOutput(key);
 
-        String debugString = debugger.debugDataEventArg(arg);
-        if (debugString.isEmpty()) {
-            return;
-        }
-        this.logger.info("Sending: " + debugString);
+//        String debugString = debugger.debugDataEventArg(arg);
+//        if (debugString.isEmpty()) {
+//            return;
+//        }
+//        this.logger.info("Sending: " + debugString);
     }
 
     private void onDisconnect(@NotNull ConnectionId id) {
