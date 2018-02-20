@@ -1,5 +1,6 @@
 package middleware;
 
+import org.jetbrains.annotations.NotNull;
 import utils.ConnectionId;
 import utils.PacketBuffer;
 import utils.SenderType;
@@ -8,6 +9,7 @@ import utils.events.SocketDataEventArg;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Queue;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class MiddlewareManager {
@@ -16,11 +18,13 @@ public class MiddlewareManager {
     private Queue<SocketDataEventArg> outputBuffer;
     private HashMap<ConnectionId, ArrayList<ProxyMiddleware>> connectionMiddleware;
     private boolean isMainControllerAlive = true;
+    private LinkedBlockingDeque<SocketDataEventArg> errors;
 
     public MiddlewareManager() {
         registeredMiddleware = new ArrayList<>();
         inputBuffer = new PacketBuffer();
         outputBuffer = new LinkedBlockingQueue<>();
+        errors = new LinkedBlockingDeque<>();
         connectionMiddleware = new HashMap<>();
     }
 
@@ -77,7 +81,6 @@ public class MiddlewareManager {
         // In case the main controller is dead, pass the packets
         // of the backup controller, which is now manages as ControllerRegion not ReplicaRegion
         if (middlewares.isEmpty() || !isMainControllerAlive) {
-            System.out.println("Passing over middleware, Controller Alive:");
             // Consume the packet queue
             while (!packetQueue.isEmpty()) {
                 SocketDataEventArg p = packetQueue.poll();
@@ -101,12 +104,22 @@ public class MiddlewareManager {
                 stageOutput = processByMiddleware(stageOutput, middleware);
             }
 
-            if (middleware.hasError()) {
-                throw new IllegalStateException();
+            while (middleware.hasError()) {
+                // TODO report to mediator
+                errors.add(middleware.getError());
             }
         }
 
         return stageOutput;
+    }
+
+    public boolean hasError() {
+        return !this.errors.isEmpty();
+    }
+
+    @NotNull
+    public SocketDataEventArg getError() {
+        return this.errors.poll();
     }
 
     private Queue<SocketDataEventArg> processByMiddleware(final Queue<SocketDataEventArg> inputPackets,

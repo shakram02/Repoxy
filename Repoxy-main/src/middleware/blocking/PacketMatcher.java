@@ -24,7 +24,7 @@ import java.util.logging.Logger;
  * Note that matched replicated packets are dropped
  */
 public class PacketMatcher extends ProxyMiddleware {
-    private static int DEFAULT_TIMEOUT_MILLIS = 1000;
+    private static int DEFAULT_TIMEOUT_MILLIS = 10;
     private final Logger logger = Logger.getLogger(PacketMatcher.class.getName());
     private LinkedBlockingQueue<SocketDataEventArg> waitingPackets;
     private final int millisThreshold;
@@ -51,7 +51,6 @@ public class PacketMatcher extends ProxyMiddleware {
                 this.output.add(packet);
             }
         }
-
         sweepUnmatched();
     }
 
@@ -87,7 +86,6 @@ public class PacketMatcher extends ProxyMiddleware {
 
         this.error.add(timedOutPacket);
         this.logger.warning("Packet timed out:" + timedOutPacket + " Delta:" + delta);
-        throw new IllegalStateException("Error in packet matching");
     }
 
     public int countUnmatched() {

@@ -126,6 +126,15 @@ public class ProxyMediator implements Closeable, SocketEventObserver {
             ArrayList<SocketEventArguments> controllerIoEvents = this.readControllerIoEvents();
             notifyAndProcessEvents(controllerIoEvents);
 
+            if (middlewareManager.hasError() && this.controllerHandlers.size() > 1) {
+                // TODO check this for validity
+                this.logger.severe("Elevating secondary controller, anomaly detected!!!");
+                while (middlewareManager.hasError()) {
+                    this.logger.warning("Error:" + this.middlewareManager.getError());
+                }
+                elevateSecondaryController();
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
             throw new IllegalStateException(e);
