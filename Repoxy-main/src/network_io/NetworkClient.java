@@ -57,6 +57,11 @@ public class NetworkClient implements Closeable {
         if (isWriting.compareAndSet(false, true)) writeNext();
     }
 
+    public void writeRaw(byte[] bytes) {
+        ByteBuffer wb = ByteBuffer.wrap(bytes);
+        channel.write(wb, wb, writeHandler);
+    }
+
     private void writeNext() {
         if (toWrite.isEmpty()) return;
 
