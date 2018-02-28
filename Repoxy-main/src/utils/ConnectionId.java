@@ -22,6 +22,7 @@ public abstract class ConnectionId {
     public static ConnectionId CreateForTesting(int id) {
         ConnectionId falseId = utils.ImmutableConnectionId.builder().build();
         falseId.id = id;
+        MAX_ID--;
         return falseId;
     }
 
