@@ -25,6 +25,7 @@ public class NetworkServer extends CommonNioHandler implements Closeable {
     private AsynchronousServerSocketChannel channel;
     private CompletionHandler<AsynchronousSocketChannel, Void> handler;
     private final Logger logger;
+    private final Object keymapLock = new Object();
 
     NetworkServer(@NotNull String address, int port) {
         super(SenderType.SwitchesRegion);
@@ -48,7 +49,10 @@ public class NetworkServer extends CommonNioHandler implements Closeable {
             NetworkClient networkClient = new NetworkClient(id, clientChannel, super::onData);
 
             int localPort = ((InetSocketAddress) channel.getLocalAddress()).getPort();
-            this.keyMap.put(networkClient, id);
+
+            synchronized (keymapLock) {
+                this.keyMap.put(networkClient, id);
+            }
 
             this.logger.info("[" + this.selfType + "] ConnId [" + id + "] -> " + localPort + " On controller");
 
