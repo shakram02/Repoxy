@@ -1,7 +1,12 @@
 # Repoxy
-It's a special type of a proxy server that aims to make multiple controllers manage a single SDN network to increase reliability of the network. This way the SDN network can still operate if its main controller failed (given that tehre's at least one other controller attached to Repoxy) without any need to sync the network state.
+The first proxy server enabling **multiple controllers** in one SDN network :sparkles:
 
-The task that seems to be easy but this is absolutely not true as there are some protocol details that need to be handled. Some of the problems are packet synchronization (since packets from controllers might arrive at different times) and xid synchronization for each OpnFlow conversation.
+Repoxy allows multiple OpenFlow (OF) SDN controllers to manage a single SDN network. Targeting increased reliability of the network, making the SDN network able to operate if its main controller fails without any need to sync the network state. (given that tehre's at least one other controller attached to Repoxy)
+
+### Technical challenges
+- Some OF protocol details needed to be handled
+- Packets from controllers might arrive at different times with a different xid field for each OpnFlow conversation for each controller
+- OF Packet Fabrication after Xid modification
 
 This project is implmented for  [this](https://ieeexplore.ieee.org/document/8455887/) paper, published in IEEE TrustCom2018.
 
