@@ -24,7 +24,7 @@ import java.util.logging.Logger;
  * Note that matched replicated packets are dropped
  */
 public class PacketMatcher extends ProxyMiddleware {
-    private static int DEFAULT_TIMEOUT_MILLIS = 10;
+    private static int DEFAULT_TIMEOUT_MILLIS = 350;    // Packet delay threshold to mark anomalies
     private final Logger logger = Logger.getLogger(PacketMatcher.class.getName());
     private LinkedBlockingQueue<SocketDataEventArg> waitingPackets;
     private final int millisThreshold;
