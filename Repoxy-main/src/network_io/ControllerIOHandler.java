@@ -153,9 +153,11 @@ public class ControllerIOHandler extends CommonIOHandler {
         if (this.address.equals(controllerChangeArg.getIp()) &&
                 this.port == controllerChangeArg.getPort()) {
             this.logger.info(String.format("[%d] Set to main controller", this.port));
+            // Set this instance of ControllerIOHandler as the main controller
             this.selfType = SenderType.ControllerRegion;
         } else {
             this.logger.info(String.format("[%d] Set to secondary controller", this.port));
+            // Set this instance of ControllerIOHandler as the secondary controller
             this.selfType = SenderType.ReplicaRegion;
         }
     }
