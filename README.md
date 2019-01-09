@@ -31,7 +31,6 @@ Before modifying the xid we must be sure that the state of the packets is synced
 
 #### Development Tips
 - I used [IntelliJ](https://www.jetbrains.com/idea/download/) IDEA for developing the project. There's a free version available and it makes things much easier
-- After cloning the repo, hit the build button on the top right ![build_button](img/build_btn.jpg)
 - Right click on the `Main` class from the right pane ![right_pane](img/right_pane.jpg) <br> then select `Run Main.main()` if you want to use the GUI interface, do the same for `GuiMain` in `user-interface` module <br>![user_interface_module](img/user_interface_module.jpg)
 - Tests were done using `pox`controller and `mininet` network simulator
 - don't forget to mark the `generated` directory as generated sources in the IDE 
