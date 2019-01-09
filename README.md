@@ -30,12 +30,17 @@ Before modifying the xid we must be sure that the state of the packets is synced
 
 
 #### Development Tips
-- I used [IntelliJ](https://www.jetbrains.com/idea/download/) IDEA for developing the project. There's a free version available and it makes things much easier
-- Right click on the `Main` class from the right pane ![right_pane](img/right_pane.jpg) <br> then select `Run Main.main()` if you want to use the GUI interface, do the same for `GuiMain` in `user-interface` module <br>![user_interface_module](img/user_interface_module.jpg)
+- I used [IntelliJ](https://www.jetbrains.com/idea/download/) IDEA for developing the project. There's a free version available and it makes things much easier (Intellij is so nice that they provide a free community edition)
+- Right click on the `Main` class from the right pane then select `Run Main.main()`
+
+![right_pane](img/right_pane.jpg) 
+
+- If you want to use the GUI interface, do the same for `GuiMain` in `user-interface` module <br>![user_interface_module](img/user_interface_module.jpg)
+
 - Tests were done using `pox`controller and `mininet` network simulator
-- don't forget to mark the `generated` directory as generated sources in the IDE 
+
 - Test automation scripts are [here](https://github.com/shakram02/Repoxy-Scripts)
-  - During my tests, I used 3 machines 2 of them are virtual, I placed the network simulated using mininet and Repoxy on my PC and hosted one controller on a VM. The test scripts simulate somoe scenarios and tries to make things more straight forward since switching between multiple VMs to make sure that everything starts on time was very boring to me.
+  - During my tests, I used the host and 2 VMs, I placed the network simulated using mininet and Repoxy on my PC and hosted one controller on a VM. The test scripts simulate somoe scenarios and tries to make things more straight forward since switching between multiple VMs to make sure that everything starts on time was very boring to me.
 
 #### Testing
 - Start the two controllers and obtain their IPs and Port numbers
