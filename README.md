@@ -31,6 +31,7 @@ Before modifying the xid we must be sure that the state of the packets is synced
 
 #### Development Tips
 - I used [IntelliJ](https://www.jetbrains.com/idea/download/) IDEA for developing the project. There's a free version available and it makes things much easier (Intellij is so nice that they provide a free community edition)
+- Make sure you have `java8+` and `javafx` installed on your systen
 - Right click on the `Main` class from the right pane then select `Run Main.main()`
 
 ![right_pane](img/right_pane.jpg) 
